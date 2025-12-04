@@ -10,8 +10,14 @@
     "title": "Shibuya Crossing at Night",
     "description": "The iconic intersection comes alive with neon lights and urban energy",
     "location": "Tokyo, Japan",
-    "tags": ["urban", "night", "cityscape"],
-    "collections": ["tokyo-streets"],
+    "tags": [
+      "urban",
+      "night",
+      "cityscape"
+    ],
+    "collections": [
+      "tokyo-streets"
+    ],
     "featured": true,
     "capturedAt": "2024-03-15T19:30:00Z",
     "exif": {
@@ -34,8 +40,14 @@
     "title": "Contemplative Portrait",
     "description": "A study in natural light and emotion",
     "location": "Studio, New York",
-    "tags": ["portrait", "studio", "people"],
-    "collections": ["portraits"],
+    "tags": [
+      "portrait",
+      "studio",
+      "people"
+    ],
+    "collections": [
+      "portraits"
+    ],
     "featured": false,
     "capturedAt": "2024-02-20T14:00:00Z",
     "exif": {
@@ -58,8 +70,14 @@
     "title": "Mountain Peaks at Dawn",
     "description": "First light touches the alpine landscape",
     "location": "Swiss Alps, Switzerland",
-    "tags": ["landscape", "mountains", "nature"],
-    "collections": ["landscapes"],
+    "tags": [
+      "landscape",
+      "mountains",
+      "nature"
+    ],
+    "collections": [
+      "landscapes"
+    ],
     "featured": true,
     "capturedAt": "2024-01-10T06:30:00Z",
     "exif": {
@@ -82,8 +100,14 @@
     "title": "Minimalist Architecture",
     "description": "Clean lines and geometric perfection",
     "location": "Copenhagen, Denmark",
-    "tags": ["architecture", "minimal", "urban"],
-    "collections": ["architecture"],
+    "tags": [
+      "architecture",
+      "minimal",
+      "urban"
+    ],
+    "collections": [
+      "architecture"
+    ],
     "featured": false,
     "capturedAt": "2024-03-05T11:00:00Z",
     "exif": {
@@ -106,8 +130,14 @@
     "title": "Traditional Alley",
     "description": "Walking through the historic streets of old Tokyo",
     "location": "Asakusa, Tokyo",
-    "tags": ["street", "traditional", "urban"],
-    "collections": ["tokyo-streets"],
+    "tags": [
+      "street",
+      "traditional",
+      "urban"
+    ],
+    "collections": [
+      "tokyo-streets"
+    ],
     "featured": false,
     "capturedAt": "2024-03-14T15:00:00Z",
     "exif": {
@@ -130,8 +160,14 @@
     "title": "Urban Portrait",
     "description": "Street style in the heart of the city",
     "location": "Brooklyn, New York",
-    "tags": ["portrait", "urban", "street"],
-    "collections": ["portraits"],
+    "tags": [
+      "portrait",
+      "urban",
+      "street"
+    ],
+    "collections": [
+      "portraits"
+    ],
     "featured": true,
     "capturedAt": "2024-02-25T16:00:00Z",
     "exif": {
@@ -154,8 +190,14 @@
     "title": "Starry Night Over Mountains",
     "description": "The Milky Way rises above the peaks",
     "location": "Dolomites, Italy",
-    "tags": ["landscape", "night", "stars"],
-    "collections": ["landscapes"],
+    "tags": [
+      "landscape",
+      "night",
+      "stars"
+    ],
+    "collections": [
+      "landscapes"
+    ],
     "featured": false,
     "capturedAt": "2024-01-20T22:00:00Z",
     "exif": {
@@ -178,8 +220,14 @@
     "title": "Misty Mountain Lake",
     "description": "Ethereal morning fog over calm waters",
     "location": "Lake District, UK",
-    "tags": ["landscape", "water", "nature"],
-    "collections": ["landscapes"],
+    "tags": [
+      "landscape",
+      "water",
+      "nature"
+    ],
+    "collections": [
+      "landscapes"
+    ],
     "featured": false,
     "capturedAt": "2024-01-15T07:00:00Z",
     "exif": {
@@ -202,8 +250,14 @@
     "title": "Sunset Over the City",
     "description": "Golden hour paints the skyline",
     "location": "Los Angeles, USA",
-    "tags": ["cityscape", "sunset", "urban"],
-    "collections": ["architecture"],
+    "tags": [
+      "cityscape",
+      "sunset",
+      "urban"
+    ],
+    "collections": [
+      "architecture"
+    ],
     "featured": false,
     "capturedAt": "2024-02-10T18:30:00Z",
     "exif": {
@@ -226,8 +280,14 @@
     "title": "Fashion Portrait",
     "description": "Editorial style meets street photography",
     "location": "Paris, France",
-    "tags": ["portrait", "fashion", "editorial"],
-    "collections": ["portraits"],
+    "tags": [
+      "portrait",
+      "fashion",
+      "editorial"
+    ],
+    "collections": [
+      "portraits"
+    ],
     "featured": false,
     "capturedAt": "2024-02-28T13:00:00Z",
     "exif": {
@@ -250,8 +310,14 @@
     "title": "Neon Night Streets",
     "description": "Vibrant colors illuminate the evening",
     "location": "Shinjuku, Tokyo",
-    "tags": ["night", "neon", "urban"],
-    "collections": ["tokyo-streets"],
+    "tags": [
+      "night",
+      "neon",
+      "urban"
+    ],
+    "collections": [
+      "tokyo-streets"
+    ],
     "featured": true,
     "capturedAt": "2024-03-16T20:00:00Z",
     "exif": {
@@ -274,8 +340,14 @@
     "title": "Modern Glass Building",
     "description": "Reflections and transparency in contemporary design",
     "location": "Singapore",
-    "tags": ["architecture", "modern", "glass"],
-    "collections": ["architecture"],
+    "tags": [
+      "architecture",
+      "modern",
+      "glass"
+    ],
+    "collections": [
+      "architecture"
+    ],
     "featured": false,
     "capturedAt": "2024-03-01T12:00:00Z",
     "exif": {
@@ -298,8 +370,14 @@
     "title": "Alpine Meadow",
     "description": "Wildflowers bloom in high altitude",
     "location": "Austrian Alps",
-    "tags": ["landscape", "flowers", "mountains"],
-    "collections": ["landscapes"],
+    "tags": [
+      "landscape",
+      "flowers",
+      "mountains"
+    ],
+    "collections": [
+      "landscapes"
+    ],
     "featured": false,
     "capturedAt": "2024-01-25T10:00:00Z",
     "exif": {
@@ -322,8 +400,14 @@
     "title": "Candid Moment",
     "description": "Capturing authentic emotion",
     "location": "London, UK",
-    "tags": ["portrait", "candid", "people"],
-    "collections": ["portraits"],
+    "tags": [
+      "portrait",
+      "candid",
+      "people"
+    ],
+    "collections": [
+      "portraits"
+    ],
     "featured": false,
     "capturedAt": "2024-02-15T14:30:00Z",
     "exif": {
@@ -346,7 +430,11 @@
     "title": "Concert Lights",
     "description": "Energy and atmosphere of live music",
     "location": "Madison Square Garden, NYC",
-    "tags": ["concert", "music", "night"],
+    "tags": [
+      "concert",
+      "music",
+      "night"
+    ],
     "collections": [],
     "featured": false,
     "capturedAt": "2024-03-08T21:00:00Z",
@@ -358,5 +446,1055 @@
       "iso": 5000
     },
     "createdAt": "2024-03-09T10:00:00Z"
+  },
+  {
+    "id": "16",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400",
+      "medium": "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1200",
+      "full": "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=2400"
+    },
+    "aspectRatio": 1.5,
+    "title": "Golden Hour Architecture",
+    "description": "A stunning capture of golden hour architecture",
+    "location": "Tokyo, Japan",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "architecture"
+    ],
+    "featured": true,
+    "capturedAt": "2024-01-01T12:00:00Z",
+    "exif": {
+      "camera": "Sony A7R IV",
+      "lens": "Sony FE 24-70mm f/2.8 GM",
+      "aperture": "f/2.8",
+      "shutter": "1/125s",
+      "iso": 100
+    },
+    "createdAt": "2024-01-02T10:00:00Z"
+  },
+  {
+    "id": "17",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400",
+      "medium": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200",
+      "full": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=2400"
+    },
+    "aspectRatio": 1.33,
+    "title": "Urban Reflections",
+    "description": "A stunning capture of urban reflections",
+    "location": "New York, USA",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "architecture"
+    ],
+    "featured": false,
+    "capturedAt": "2024-02-02T12:00:00Z",
+    "exif": {
+      "camera": "Canon EOS R5",
+      "lens": "Canon RF 50mm f/1.2L",
+      "aperture": "f/3.1999999999999997",
+      "shutter": "1/250s",
+      "iso": 300
+    },
+    "createdAt": "2024-02-03T10:00:00Z"
+  },
+  {
+    "id": "18",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=400",
+      "medium": "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=1200",
+      "full": "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=2400"
+    },
+    "aspectRatio": 0.67,
+    "title": "Mountain Vista",
+    "description": "A stunning capture of mountain vista",
+    "location": "Paris, France",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "landscapes"
+    ],
+    "featured": false,
+    "capturedAt": "2024-03-03T12:00:00Z",
+    "exif": {
+      "camera": "Nikon Z9",
+      "lens": "Nikkor Z 14-24mm f/2.8 S",
+      "aperture": "f/3.5999999999999996",
+      "shutter": "1/375s",
+      "iso": 500
+    },
+    "createdAt": "2024-03-04T10:00:00Z"
+  },
+  {
+    "id": "19",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=400",
+      "medium": "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1200",
+      "full": "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=2400"
+    },
+    "aspectRatio": 0.75,
+    "title": "Beach Sunrise",
+    "description": "A stunning capture of beach sunrise",
+    "location": "London, UK",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "landscapes"
+    ],
+    "featured": false,
+    "capturedAt": "2024-01-04T12:00:00Z",
+    "exif": {
+      "camera": "Fujifilm X-T5",
+      "lens": "XF 16-55mm f/2.8",
+      "aperture": "f/4",
+      "shutter": "1/500s",
+      "iso": 700
+    },
+    "createdAt": "2024-01-05T10:00:00Z"
+  },
+  {
+    "id": "20",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=400",
+      "medium": "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=1200",
+      "full": "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=2400"
+    },
+    "aspectRatio": 0.8,
+    "title": "Forest Path",
+    "description": "A stunning capture of forest path",
+    "location": "Sydney, Australia",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "landscapes"
+    ],
+    "featured": false,
+    "capturedAt": "2024-02-05T12:00:00Z",
+    "exif": {
+      "camera": "Leica Q2",
+      "lens": "Summilux 28mm f/1.7",
+      "aperture": "f/2.8",
+      "shutter": "1/125s",
+      "iso": 900
+    },
+    "createdAt": "2024-02-06T10:00:00Z"
+  },
+  {
+    "id": "21",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1485470733090-0aae1788d5af?w=400",
+      "medium": "https://images.unsplash.com/photo-1485470733090-0aae1788d5af?w=1200",
+      "full": "https://images.unsplash.com/photo-1485470733090-0aae1788d5af?w=2400"
+    },
+    "aspectRatio": 1.2,
+    "title": "Desert Landscape",
+    "description": "A stunning capture of desert landscape",
+    "location": "Berlin, Germany",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "landscapes"
+    ],
+    "featured": false,
+    "capturedAt": "2024-03-06T12:00:00Z",
+    "exif": {
+      "camera": "Sony A7R IV",
+      "lens": "Sony FE 24-70mm f/2.8 GM",
+      "aperture": "f/3.1999999999999997",
+      "shutter": "1/250s",
+      "iso": 1100
+    },
+    "createdAt": "2024-03-07T10:00:00Z"
+  },
+  {
+    "id": "22",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1446034295857-c39f8844fad4?w=400",
+      "medium": "https://images.unsplash.com/photo-1446034295857-c39f8844fad4?w=1200",
+      "full": "https://images.unsplash.com/photo-1446034295857-c39f8844fad4?w=2400"
+    },
+    "aspectRatio": 1.4,
+    "title": "Ocean Waves",
+    "description": "A stunning capture of ocean waves",
+    "location": "Amsterdam, Netherlands",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "landscapes"
+    ],
+    "featured": false,
+    "capturedAt": "2024-01-07T12:00:00Z",
+    "exif": {
+      "camera": "Canon EOS R5",
+      "lens": "Canon RF 50mm f/1.2L",
+      "aperture": "f/3.5999999999999996",
+      "shutter": "1/375s",
+      "iso": 1300
+    },
+    "createdAt": "2024-01-08T10:00:00Z"
+  },
+  {
+    "id": "23",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400",
+      "medium": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200",
+      "full": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=2400"
+    },
+    "aspectRatio": 1.6,
+    "title": "Autumn Colors",
+    "description": "A stunning capture of autumn colors",
+    "location": "Barcelona, Spain",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "landscapes"
+    ],
+    "featured": true,
+    "capturedAt": "2024-02-08T12:00:00Z",
+    "exif": {
+      "camera": "Nikon Z9",
+      "lens": "Nikkor Z 14-24mm f/2.8 S",
+      "aperture": "f/4",
+      "shutter": "1/500s",
+      "iso": 1500
+    },
+    "createdAt": "2024-02-09T10:00:00Z"
+  },
+  {
+    "id": "24",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1433838552652-f9a46b332c40?w=400",
+      "medium": "https://images.unsplash.com/photo-1433838552652-f9a46b332c40?w=1200",
+      "full": "https://images.unsplash.com/photo-1433838552652-f9a46b332c40?w=2400"
+    },
+    "aspectRatio": 1.77,
+    "title": "Coastal Cliffs",
+    "description": "A stunning capture of coastal cliffs",
+    "location": "Seoul, South Korea",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "landscapes"
+    ],
+    "featured": false,
+    "capturedAt": "2024-03-09T12:00:00Z",
+    "exif": {
+      "camera": "Fujifilm X-T5",
+      "lens": "XF 16-55mm f/2.8",
+      "aperture": "f/2.8",
+      "shutter": "1/125s",
+      "iso": 100
+    },
+    "createdAt": "2024-03-10T10:00:00Z"
+  },
+  {
+    "id": "25",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=400",
+      "medium": "https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=1200",
+      "full": "https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=2400"
+    },
+    "aspectRatio": 0.9,
+    "title": "Winter Wonderland",
+    "description": "A stunning capture of winter wonderland",
+    "location": "Bangkok, Thailand",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "landscapes"
+    ],
+    "featured": false,
+    "capturedAt": "2024-01-10T12:00:00Z",
+    "exif": {
+      "camera": "Leica Q2",
+      "lens": "Summilux 28mm f/1.7",
+      "aperture": "f/3.1999999999999997",
+      "shutter": "1/250s",
+      "iso": 300
+    },
+    "createdAt": "2024-01-11T10:00:00Z"
+  },
+  {
+    "id": "26",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1470770903676-69b98201ea1c?w=400",
+      "medium": "https://images.unsplash.com/photo-1470770903676-69b98201ea1c?w=1200",
+      "full": "https://images.unsplash.com/photo-1470770903676-69b98201ea1c?w=2400"
+    },
+    "aspectRatio": 1.5,
+    "title": "Cherry Blossoms",
+    "description": "A stunning capture of cherry blossoms",
+    "location": "Rome, Italy",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "tokyo-streets"
+    ],
+    "featured": false,
+    "capturedAt": "2024-02-11T12:00:00Z",
+    "exif": {
+      "camera": "Sony A7R IV",
+      "lens": "Sony FE 24-70mm f/2.8 GM",
+      "aperture": "f/3.5999999999999996",
+      "shutter": "1/375s",
+      "iso": 500
+    },
+    "createdAt": "2024-02-12T10:00:00Z"
+  },
+  {
+    "id": "27",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1472396961693-142e6e269027?w=400",
+      "medium": "https://images.unsplash.com/photo-1472396961693-142e6e269027?w=1200",
+      "full": "https://images.unsplash.com/photo-1472396961693-142e6e269027?w=2400"
+    },
+    "aspectRatio": 1.33,
+    "title": "Urban Jungle",
+    "description": "A stunning capture of urban jungle",
+    "location": "Istanbul, Turkey",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "architecture"
+    ],
+    "featured": false,
+    "capturedAt": "2024-03-12T12:00:00Z",
+    "exif": {
+      "camera": "Canon EOS R5",
+      "lens": "Canon RF 50mm f/1.2L",
+      "aperture": "f/4",
+      "shutter": "1/500s",
+      "iso": 700
+    },
+    "createdAt": "2024-03-13T10:00:00Z"
+  },
+  {
+    "id": "28",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1501630834273-4b5604d2ee31?w=400",
+      "medium": "https://images.unsplash.com/photo-1501630834273-4b5604d2ee31?w=1200",
+      "full": "https://images.unsplash.com/photo-1501630834273-4b5604d2ee31?w=2400"
+    },
+    "aspectRatio": 0.67,
+    "title": "Industrial Beauty",
+    "description": "A stunning capture of industrial beauty",
+    "location": "Dubai, UAE",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "architecture"
+    ],
+    "featured": false,
+    "capturedAt": "2024-01-13T12:00:00Z",
+    "exif": {
+      "camera": "Nikon Z9",
+      "lens": "Nikkor Z 14-24mm f/2.8 S",
+      "aperture": "f/2.8",
+      "shutter": "1/125s",
+      "iso": 900
+    },
+    "createdAt": "2024-01-14T10:00:00Z"
+  },
+  {
+    "id": "29",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?w=400",
+      "medium": "https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?w=1200",
+      "full": "https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?w=2400"
+    },
+    "aspectRatio": 0.75,
+    "title": "Street Art",
+    "description": "A stunning capture of street art",
+    "location": "Singapore",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "tokyo-streets"
+    ],
+    "featured": false,
+    "capturedAt": "2024-02-14T12:00:00Z",
+    "exif": {
+      "camera": "Fujifilm X-T5",
+      "lens": "XF 16-55mm f/2.8",
+      "aperture": "f/3.1999999999999997",
+      "shutter": "1/250s",
+      "iso": 1100
+    },
+    "createdAt": "2024-02-15T10:00:00Z"
+  },
+  {
+    "id": "30",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1501436513145-30f24e19fcc8?w=400",
+      "medium": "https://images.unsplash.com/photo-1501436513145-30f24e19fcc8?w=1200",
+      "full": "https://images.unsplash.com/photo-1501436513145-30f24e19fcc8?w=2400"
+    },
+    "aspectRatio": 0.8,
+    "title": "City Lights",
+    "description": "A stunning capture of city lights",
+    "location": "Hong Kong",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "architecture"
+    ],
+    "featured": true,
+    "capturedAt": "2024-03-15T12:00:00Z",
+    "exif": {
+      "camera": "Leica Q2",
+      "lens": "Summilux 28mm f/1.7",
+      "aperture": "f/3.5999999999999996",
+      "shutter": "1/375s",
+      "iso": 1300
+    },
+    "createdAt": "2024-03-16T10:00:00Z"
+  },
+  {
+    "id": "31",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=400",
+      "medium": "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=1200",
+      "full": "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=2400"
+    },
+    "aspectRatio": 1.2,
+    "title": "Rainy Day",
+    "description": "A stunning capture of rainy day",
+    "location": "Toronto, Canada",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "tokyo-streets"
+    ],
+    "featured": false,
+    "capturedAt": "2024-01-16T12:00:00Z",
+    "exif": {
+      "camera": "Sony A7R IV",
+      "lens": "Sony FE 24-70mm f/2.8 GM",
+      "aperture": "f/4",
+      "shutter": "1/500s",
+      "iso": 1500
+    },
+    "createdAt": "2024-01-17T10:00:00Z"
+  },
+  {
+    "id": "32",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?w=400",
+      "medium": "https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?w=1200",
+      "full": "https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?w=2400"
+    },
+    "aspectRatio": 1.4,
+    "title": "Market Street",
+    "description": "A stunning capture of market street",
+    "location": "Stockholm, Sweden",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "tokyo-streets"
+    ],
+    "featured": false,
+    "capturedAt": "2024-02-17T12:00:00Z",
+    "exif": {
+      "camera": "Canon EOS R5",
+      "lens": "Canon RF 50mm f/1.2L",
+      "aperture": "f/2.8",
+      "shutter": "1/125s",
+      "iso": 100
+    },
+    "createdAt": "2024-02-18T10:00:00Z"
+  },
+  {
+    "id": "33",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1511884642898-4c92249e20b6?w=400",
+      "medium": "https://images.unsplash.com/photo-1511884642898-4c92249e20b6?w=1200",
+      "full": "https://images.unsplash.com/photo-1511884642898-4c92249e20b6?w=2400"
+    },
+    "aspectRatio": 1.6,
+    "title": "Rooftop View",
+    "description": "A stunning capture of rooftop view",
+    "location": "Prague, Czech Republic",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "architecture"
+    ],
+    "featured": false,
+    "capturedAt": "2024-03-18T12:00:00Z",
+    "exif": {
+      "camera": "Nikon Z9",
+      "lens": "Nikkor Z 14-24mm f/2.8 S",
+      "aperture": "f/3.1999999999999997",
+      "shutter": "1/250s",
+      "iso": 300
+    },
+    "createdAt": "2024-03-19T10:00:00Z"
+  },
+  {
+    "id": "34",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400",
+      "medium": "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=1200",
+      "full": "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=2400"
+    },
+    "aspectRatio": 1.77,
+    "title": "Subway Station",
+    "description": "A stunning capture of subway station",
+    "location": "Vienna, Austria",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "tokyo-streets"
+    ],
+    "featured": false,
+    "capturedAt": "2024-01-19T12:00:00Z",
+    "exif": {
+      "camera": "Fujifilm X-T5",
+      "lens": "XF 16-55mm f/2.8",
+      "aperture": "f/3.5999999999999996",
+      "shutter": "1/375s",
+      "iso": 500
+    },
+    "createdAt": "2024-01-20T10:00:00Z"
+  },
+  {
+    "id": "35",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=400",
+      "medium": "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=1200",
+      "full": "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=2400"
+    },
+    "aspectRatio": 0.9,
+    "title": "Cafe Culture",
+    "description": "A stunning capture of cafe culture",
+    "location": "Copenhagen, Denmark",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "portraits"
+    ],
+    "featured": false,
+    "capturedAt": "2024-02-20T12:00:00Z",
+    "exif": {
+      "camera": "Leica Q2",
+      "lens": "Summilux 28mm f/1.7",
+      "aperture": "f/4",
+      "shutter": "1/500s",
+      "iso": 700
+    },
+    "createdAt": "2024-02-21T10:00:00Z"
+  },
+  {
+    "id": "36",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1523438097201-512ae7d59c44?w=400",
+      "medium": "https://images.unsplash.com/photo-1523438097201-512ae7d59c44?w=1200",
+      "full": "https://images.unsplash.com/photo-1523438097201-512ae7d59c44?w=2400"
+    },
+    "aspectRatio": 1.5,
+    "title": "Artistic Expression",
+    "description": "A stunning capture of artistic expression",
+    "location": "Melbourne, Australia",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "architecture"
+    ],
+    "featured": false,
+    "capturedAt": "2024-03-21T12:00:00Z",
+    "exif": {
+      "camera": "Sony A7R IV",
+      "lens": "Sony FE 24-70mm f/2.8 GM",
+      "aperture": "f/2.8",
+      "shutter": "1/125s",
+      "iso": 900
+    },
+    "createdAt": "2024-03-22T10:00:00Z"
+  },
+  {
+    "id": "37",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1502899576159-f224dc2349fa?w=400",
+      "medium": "https://images.unsplash.com/photo-1502899576159-f224dc2349fa?w=1200",
+      "full": "https://images.unsplash.com/photo-1502899576159-f224dc2349fa?w=2400"
+    },
+    "aspectRatio": 1.33,
+    "title": "Night Photography",
+    "description": "A stunning capture of night photography",
+    "location": "Lisbon, Portugal",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "tokyo-streets"
+    ],
+    "featured": true,
+    "capturedAt": "2024-01-22T12:00:00Z",
+    "exif": {
+      "camera": "Canon EOS R5",
+      "lens": "Canon RF 50mm f/1.2L",
+      "aperture": "f/3.1999999999999997",
+      "shutter": "1/250s",
+      "iso": 1100
+    },
+    "createdAt": "2024-01-23T10:00:00Z"
+  },
+  {
+    "id": "38",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1496147539180-68b33a6593c3?w=400",
+      "medium": "https://images.unsplash.com/photo-1496147539180-68b33a6593c3?w=1200",
+      "full": "https://images.unsplash.com/photo-1496147539180-68b33a6593c3?w=2400"
+    },
+    "aspectRatio": 0.67,
+    "title": "Architectural Detail",
+    "description": "A stunning capture of architectural detail",
+    "location": "Athens, Greece",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "architecture"
+    ],
+    "featured": false,
+    "capturedAt": "2024-02-23T12:00:00Z",
+    "exif": {
+      "camera": "Nikon Z9",
+      "lens": "Nikkor Z 14-24mm f/2.8 S",
+      "aperture": "f/3.5999999999999996",
+      "shutter": "1/375s",
+      "iso": 1300
+    },
+    "createdAt": "2024-02-24T10:00:00Z"
+  },
+  {
+    "id": "39",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1501250987900-211872d97eaa?w=400",
+      "medium": "https://images.unsplash.com/photo-1501250987900-211872d97eaa?w=1200",
+      "full": "https://images.unsplash.com/photo-1501250987900-211872d97eaa?w=2400"
+    },
+    "aspectRatio": 0.75,
+    "title": "Nature Close-up",
+    "description": "A stunning capture of nature close-up",
+    "location": "Budapest, Hungary",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "landscapes"
+    ],
+    "featured": false,
+    "capturedAt": "2024-03-24T12:00:00Z",
+    "exif": {
+      "camera": "Fujifilm X-T5",
+      "lens": "XF 16-55mm f/2.8",
+      "aperture": "f/4",
+      "shutter": "1/500s",
+      "iso": 1500
+    },
+    "createdAt": "2024-03-25T10:00:00Z"
+  },
+  {
+    "id": "40",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1505765050516-f72dcac9c60e?w=400",
+      "medium": "https://images.unsplash.com/photo-1505765050516-f72dcac9c60e?w=1200",
+      "full": "https://images.unsplash.com/photo-1505765050516-f72dcac9c60e?w=2400"
+    },
+    "aspectRatio": 0.8,
+    "title": "Street Musician",
+    "description": "A stunning capture of street musician",
+    "location": "Oslo, Norway",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "portraits"
+    ],
+    "featured": false,
+    "capturedAt": "2024-01-25T12:00:00Z",
+    "exif": {
+      "camera": "Leica Q2",
+      "lens": "Summilux 28mm f/1.7",
+      "aperture": "f/2.8",
+      "shutter": "1/125s",
+      "iso": 100
+    },
+    "createdAt": "2024-01-26T10:00:00Z"
+  },
+  {
+    "id": "41",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1511988617509-a57c8a288659?w=400",
+      "medium": "https://images.unsplash.com/photo-1511988617509-a57c8a288659?w=1200",
+      "full": "https://images.unsplash.com/photo-1511988617509-a57c8a288659?w=2400"
+    },
+    "aspectRatio": 1.2,
+    "title": "Cultural Festival",
+    "description": "A stunning capture of cultural festival",
+    "location": "Helsinki, Finland",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "tokyo-streets"
+    ],
+    "featured": false,
+    "capturedAt": "2024-02-26T12:00:00Z",
+    "exif": {
+      "camera": "Sony A7R IV",
+      "lens": "Sony FE 24-70mm f/2.8 GM",
+      "aperture": "f/3.1999999999999997",
+      "shutter": "1/250s",
+      "iso": 300
+    },
+    "createdAt": "2024-02-27T10:00:00Z"
+  },
+  {
+    "id": "42",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1520016642626-51772e69d20a?w=400",
+      "medium": "https://images.unsplash.com/photo-1520016642626-51772e69d20a?w=1200",
+      "full": "https://images.unsplash.com/photo-1520016642626-51772e69d20a?w=2400"
+    },
+    "aspectRatio": 1.4,
+    "title": "Urban Wildlife",
+    "description": "A stunning capture of urban wildlife",
+    "location": "Reykjavik, Iceland",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "landscapes"
+    ],
+    "featured": false,
+    "capturedAt": "2024-03-27T12:00:00Z",
+    "exif": {
+      "camera": "Canon EOS R5",
+      "lens": "Canon RF 50mm f/1.2L",
+      "aperture": "f/3.5999999999999996",
+      "shutter": "1/375s",
+      "iso": 500
+    },
+    "createdAt": "2024-03-28T10:00:00Z"
+  },
+  {
+    "id": "43",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
+      "medium": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200",
+      "full": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=2400"
+    },
+    "aspectRatio": 1.6,
+    "title": "Environmental Portrait",
+    "description": "A stunning capture of environmental portrait",
+    "location": "Edinburgh, Scotland",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "portraits"
+    ],
+    "featured": false,
+    "capturedAt": "2024-01-28T12:00:00Z",
+    "exif": {
+      "camera": "Nikon Z9",
+      "lens": "Nikkor Z 14-24mm f/2.8 S",
+      "aperture": "f/4",
+      "shutter": "1/500s",
+      "iso": 700
+    },
+    "createdAt": "2024-01-29T10:00:00Z"
+  },
+  {
+    "id": "44",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400",
+      "medium": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1200",
+      "full": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=2400"
+    },
+    "aspectRatio": 1.77,
+    "title": "Fashion Street Style",
+    "description": "A stunning capture of fashion street style",
+    "location": "Dublin, Ireland",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "portraits"
+    ],
+    "featured": true,
+    "capturedAt": "2024-02-01T12:00:00Z",
+    "exif": {
+      "camera": "Fujifilm X-T5",
+      "lens": "XF 16-55mm f/2.8",
+      "aperture": "f/2.8",
+      "shutter": "1/125s",
+      "iso": 900
+    },
+    "createdAt": "2024-02-02T10:00:00Z"
+  },
+  {
+    "id": "45",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1517849845537-4d257902454a?w=400",
+      "medium": "https://images.unsplash.com/photo-1517849845537-4d257902454a?w=1200",
+      "full": "https://images.unsplash.com/photo-1517849845537-4d257902454a?w=2400"
+    },
+    "aspectRatio": 0.9,
+    "title": "Abstract Composition",
+    "description": "A stunning capture of abstract composition",
+    "location": "Zurich, Switzerland",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "architecture"
+    ],
+    "featured": false,
+    "capturedAt": "2024-03-02T12:00:00Z",
+    "exif": {
+      "camera": "Leica Q2",
+      "lens": "Summilux 28mm f/1.7",
+      "aperture": "f/3.1999999999999997",
+      "shutter": "1/250s",
+      "iso": 1100
+    },
+    "createdAt": "2024-03-03T10:00:00Z"
+  },
+  {
+    "id": "46",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?w=400",
+      "medium": "https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?w=1200",
+      "full": "https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?w=2400"
+    },
+    "aspectRatio": 1.5,
+    "title": "Geometric Patterns",
+    "description": "A stunning capture of geometric patterns",
+    "location": "Brussels, Belgium",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "architecture"
+    ],
+    "featured": false,
+    "capturedAt": "2024-01-03T12:00:00Z",
+    "exif": {
+      "camera": "Sony A7R IV",
+      "lens": "Sony FE 24-70mm f/2.8 GM",
+      "aperture": "f/3.5999999999999996",
+      "shutter": "1/375s",
+      "iso": 1300
+    },
+    "createdAt": "2024-01-04T10:00:00Z"
+  },
+  {
+    "id": "47",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400",
+      "medium": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=1200",
+      "full": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=2400"
+    },
+    "aspectRatio": 1.33,
+    "title": "Light and Shadow",
+    "description": "A stunning capture of light and shadow",
+    "location": "Warsaw, Poland",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "tokyo-streets"
+    ],
+    "featured": false,
+    "capturedAt": "2024-02-04T12:00:00Z",
+    "exif": {
+      "camera": "Canon EOS R5",
+      "lens": "Canon RF 50mm f/1.2L",
+      "aperture": "f/4",
+      "shutter": "1/500s",
+      "iso": 1500
+    },
+    "createdAt": "2024-02-05T10:00:00Z"
+  },
+  {
+    "id": "48",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400",
+      "medium": "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=1200",
+      "full": "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=2400"
+    },
+    "aspectRatio": 0.67,
+    "title": "Silhouette",
+    "description": "A stunning capture of silhouette",
+    "location": "Kyoto, Japan",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "portraits"
+    ],
+    "featured": false,
+    "capturedAt": "2024-03-05T12:00:00Z",
+    "exif": {
+      "camera": "Nikon Z9",
+      "lens": "Nikkor Z 14-24mm f/2.8 S",
+      "aperture": "f/2.8",
+      "shutter": "1/125s",
+      "iso": 100
+    },
+    "createdAt": "2024-03-06T10:00:00Z"
+  },
+  {
+    "id": "49",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400",
+      "medium": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1200",
+      "full": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=2400"
+    },
+    "aspectRatio": 0.75,
+    "title": "Moody Portrait",
+    "description": "A stunning capture of moody portrait",
+    "location": "Mumbai, India",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "portraits"
+    ],
+    "featured": false,
+    "capturedAt": "2024-01-06T12:00:00Z",
+    "exif": {
+      "camera": "Fujifilm X-T5",
+      "lens": "XF 16-55mm f/2.8",
+      "aperture": "f/3.1999999999999997",
+      "shutter": "1/250s",
+      "iso": 300
+    },
+    "createdAt": "2024-01-07T10:00:00Z"
+  },
+  {
+    "id": "50",
+    "src": {
+      "thumbnail": "https://images.unsplash.com/photo-1502489019804-54e3f2b4e6fd?w=400",
+      "medium": "https://images.unsplash.com/photo-1502489019804-54e3f2b4e6fd?w=1200",
+      "full": "https://images.unsplash.com/photo-1502489019804-54e3f2b4e6fd?w=2400"
+    },
+    "aspectRatio": 0.8,
+    "title": "Candid Street",
+    "description": "A stunning capture of candid street",
+    "location": "Shanghai, China",
+    "tags": [
+      "photography",
+      "art",
+      "creative"
+    ],
+    "collections": [
+      "tokyo-streets"
+    ],
+    "featured": false,
+    "capturedAt": "2024-02-07T12:00:00Z",
+    "exif": {
+      "camera": "Leica Q2",
+      "lens": "Summilux 28mm f/1.7",
+      "aperture": "f/3.5999999999999996",
+      "shutter": "1/375s",
+      "iso": 500
+    },
+    "createdAt": "2024-02-08T10:00:00Z"
   }
 ]
