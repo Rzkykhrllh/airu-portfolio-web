@@ -36,7 +36,7 @@ export default async function PhotoPage({ params }: PhotoPageProps) {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <Link
         href="/"
-        className="text-sm text-gray-400 hover:text-white transition-colors mb-8 inline-block"
+        className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-8 inline-block"
       >
         ← Back to Gallery
       </Link>
@@ -44,7 +44,7 @@ export default async function PhotoPage({ params }: PhotoPageProps) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
         {/* Photo */}
         <div className="lg:col-span-2">
-          <div className="relative w-full bg-gray-900 rounded-lg overflow-hidden">
+          <div className="relative w-full bg-gray-200 dark:bg-gray-900 rounded-lg overflow-hidden">
             <Image
               src={photo.src.full}
               alt={photo.title || 'Photo'}
@@ -60,7 +60,7 @@ export default async function PhotoPage({ params }: PhotoPageProps) {
             {prevPhoto ? (
               <Link
                 href={`/photo/${prevPhoto.id}`}
-                className="text-sm text-gray-400 hover:text-white transition-colors"
+                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
                 ← Previous
               </Link>
@@ -70,7 +70,7 @@ export default async function PhotoPage({ params }: PhotoPageProps) {
             {nextPhoto ? (
               <Link
                 href={`/photo/${nextPhoto.id}`}
-                className="text-sm text-gray-400 hover:text-white transition-colors"
+                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
                 Next →
               </Link>
@@ -86,7 +86,7 @@ export default async function PhotoPage({ params }: PhotoPageProps) {
             <div>
               <h1 className="text-3xl font-bold mb-2">{photo.title}</h1>
               {photo.featured && (
-                <span className="inline-flex items-center text-sm text-yellow-400">
+                <span className="inline-flex items-center text-sm text-yellow-500 dark:text-yellow-400">
                   <svg
                     className="w-4 h-4 mr-1"
                     fill="currentColor"
@@ -102,28 +102,28 @@ export default async function PhotoPage({ params }: PhotoPageProps) {
 
           {photo.description && (
             <div>
-              <h2 className="text-sm font-semibold text-gray-400 mb-2">
+              <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
                 DESCRIPTION
               </h2>
-              <p className="text-gray-300">{photo.description}</p>
+              <p className="text-gray-700 dark:text-gray-300">{photo.description}</p>
             </div>
           )}
 
           {photo.location && (
             <div>
-              <h2 className="text-sm font-semibold text-gray-400 mb-2">
+              <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
                 LOCATION
               </h2>
-              <p className="text-gray-300">{photo.location}</p>
+              <p className="text-gray-700 dark:text-gray-300">{photo.location}</p>
             </div>
           )}
 
           {photo.capturedAt && (
             <div>
-              <h2 className="text-sm font-semibold text-gray-400 mb-2">
+              <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
                 CAPTURED
               </h2>
-              <p className="text-gray-300">
+              <p className="text-gray-700 dark:text-gray-300">
                 {new Date(photo.capturedAt).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
@@ -135,10 +135,10 @@ export default async function PhotoPage({ params }: PhotoPageProps) {
 
           {photo.exif && (
             <div>
-              <h2 className="text-sm font-semibold text-gray-400 mb-2">
+              <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
                 CAMERA INFO
               </h2>
-              <div className="space-y-1 text-sm text-gray-300">
+              <div className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
                 {photo.exif.camera && <p>Camera: {photo.exif.camera}</p>}
                 {photo.exif.lens && <p>Lens: {photo.exif.lens}</p>}
                 {photo.exif.aperture && <p>Aperture: {photo.exif.aperture}</p>}
@@ -150,12 +150,12 @@ export default async function PhotoPage({ params }: PhotoPageProps) {
 
           {photo.tags.length > 0 && (
             <div>
-              <h2 className="text-sm font-semibold text-gray-400 mb-2">TAGS</h2>
+              <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">TAGS</h2>
               <div className="flex flex-wrap gap-2">
                 {photo.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="px-3 py-1 bg-gray-800 text-gray-300 text-sm rounded-full"
+                    className="px-3 py-1 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm rounded-full"
                   >
                     {tag}
                   </span>
@@ -166,7 +166,7 @@ export default async function PhotoPage({ params }: PhotoPageProps) {
 
           {photo.collections.length > 0 && (
             <div>
-              <h2 className="text-sm font-semibold text-gray-400 mb-2">
+              <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
                 COLLECTIONS
               </h2>
               <div className="space-y-2">
@@ -174,7 +174,7 @@ export default async function PhotoPage({ params }: PhotoPageProps) {
                   <Link
                     key={slug}
                     href={`/collections/${slug}`}
-                    className="block text-gray-300 hover:text-white transition-colors"
+                    className="block text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
                   >
                     {slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                   </Link>
