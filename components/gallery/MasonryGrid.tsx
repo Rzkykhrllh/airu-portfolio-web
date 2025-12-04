@@ -35,7 +35,7 @@ export default function MasonryGrid({ photos }: MasonryGridProps) {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="columns-1 md:columns-2 lg:columns-3 2xl:columns-4 gap-0 space-y-0"
+      className="columns-1 md:columns-2 lg:columns-3 gap-0 space-y-0"
     >
       {photos.map((photo, index) => (
         <motion.div
