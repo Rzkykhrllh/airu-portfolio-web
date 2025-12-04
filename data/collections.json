@@ -1,0 +1,30 @@
+[
+  {
+    "slug": "tokyo-streets",
+    "title": "Tokyo Streets",
+    "description": "Exploring the vibrant urban landscape of Tokyo, from neon-lit intersections to traditional alleyways",
+    "coverPhotoId": "1",
+    "photoCount": 3
+  },
+  {
+    "slug": "portraits",
+    "title": "Portraits",
+    "description": "A collection of portraits capturing authentic moments and emotions",
+    "coverPhotoId": "2",
+    "photoCount": 5
+  },
+  {
+    "slug": "landscapes",
+    "title": "Landscapes",
+    "description": "Natural beauty from mountains to misty lakes, showcasing the world's most breathtaking vistas",
+    "coverPhotoId": "3",
+    "photoCount": 5
+  },
+  {
+    "slug": "architecture",
+    "title": "Architecture",
+    "description": "Modern and minimalist architectural photography highlighting form, light, and structure",
+    "coverPhotoId": "4",
+    "photoCount": 3
+  }
+]
