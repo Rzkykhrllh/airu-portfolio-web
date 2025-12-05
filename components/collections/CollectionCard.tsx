@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -8,69 +7,57 @@ import { Collection, Photo } from '@/types';
 
 interface CollectionCardProps {
   collection: Collection;
-  coverPhoto: Photo;
+  photos: Photo[];
 }
 
 export default function CollectionCard({
   collection,
-  coverPhoto,
+  photos,
 }: CollectionCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
+  const mainPhoto = photos[0];
+  const sidePhotos = photos.slice(1, 3);
 
   return (
-    <Link href={`/collections/${collection.slug}`} className="block group">
+    <Link href={`/collections/${collection.slug}`} className="block">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
+        whileHover={{ y: -8 }}
         transition={{ duration: 0.3 }}
-        className="relative overflow-hidden bg-gray-900 aspect-[4/3]"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        className="space-y-4"
       >
-        <Image
-          src={coverPhoto.src.medium}
-          alt={collection.title}
-          fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
-        />
-
-        {/* Overlay */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isHovered ? 1 : 0 }}
-          transition={{ duration: 0.2 }}
-          className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent hidden md:flex items-end p-6"
-        >
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{
-              opacity: isHovered ? 1 : 0,
-              y: isHovered ? 0 : 10,
-            }}
-            transition={{ duration: 0.2, delay: 0.05 }}
-            className="text-white w-full"
-          >
-            <h3 className="text-xl font-bold mb-2">{collection.title}</h3>
-            {collection.description && (
-              <p className="text-sm text-gray-300 mb-3 line-clamp-2">
-                {collection.description}
-              </p>
-            )}
-            <p className="text-xs text-gray-400">
-              {collection.photoCount} {collection.photoCount === 1 ? 'photo' : 'photos'}
-            </p>
-          </motion.div>
-        </motion.div>
-
-        {/* Mobile overlay (always visible) */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent md:hidden flex items-end p-4">
-          <div className="text-white w-full">
-            <h3 className="text-lg font-bold mb-1">{collection.title}</h3>
-            <p className="text-xs text-gray-400">
-              {collection.photoCount} {collection.photoCount === 1 ? 'photo' : 'photos'}
-            </p>
+        {/* Image Grid */}
+        <div className="grid grid-cols-2 gap-1 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800">
+          {/* Main photo - left side, full height */}
+          <div className="relative row-span-2 aspect-square">
+            <Image
+              src={mainPhoto.src.medium}
+              alt={mainPhoto.title || collection.title}
+              fill
+              sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 20vw"
+              className="object-cover"
+            />
           </div>
+
+          {/* Side photos - right side, stacked */}
+          {sidePhotos.map((photo, index) => (
+            <div key={photo.id} className="relative aspect-square">
+              <Image
+                src={photo.src.medium}
+                alt={photo.title || collection.title}
+                fill
+                sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 20vw"
+                className="object-cover"
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Title */}
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white transition-colors line-clamp-2">
+            {collection.title}
+          </h3>
         </div>
       </motion.div>
     </Link>

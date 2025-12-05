@@ -6,12 +6,12 @@ import CollectionCard from './CollectionCard';
 
 interface CollectionGridProps {
   collections: Collection[];
-  coverPhotos: Photo[];
+  collectionPhotos: Map<string, Photo[]>;
 }
 
 export default function CollectionGrid({
   collections,
-  coverPhotos,
+  collectionPhotos,
 }: CollectionGridProps) {
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -39,17 +39,15 @@ export default function CollectionGrid({
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
     >
       {collections.map((collection) => {
-        const coverPhoto = coverPhotos.find(
-          (photo) => photo.id === collection.coverPhotoId
-        );
-        if (!coverPhoto) return null;
+        const photos = collectionPhotos.get(collection.slug) || [];
+        if (photos.length < 3) return null;
 
         return (
           <motion.div key={collection.slug} variants={itemVariants}>
-            <CollectionCard collection={collection} coverPhoto={coverPhoto} />
+            <CollectionCard collection={collection} photos={photos} />
           </motion.div>
         );
       })}
