@@ -74,7 +74,20 @@ export async function uploadPhoto(file: File, data: PhotoFormData): Promise<Phot
       full: URL.createObjectURL(file),
     },
     aspectRatio: 1.5,
-    ...data,
+    title: data.title,
+    description: data.description,
+    location: data.location,
+    tags: data.tags,
+    collections: data.collections,
+    featured: data.featured,
+    capturedAt: data.capturedAt,
+    exif: {
+      camera: data.exif.camera,
+      lens: data.exif.lens,
+      aperture: data.exif.aperture,
+      shutter: data.exif.shutter,
+      iso: parseInt(data.exif.iso, 10),
+    },
     createdAt: new Date().toISOString(),
   };
 
@@ -145,4 +158,9 @@ export async function removePhotoFromCollection(photoId: string, collectionSlug:
   await delay(300);
   // TODO: Replace with fetch(`/api/collections/${collectionSlug}/photos/${photoId}`, { method: 'DELETE' })
   console.log('Remove photo from collection', photoId, collectionSlug);
+}
+
+// Helper function to get photos by collection
+export async function getPhotosByCollection(slug: string): Promise<Photo[]> {
+  return getPhotos({ collection: slug });
 }
