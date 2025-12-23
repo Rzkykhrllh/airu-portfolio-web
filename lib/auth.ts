@@ -1,48 +1,74 @@
 'use client';
 
-import { User } from '@/types';
+import {User} from '@/types';
+import { apiFetch } from './fetch';
+import { API_ENDPOINTS, STORAGE_KEYS } from './config';
 
-const AUTH_STORAGE_KEY = 'admin_auth';
 
-// Simple auth helpers for MVP
-// TODO: Replace with proper JWT/session auth when backend is ready
+// Backend Login Response
+interface LoginResponse {
+  token: string,
+  user: {
+    id: string,
+    username: string,
 
-export function login(username: string, password: string): boolean {
-  // Get credentials from environment (for now, hardcoded for MVP)
-  const validUsername = process.env.NEXT_PUBLIC_ADMIN_USERNAME || 'admin';
-  const validPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'admin123';
-
-  if (username === validUsername && password === validPassword) {
-    const user: User = { username };
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
-    }
-    return true;
   }
-
-  return false;
 }
 
+// Login With username and Password
+export async function login(username: string, password: string): Promise<boolean>{
+  try{
+    const response = await apiFetch<LoginResponse>(API_ENDPOINTS.authentication.login, {
+      method: "post",
+      body: JSON.stringify({username, password})
+    });
+
+    // save token into local storage
+    if (typeof window !== undefined){
+      localStorage.setItem(STORAGE_KEYS.authToken, response.token)
+      localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(response.user))
+    }
+
+    return true
+  } catch(error){
+    console.log(error);
+    return false
+  }
+}
+
+// Log out
 export function logout(): void {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem(AUTH_STORAGE_KEY);
+  if (typeof window !== undefined){
+    localStorage.removeItem(STORAGE_KEYS.authToken);
+    localStorage.removeItem(STORAGE_KEYS.user);
   }
 }
 
+// Get User from local storage
 export function getUser(): User | null {
-  if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (stored) {
-      try {
-        return JSON.parse(stored);
-      } catch {
-        return null;
-      }
+ if (typeof window !== undefined){
+  const stored = localStorage.getItem(STORAGE_KEYS.user);
+
+  if (stored){
+    try{
+      return JSON.parse(stored)
+    } catch{
+      return null
     }
   }
-  return null;
+ }
+ return null
 }
 
-export function isAuthenticated(): boolean {
-  return getUser() !== null;
+// Check token validity
+export async function isValidToken(): Promise<boolean>{
+  try{
+    await apiFetch(API_ENDPOINTS.health.authenticated, {
+      method: "GET",
+    });
+    return true
+  } catch {
+    logout
+    return false
+  }
 }
