@@ -30,3 +30,44 @@ export type Collection = {
   coverPhotoId: string;
   photoCount: number;
 };
+
+// Admin-specific types
+export type PhotoFormData = {
+  title: string;
+  description: string;
+  location: string;
+  tags: string[];
+  collections: string[];
+  featured: boolean;
+  capturedAt: string;
+  exif: {
+    camera: string;
+    lens: string;
+    aperture: string;
+    shutter: string;
+    iso: string;
+  };
+};
+
+export type CollectionFormData = {
+  title: string;
+  slug: string;
+  description: string;
+  coverPhotoId: string;
+};
+
+export type User = {
+  username: string;
+};
+
+export type AuthState = {
+  isAuthenticated: boolean;
+  user: User | null;
+};
+
+export type PhotoFilters = {
+  collection?: string;
+  tags?: string[];
+  featured?: boolean;
+  search?: string;
+};
