@@ -70,4 +70,5 @@ export type PhotoFilters = {
   tags?: string[];
   featured?: boolean;
   search?: string;
+  limit?: number;
 };

@@ -1,8 +1,8 @@
 import { getAllPhotos } from '@/lib/data';
 import MasonryGrid from '@/components/gallery/MasonryGrid';
 
-export default function HomePage() {
-  const photos = getAllPhotos();
+export default async function HomePage() {
+  const photos = await getAllPhotos();
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

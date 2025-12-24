@@ -15,7 +15,7 @@ interface PhotoPageProps {
 }
 
 export async function generateStaticParams() {
-  const photos = getAllPhotos();
+  const photos = await getAllPhotos();
   return photos.map((photo) => ({
     id: photo.id,
   }));
@@ -23,14 +23,16 @@ export async function generateStaticParams() {
 
 export default async function PhotoPage({ params }: PhotoPageProps) {
   const { id } = await params;
-  const photo = getPhotoById(id);
+  const photo = await getPhotoById(id);
 
   if (!photo) {
     notFound();
   }
 
-  const nextPhoto = getNextPhoto(id);
-  const prevPhoto = getPreviousPhoto(id);
+  // console.log(photo);
+
+  // const nextPhoto = getNextPhoto(id);
+  // const prevPhoto = getPreviousPhoto(id);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -57,7 +59,7 @@ export default async function PhotoPage({ params }: PhotoPageProps) {
 
           {/* Navigation */}
           <div className="flex justify-between items-center mt-6">
-            {prevPhoto ? (
+            {/* {prevPhoto ? (
               <Link
                 href={`/photo/${prevPhoto.id}`}
                 className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
@@ -76,7 +78,7 @@ export default async function PhotoPage({ params }: PhotoPageProps) {
               </Link>
             ) : (
               <div />
-            )}
+            )} */}
           </div>
         </div>
 

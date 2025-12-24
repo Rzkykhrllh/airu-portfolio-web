@@ -1,7 +1,4 @@
-import { option } from "framer-motion/client";
 import { API_BASE_URL, STORAGE_KEYS } from "./config";
-import { json } from "stream/consumers";
-
 interface ApiResponse<T>{
   success: boolean;
   data?: T;
@@ -79,5 +76,5 @@ export async function uploadFetch<T>(
     throw new Error(errorMessage);
   }
 
-  return jsonResponse.data as 
+  return jsonResponse.data as T;
 }

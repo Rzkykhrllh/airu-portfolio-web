@@ -1,6 +1,6 @@
 import {Photo} from "@/types"
 
-interface BackendPhoto {
+export interface BackendPhoto {
   id: string;
   title: string;
   description?: string;
