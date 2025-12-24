@@ -1,33 +1,39 @@
-'use client';
+"use client";
 
-import { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
-import { login } from '@/lib/auth';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+import { useState, FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { login } from "@/lib/auth";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
 
-    // Simulate async auth
-    await new Promise(resolve => setTimeout(resolve, 500));
+    try {
+      const success = await login(username, password);
 
-    const success = login(username, password);
+      console.log("Login success:", success);
 
-    if (success) {
-      router.push('/admin/photos');
-    } else {
-      setError('Invalid username or password');
+      if (success) {
+        console.log("Berhasil Login gua anjeng");
+        router.push("/admin/photos");
+      } else {
+        setError("Invalid username or password");
+        setIsLoading(false);
+      }
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.");
       setIsLoading(false);
+      return;
     }
   };
 
@@ -43,7 +49,10 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6 bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
+        <form
+          onSubmit={handleSubmit}
+          className="mt-8 space-y-6 bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg"
+        >
           <div className="space-y-4">
             <Input
               label="Username"
@@ -77,7 +86,7 @@ export default function LoginPage() {
             disabled={isLoading}
             className="w-full"
           >
-            {isLoading ? 'Signing in...' : 'Sign In'}
+            {isLoading ? "Signing in..." : "Sign In"}
           </Button>
 
           <div className="text-center text-sm text-gray-500 dark:text-gray-400">
