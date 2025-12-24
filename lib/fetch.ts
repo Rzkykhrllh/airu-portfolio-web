@@ -1,4 +1,6 @@
+import { json } from "stream/consumers";
 import { API_BASE_URL, STORAGE_KEYS } from "./config";
+
 interface ApiResponse<T>{
   success: boolean;
   data?: T;
@@ -14,6 +16,7 @@ interface ApiResponse<T>{
     totalPages: number;
 }}
 
+// API Fetch for owner endpoints
 export async function apiFetch<T>
   (endpoint: string, options: RequestInit = {})
   : Promise<T> {
@@ -43,7 +46,7 @@ export async function apiFetch<T>
       throw new Error(errorMessage);
     }
 
-    return jsonResponse.data as T;
+    return jsonResponse.data as T ?? jsonResponse as T;
  }
 
 export async function uploadFetch<T>(
