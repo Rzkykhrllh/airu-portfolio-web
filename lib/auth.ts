@@ -7,11 +7,12 @@ import { API_ENDPOINTS, STORAGE_KEYS } from './config';
 
 // Backend Login Response
 interface LoginResponse {
+  success: boolean;
+  message?: string;
   token: string,
   user: {
     id: string,
     username: string,
-
   }
 }
 
@@ -22,9 +23,9 @@ export async function login(username: string, password: string): Promise<boolean
       method: "post",
       body: JSON.stringify({username, password})
     });
-
+    
     // save token into local storage
-    if (typeof window !== undefined){
+    if (typeof window !== 'undefined'){
       localStorage.setItem(STORAGE_KEYS.authToken, response.token)
       localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(response.user))
     }
@@ -38,7 +39,7 @@ export async function login(username: string, password: string): Promise<boolean
 
 // Log out
 export function logout(): void {
-  if (typeof window !== undefined){
+  if (typeof window !== 'undefined'){
     localStorage.removeItem(STORAGE_KEYS.authToken);
     localStorage.removeItem(STORAGE_KEYS.user);
   }
@@ -46,7 +47,7 @@ export function logout(): void {
 
 // Get User from local storage
 export function getUser(): User | null {
- if (typeof window !== undefined){
+ if (typeof window !== 'undefined'){
   const stored = localStorage.getItem(STORAGE_KEYS.user);
 
   if (stored){
@@ -61,14 +62,14 @@ export function getUser(): User | null {
 }
 
 // Check token validity
-export async function isValidToken(): Promise<boolean>{
+export async function isAuthenticated(): Promise<boolean>{
   try{
     await apiFetch(API_ENDPOINTS.health.authenticated, {
       method: "GET",
     });
     return true
   } catch {
-    logout
+    logout()
     return false
   }
 }

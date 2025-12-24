@@ -38,8 +38,6 @@ export async function getPhotos(filters?: PhotoFilters): Promise<Photo[]> {
 
   // Transform response data into frontend Photo type
   const photos = transformPhotos(response);
-  console.log('WOYY GUA BERHASIL FETCH KE BACKEND', photos.length);
-  console.log('is array?', Array.isArray(photos));
 
   // TODO: Add fe for searching photos by title or description
 
