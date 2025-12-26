@@ -85,6 +85,8 @@ export async function uploadPhoto(
     formData.append("exif", JSON.stringify(metadata.exif));
   }
 
+  console.log(metadata);
+
   const response = await uploadFetch<BackendPhoto>(
     API_ENDPOINTS.photos.create,
     formData
@@ -92,4 +94,10 @@ export async function uploadPhoto(
 
   // Return Transformed Photo
   return transformPhoto(response);
+}
+
+export async function deletePhoto(id: string): Promise<void> {
+  await apiFetch(API_ENDPOINTS.photos.delete(id), {
+    method: "DELETE",
+  });
 }
