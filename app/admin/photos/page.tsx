@@ -104,9 +104,9 @@ export default function AdminPhotosPage() {
         ) : (
           <>
             {view === 'grid' ? (
-              <PhotoGrid photos={photos} />
+              <PhotoGrid photos={photos} onPhotoDeleted={loadPhotos} />
             ) : (
-              <PhotoList photos={photos} />
+              <PhotoList photos={photos} onPhotoDeleted={loadPhotos} />
             )}
           </>
         )}
