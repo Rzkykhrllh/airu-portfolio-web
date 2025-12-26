@@ -7,8 +7,14 @@ import {
 } from "@/types";
 import { apiFetch, uploadFetch } from "./fetch";
 import { API_ENDPOINTS } from "./config";
-import { transformPhoto, transformPhotos, BackendPhoto } from "./transformers";
-import { form } from "framer-motion/client";
+import {
+  transformPhoto,
+  transformPhotos,
+  BackendPhoto,
+  transformCollection,
+  transformCollections,
+  BackendCollection,
+} from "./transformers";
 
 
 export async function getPhotos(filters?: PhotoFilters): Promise<Photo[]> {
@@ -132,23 +138,80 @@ export async function deletePhoto(id: string): Promise<void> {
   });
 }
 
-// Todo: COllection API. Now only empty function for avoiding errors in admin page  
+// ============ Collection API ============
+
 export async function getCollections(): Promise<Collection[]> {
-  return [];
+  const response = await apiFetch<BackendCollection[]>(
+    API_ENDPOINTS.collections.list
+  );
+
+  console.log("Collection response (before transform):", response);
+
+  return transformCollections(response);
 }
 
-export async function createCollection(data: CollectionFormData): Promise<Collection> {
-  throw new Error("Not implemented");
+export async function getCollection(slug: string): Promise<Collection | null> {
+  try {
+    const response = await apiFetch<BackendCollection>(
+      API_ENDPOINTS.collections.detail(slug)
+    );
+    return transformCollection(response);
+  } catch (error) {
+    console.error("Failed to fetch collection:", error);
+    return null;
+  }
+}
+
+export async function createCollection(
+  data: CollectionFormData
+): Promise<Collection> {
+  const payload = {
+    slug: data.slug,
+    name: data.title,
+    description: data.description,
+    coverPhotoId: data.coverPhotoId,
+  };
+
+  const response = await apiFetch<BackendCollection>(
+    API_ENDPOINTS.collections.create,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }
+  );
+
+  return transformCollection(response);
+}
+
+export async function updateCollection(
+  slug: string,
+  data: Partial<CollectionFormData>
+): Promise<Collection> {
+  const payload: Record<string, any> = {};
+
+  if (data.title !== undefined) payload.name = data.title;
+  if (data.slug !== undefined) payload.slug = data.slug;
+  if (data.description !== undefined) payload.description = data.description;
+  if (data.coverPhotoId !== undefined) payload.coverPhotoId = data.coverPhotoId;
+
+  const response = await apiFetch<BackendCollection>(
+    API_ENDPOINTS.collections.update(slug),
+    {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }
+  );
+
+  return transformCollection(response);
 }
 
 export async function deleteCollection(slug: string): Promise<void> {
-  throw new Error("Not implemented");
+  await apiFetch(API_ENDPOINTS.collections.delete(slug), {
+    method: "DELETE",
+  });
 }
 
-export async function updateCollection(slug: string, data: Partial<CollectionFormData>): Promise<Collection> {
-  throw new Error("Not implemented");
-}
-
-export async function getPhotosByCollection(): Promise<Collection[]> {
- throw new Error("Not implemented");
+// Get photos by collection slug
+export async function getPhotosByCollection(slug: string): Promise<Photo[]> {
+  return getPhotos({ collection: slug });
 }

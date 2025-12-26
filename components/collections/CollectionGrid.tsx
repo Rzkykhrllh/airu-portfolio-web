@@ -42,8 +42,8 @@ export default function CollectionGrid({
       className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
     >
       {collections.map((collection) => {
-        const photos = collectionPhotos.get(collection.slug) || [];
-        if (photos.length < 3) return null;
+        const photos = collection["photos"] || [];
+        // if (photos.length < 3) return null;
 
         return (
           <motion.div key={collection.slug} variants={itemVariants}>

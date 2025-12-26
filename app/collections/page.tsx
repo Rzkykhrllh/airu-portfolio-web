@@ -1,10 +1,11 @@
 import { getAllCollections, getPhotosByCollection } from '@/lib/data';
 import CollectionGrid from '@/components/collections/CollectionGrid';
+import { Photo } from '@/types';
 
 // Feature flag - set to true to hide collections feature
-const HIDE_COLLECTIONS = true;
+const HIDE_COLLECTIONS = false;
 
-export default function CollectionsPage() {
+export default async function CollectionsPage() {
   if (HIDE_COLLECTIONS) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black">
@@ -26,14 +27,8 @@ export default function CollectionsPage() {
     );
   }
 
-  const collections = getAllCollections();
-
-  // Get first 3 photos for each collection
-  const collectionPhotos = new Map();
-  collections.forEach((collection) => {
-    const photos = getPhotosByCollection(collection.slug).slice(0, 3);
-    collectionPhotos.set(collection.slug, photos);
-  });
+  const collections = await getAllCollections();
+  const collectionPhotos = new Map<string, Photo[]>();
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

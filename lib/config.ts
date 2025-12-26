@@ -10,6 +10,15 @@ export const API_ENDPOINTS = {
     update: (id: string) => `/photos/${id}`,
     delete: (id: string) => `/photos/${id}`,
   },
+  collections:{
+    list: "/collections",
+    detail: (slug: string) => `/collections/${slug}`,
+
+    // Private endpoints (owner only)
+    create: "/collections",
+    update: (slug: string) => `/collections/${slug}`,
+    delete: (slug: string) => `/collections/${slug}`,
+  },
   authentication:{
     login: "/auth/login",
     register: "/auth/register",
