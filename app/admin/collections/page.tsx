@@ -6,10 +6,35 @@ import Link from 'next/link';
 import Image from 'next/image';
 import AdminLayout from '@/components/admin/AdminLayout';
 import Button from '@/components/ui/Button';
-import { getCollections, deleteCollection, getPhoto } from '@/lib/api';
+import { getPhoto } from '@/lib/api';
 import { Collection } from '@/types';
 
+// Feature flag - set to true to hide admin collections
+const HIDE_ADMIN_COLLECTIONS = true;
+
 export default function AdminCollectionsPage() {
+  if (HIDE_ADMIN_COLLECTIONS) {
+    return (
+      <AdminLayout>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="text-center px-4">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              Coming Soon
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              Collections management is currently under development
+            </p>
+            <Link
+              href="/admin/photos"
+              className="inline-block px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-black rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
+            >
+              ← Back to Photos
+            </Link>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
   const router = useRouter();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -21,7 +46,9 @@ export default function AdminCollectionsPage() {
   const loadCollections = async () => {
     setIsLoading(true);
     try {
-      const data = await getCollections();
+      // TODO: Implement collection API
+      // const data = await getCollections();
+      const data: Collection[] = [];
       setCollections(data);
     } catch (error) {
       console.error('Failed to load collections:', error);
@@ -36,7 +63,8 @@ export default function AdminCollectionsPage() {
     }
 
     try {
-      await deleteCollection(slug);
+      // TODO: Implement collection API
+      // await deleteCollection(slug);
       alert('Collection deleted successfully!');
       loadCollections();
     } catch (error) {

@@ -40,16 +40,16 @@ export function getPhotosByIds(ids: string[]): Photo[] {
   return (photosData as Photo[]).filter((photo) => ids.includes(photo.id));
 }
 
-// export function getNextPhoto(currentId: string): Photo | null {
-//   const photos = getAllPhotos();
-//   const currentIndex = photos.findIndex((photo) => photo.id === currentId);
-//   if (currentIndex === -1 || currentIndex === photos.length - 1) return null;
-//   return photos[currentIndex + 1];
-// }
+export async function getNextPhoto(currentId: string): Promise<Photo | null> {
+  const photos = await getAllPhotos();
+  const currentIndex = photos.findIndex((photo) => photo.id === currentId);
+  if (currentIndex === -1 || currentIndex === photos.length - 1) return null;
+  return photos[currentIndex + 1];
+}
 
-// export function getPreviousPhoto(currentId: string): Photo | null {
-//   const photos = getAllPhotos();
-//   const currentIndex = photos.findIndex((photo) => photo.id === currentId);
-//   if (currentIndex === -1 || currentIndex === 0) return null;
-//   return photos[currentIndex - 1];
-// }
+export async function getPreviousPhoto(currentId: string): Promise<Photo | null> {
+  const photos = await getAllPhotos();
+  const currentIndex = photos.findIndex((photo) => photo.id === currentId);
+  if (currentIndex === -1 || currentIndex === 0) return null;
+  return photos[currentIndex - 1];
+}
