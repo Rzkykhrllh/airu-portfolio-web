@@ -96,6 +96,36 @@ export async function uploadPhoto(
   return transformPhoto(response);
 }
 
+export async function updatePhoto(
+  id: string,
+  data: Partial<PhotoFormData>
+): Promise<Photo>{
+
+  const payload : Record<string, any> = {};
+
+  if (data.title !== undefined) payload.title = data.title;
+  if (data.description !== undefined) payload.description = data.description;
+  if (data.location !== undefined) payload.location = data.location;
+  if (data.featured !== undefined) payload.featured = data.featured;
+  if (data.capturedAt !== undefined) payload.capturedAt = data.capturedAt;
+  if (data.tags && data.tags.length > 0) payload.tags = data.tags;
+  if (data.collections && data.collections.length > 0) payload.collectionsIds = data.collections;
+  if (data.exif !== undefined) payload.exif = data.exif;
+
+  const respone = await apiFetch<BackendPhoto>(
+    API_ENDPOINTS.photos.update(id),
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  return transformPhoto(respone);
+}
+
 export async function deletePhoto(id: string): Promise<void> {
   await apiFetch(API_ENDPOINTS.photos.delete(id), {
     method: "DELETE",
