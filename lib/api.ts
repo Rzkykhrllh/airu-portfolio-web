@@ -131,3 +131,24 @@ export async function deletePhoto(id: string): Promise<void> {
     method: "DELETE",
   });
 }
+
+// Todo: COllection API. Now only empty function for avoiding errors in admin page  
+export async function getCollections(): Promise<Collection[]> {
+  return [];
+}
+
+export async function createCollection(data: CollectionFormData): Promise<Collection> {
+  throw new Error("Not implemented");
+}
+
+export async function deleteCollection(slug: string): Promise<void> {
+  throw new Error("Not implemented");
+}
+
+export async function updateCollection(slug: string, data: Partial<CollectionFormData>): Promise<Collection> {
+  throw new Error("Not implemented");
+}
+
+export async function getPhotosByCollection(): Promise<Collection[]> {
+ throw new Error("Not implemented");
+}
