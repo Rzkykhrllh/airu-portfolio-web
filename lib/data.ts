@@ -1,7 +1,7 @@
 import { Photo, Collection } from '@/types';
 import photosData from '@/data/photos.json';
 import collectionsData from '@/data/collections.json';
-import { getPhotos, getPhoto } from './api';
+import { getPhotos, getPhoto, getCollections } from './api';
 
 export async function getAllPhotos(): Promise<Photo[]> {
   return await getPhotos();
@@ -26,12 +26,14 @@ export function getPhotosByCollection(slug: string): Photo[] {
   );
 }
 
-export function getAllCollections(): Collection[] {
-  return collectionsData as Collection[];
+export async function getAllCollections(): Promise<Collection[]> {
+  return await getCollections();
 }
 
-export function getCollectionBySlug(slug: string): Collection | undefined {
-  return (collectionsData as Collection[]).find(
+
+export async function getCollectionBySlug(slug: string): Promise<Collection | undefined> {
+  const collections = await getCollections();
+  return collections.find(
     (collection) => collection.slug === slug
   );
 }

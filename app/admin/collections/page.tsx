@@ -13,6 +13,11 @@ import { Collection } from '@/types';
 const HIDE_ADMIN_COLLECTIONS = true;
 
 export default function AdminCollectionsPage() {
+  // Hooks must be called before any early returns
+  const router = useRouter();
+  const [collections, setCollections] = useState<Collection[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   if (HIDE_ADMIN_COLLECTIONS) {
     return (
       <AdminLayout>
@@ -35,9 +40,6 @@ export default function AdminCollectionsPage() {
       </AdminLayout>
     );
   }
-  const router = useRouter();
-  const [collections, setCollections] = useState<Collection[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadCollections();

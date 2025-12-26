@@ -29,6 +29,7 @@ export type Collection = {
   description?: string;
   coverPhotoId: string;
   photoCount: number;
+  photos?: Photo[]; // Optional: included when fetching with photos relation
 };
 
 // Admin-specific types
