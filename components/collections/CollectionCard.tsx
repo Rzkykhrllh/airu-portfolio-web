@@ -17,8 +17,6 @@ export default function CollectionCard({
   const mainPhoto = photos[0];
   const sidePhotos = photos.slice(1, 3);
 
-  // console.log(mainPhoto);
-  // console.log(sidePhotos);
 
   return (
     <Link href={`/collections/${collection.slug}`} className="block">

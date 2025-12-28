@@ -2,13 +2,10 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import {
   getCollectionBySlug,
-  getPhotosByCollection,
   getAllCollections,
 } from '@/lib/data';
 import MasonryGrid from '@/components/gallery/MasonryGrid';
-
-// Feature flag - set to true to hide collections feature
-const HIDE_COLLECTIONS = true;
+import { Photo } from '@/types';
 
 interface CollectionPageProps {
   params: Promise<{
@@ -17,42 +14,23 @@ interface CollectionPageProps {
 }
 
 export async function generateStaticParams() {
-  const collections = getAllCollections();
+  const collections = await getAllCollections();
   return collections.map((collection) => ({
     slug: collection.slug,
   }));
 }
 
 export default async function CollectionPage({ params }: CollectionPageProps) {
-  if (HIDE_COLLECTIONS) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black">
-        <div className="text-center px-4">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-4">
-            Coming Soon
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
-            Collections feature is currently under development
-          </p>
-          <a
-            href="/"
-            className="inline-block px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-black rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
-          >
-            ← Back to Gallery
-          </a>
-        </div>
-      </div>
-    );
-  }
-
   const { slug } = await params;
-  const collection = getCollectionBySlug(slug);
+  const collection = await getCollectionBySlug(slug);
+  console.log(collection);
 
   if (!collection) {
     notFound();
   }
 
-  const photos = getPhotosByCollection(slug);
+  const photos: Photo[] = collection.photos ?? [];
+  console.log(photos);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
