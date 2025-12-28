@@ -16,7 +16,7 @@ export const API_ENDPOINTS = {
 
     // Private endpoints (owner only)
     create: "/collections",
-    update: (slug: string) => `/collections/${slug}`,
+    update: (slug: string) => `/collections/slug/${slug}`,
     delete: (slug: string) => `/collections/slug/${slug}`,
   },
   authentication:{
