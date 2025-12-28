@@ -8,11 +8,8 @@ import Link from "next/link";
 import AdminLayout from "@/components/admin/AdminLayout";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { updateCollection, getPhotos } from "@/lib/api";
+import { updateCollection, getPhotos, getCollection } from "@/lib/api";
 import { Collection, Photo } from "@/types";
-
-// Feature flag - set to true to hide admin collections
-const HIDE_ADMIN_COLLECTIONS = false;
 
 interface EditCollectionPageProps {
   params: Promise<{ slug: string }>;
@@ -21,28 +18,6 @@ interface EditCollectionPageProps {
 export default function EditCollectionPage({
   params,
 }: EditCollectionPageProps) {
-  if (HIDE_ADMIN_COLLECTIONS) {
-    return (
-      <AdminLayout>
-        <div className="min-h-[60vh] flex items-center justify-center">
-          <div className="text-center px-4">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              Coming Soon
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
-              Collections management is currently under development
-            </p>
-            <Link
-              href="/admin/photos"
-              className="inline-block px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-black rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
-            >
-              ← Back to Photos
-            </Link>
-          </div>
-        </div>
-      </AdminLayout>
-    );
-  }
   const router = useRouter();
   const { slug } = use(params);
 
@@ -64,25 +39,22 @@ export default function EditCollectionPage({
   const loadData = async () => {
     setIsLoading(true);
     try {
-      // TODO: Implement collection API
-      const [photosData, allPhotosData] = await Promise.all([
-        // getCollection(slug),
-        // getPhotosByCollection(slug),
-        getPhotos(),
+      // Fetch collection and all photos in parallel
+      const [collectionData, allPhotosData] = await Promise.all([
+        getCollection(slug),
         getPhotos(),
       ]);
 
-      const collectionData: Collection | null = null;
+      if (collectionData) {
+        setCollection(collectionData);
+        setTitle(collectionData.title);
+        setDescription(collectionData.description || "");
+        setCoverPhotoId(collectionData.coverPhotoId);
 
-      // TODO: Uncomment when collection API is ready
-      // if (collectionData) {
-      //   setCollection(collectionData);
-      //   setTitle(collectionData.title);
-      //   setDescription(collectionData.description || '');
-      //   setCoverPhotoId(collectionData.coverPhotoId);
-      // }
+        // Use photos from collection if available, otherwise empty array
+        setPhotos(collectionData.photos || []);
+      }
 
-      setPhotos(photosData);
       setAllPhotos(allPhotosData);
     } catch (error) {
       console.error("Failed to load collection:", error);
@@ -204,7 +176,7 @@ export default function EditCollectionPage({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {/* <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Cover Photo
                 </label>
                 {coverPhotoId && photos.find((p) => p.id === coverPhotoId) && (
@@ -219,8 +191,8 @@ export default function EditCollectionPage({
                       sizes="300px"
                     />
                   </div>
-                )}
-                <Button
+                )} */}
+                {/* <Button
                   type="button"
                   variant="secondary"
                   className="w-full text-sm"
@@ -228,7 +200,7 @@ export default function EditCollectionPage({
                   disabled={photos.length === 0}
                 >
                   Change Cover Photo
-                </Button>
+                </Button> */}
               </div>
             </form>
           </div>
@@ -240,14 +212,14 @@ export default function EditCollectionPage({
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Photos in Collection ({photos.length})
                 </h2>
-                <Button
+                {/* <Button
                   type="button"
                   variant="primary"
                   className="text-sm"
                   onClick={() => setShowPhotoModal(true)}
                 >
                   + Add Photos
-                </Button>
+                </Button> */}
               </div>
 
               {photos.length === 0 ? (
