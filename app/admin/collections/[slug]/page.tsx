@@ -12,7 +12,7 @@ import { updateCollection, getPhotos } from "@/lib/api";
 import { Collection, Photo } from "@/types";
 
 // Feature flag - set to true to hide admin collections
-const HIDE_ADMIN_COLLECTIONS = true;
+const HIDE_ADMIN_COLLECTIONS = false;
 
 interface EditCollectionPageProps {
   params: Promise<{ slug: string }>;
