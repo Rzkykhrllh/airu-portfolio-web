@@ -10,6 +10,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { updateCollection, getPhotos, getCollection } from "@/lib/api";
 import { Collection, Photo } from "@/types";
+import { useToast } from "@/components/providers/ToastProvider";
 
 interface EditCollectionPageProps {
   params: Promise<{ slug: string }>;
@@ -18,6 +19,7 @@ interface EditCollectionPageProps {
 export default function EditCollectionPage({
   params,
 }: EditCollectionPageProps) {
+  const toast = useToast();
   const router = useRouter();
   const { slug } = use(params);
 
@@ -75,11 +77,11 @@ export default function EditCollectionPage({
         coverPhotoId,
       });
 
-      alert("Collection updated successfully!");
+      toast.success("Collection updated successfully!");
       router.push("/admin/collections");
     } catch (error) {
       console.error("Failed to update collection:", error);
-      alert("Failed to update collection. Please try again.");
+      toast.error("Failed to update collection. Please try again.");
     } finally {
       setIsSaving(false);
     }

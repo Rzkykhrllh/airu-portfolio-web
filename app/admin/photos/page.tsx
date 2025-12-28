@@ -61,7 +61,8 @@ export default function AdminPhotosPage() {
           <div className="flex items-center gap-4">
             <ViewToggle view={view} onChange={setView} />
 
-            <div className="flex-1 max-w-md">
+            {/* Search - Hidden until implemented */}
+            {/* <div className="flex-1 max-w-md">
               <div className="flex gap-2">
                 <Input
                   placeholder="Search by title, location..."
@@ -73,7 +74,9 @@ export default function AdminPhotosPage() {
                   Search
                 </Button>
               </div>
-            </div>
+            </div> */}
+
+            <div className="flex-1" />
 
             <select
               className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"

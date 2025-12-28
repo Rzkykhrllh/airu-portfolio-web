@@ -11,6 +11,7 @@ import Input from '@/components/ui/Input';
 import TagInput from '@/components/admin/TagInput';
 import { getPhoto, updatePhoto, deletePhoto } from '@/lib/api';
 import { Photo } from '@/types';
+import { useToast } from '@/components/providers/ToastProvider';
 
 interface EditPhotoPageProps {
   params: Promise<{ id: string }>;
@@ -18,6 +19,7 @@ interface EditPhotoPageProps {
 
 export default function EditPhotoPage({ params }: EditPhotoPageProps) {
   const router = useRouter();
+  const toast = useToast();
   const { id } = use(params);
 
   const [photo, setPhoto] = useState<Photo | null>(null);
@@ -91,11 +93,11 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
         },
       });
 
-      alert('Photo updated successfully!');
+      toast.success('Photo updated successfully!');
       router.push('/admin/photos');
     } catch (error) {
       console.error('Failed to update photo:', error);
-      alert('Failed to update photo. Please try again.');
+      toast.error('Failed to update photo. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -109,11 +111,11 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
     setIsDeleting(true);
     try {
       await deletePhoto(id);
-      alert('Photo deleted successfully!');
+      toast.success('Photo deleted successfully!');
       router.push('/admin/photos');
     } catch (error) {
       console.error('Failed to delete photo:', error);
-      alert('Failed to delete photo. Please try again.');
+      toast.error('Failed to delete photo. Please try again.');
       setIsDeleting(false);
     }
   };
@@ -299,7 +301,7 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
                   placeholder="e.g. 24-70mm f/2.8"
                 />
 
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   <Input
                     label="Aperture"
                     value={aperture}

@@ -13,6 +13,7 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     // Set mounted state (only runs on client)
@@ -23,6 +24,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       router.push('/admin/login');
     }
   }, [router]);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const closeSidebar = () => {
+    setIsSidebarOpen(false);
+  };
 
   // Before mount: render same HTML on server and client
   // This prevents hydration mismatch
@@ -43,10 +52,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-black">
-      <AdminHeader />
+      <AdminHeader onMenuClick={toggleSidebar} />
       <div className="flex">
-        <AdminSidebar />
-        <main className="flex-1 p-8">
+        <AdminSidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
+        <main className="flex-1 p-4 md:p-8">
           {children}
         </main>
       </div>

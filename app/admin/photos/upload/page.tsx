@@ -9,9 +9,11 @@ import Input from '@/components/ui/Input';
 import TagInput from '@/components/admin/TagInput';
 import { uploadPhoto } from '@/lib/api';
 import { PhotoFormData } from '@/types';
+import { useToast } from '@/components/providers/ToastProvider';
 
 export default function UploadPhotoPage() {
   const router = useRouter();
+  const toast = useToast();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
@@ -85,12 +87,12 @@ export default function UploadPhotoPage() {
     e.preventDefault();
 
     if (!selectedFile) {
-      alert('Please select a file');
+      toast.error('Please select a file');
       return;
     }
 
     if (!formData.title.trim()) {
-      alert('Please enter a title');
+      toast.error('Please enter a title');
       return;
     }
 
@@ -98,11 +100,11 @@ export default function UploadPhotoPage() {
 
     try {
       await uploadPhoto(selectedFile, formData);
-      alert('Photo uploaded successfully!');
+      toast.success('Photo uploaded successfully!');
       router.push('/admin/photos');
     } catch (error) {
       console.error('Upload failed:', error);
-      alert('Upload failed. Please try again.');
+      toast.error('Upload failed. Please try again.');
     } finally {
       setIsUploading(false);
     }
