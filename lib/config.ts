@@ -12,7 +12,7 @@ export const API_ENDPOINTS = {
   },
   collections:{
     list: "/collections",
-    detail: (slug: string) => `/collections/${slug}`,
+    detail: (slug: string) => `/collections/slug/${slug}`,
 
     // Private endpoints (owner only)
     create: "/collections",

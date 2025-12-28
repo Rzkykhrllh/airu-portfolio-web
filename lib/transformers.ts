@@ -82,8 +82,7 @@ export interface BackendCollection {
 
 // Transform backend collection to frontend Collection type
 export function transformCollection(backendCollection: BackendCollection): Collection {
-  // console.log("🔍 transformCollection - backendCollection.photos:", backendCollection.photos);
-
+  
   return {
     slug: backendCollection.slug,
     title: backendCollection.name,
