@@ -1,12 +1,12 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import {
   getPhotoById,
   getAllPhotos,
   getNextPhoto,
   getPreviousPhoto,
 } from '@/lib/data';
+import PhotoDetailClientWrapper from '@/components/photo/PhotoDetailClientWrapper';
 
 interface PhotoPageProps {
   params: Promise<{
@@ -29,61 +29,63 @@ export default async function PhotoPage({ params }: PhotoPageProps) {
     notFound();
   }
 
+  const nextPhoto = await getNextPhoto(id);
+  const prevPhoto = await getPreviousPhoto(id);
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <Link
-        href="/"
-        className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-8 inline-block"
-      >
-        ← Back to Gallery
-      </Link>
+    <div className="min-h-screen">
+      {/* Hero Image Section */}
+      <div className="relative bg-gray-100 dark:bg-black">
+        {/* Top Navigation Bar */}
+        <div className="absolute top-0 left-0 right-0 z-10 px-4 sm:px-6 lg:px-8 py-6">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <Link
+              href="/"
+              className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors bg-white/80 dark:bg-black/80 backdrop-blur-sm px-4 py-2 rounded-full"
+            >
+              ← Gallery
+            </Link>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
-        {/* Photo */}
-        <div className="lg:col-span-2">
-          <div className="relative w-full bg-gray-200 dark:bg-gray-900 rounded-lg overflow-hidden">
-            <Image
-              src={photo.src.full}
-              alt={photo.title || 'Photo'}
-              width={1200}
-              height={1200 * photo.aspectRatio}
-              className="w-full h-auto"
-              priority
-            />
-          </div>
-
-          {/* Navigation */}
-          <div className="flex justify-between items-center mt-6">
-            {/* {prevPhoto ? (
-              <Link
-                href={`/photo/${prevPhoto.id}`}
-                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-              >
-                ← Previous
-              </Link>
-            ) : (
-              <div />
-            )}
-            {nextPhoto ? (
-              <Link
-                href={`/photo/${nextPhoto.id}`}
-                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-              >
-                Next →
-              </Link>
-            ) : (
-              <div />
-            )} */}
+            <div className="flex items-center gap-4">
+              {prevPhoto && (
+                <Link
+                  href={`/photo/${prevPhoto.id}`}
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors bg-white/80 dark:bg-black/80 backdrop-blur-sm px-4 py-2 rounded-full"
+                >
+                  ← Prev
+                </Link>
+              )}
+              {nextPhoto && (
+                <Link
+                  href={`/photo/${nextPhoto.id}`}
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors bg-white/80 dark:bg-black/80 backdrop-blur-sm px-4 py-2 rounded-full"
+                >
+                  Next →
+                </Link>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Metadata */}
-        <div className="space-y-6">
-          {photo.title && (
-            <div>
-              <h1 className="text-3xl font-bold mb-2">{photo.title}</h1>
+        {/* Hero Image with Lightbox */}
+        <PhotoDetailClientWrapper
+          photo={photo}
+          nextPhotoId={nextPhoto?.id}
+          prevPhotoId={prevPhoto?.id}
+        />
+      </div>
+
+      {/* Metadata Section */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
+        {/* Title & Featured Badge */}
+        {photo.title && (
+          <div className="border-b border-gray-200 dark:border-gray-800 pb-6">
+            <div className="flex items-start justify-between gap-4">
+              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white">
+                {photo.title}
+              </h1>
               {photo.featured && (
-                <span className="inline-flex items-center text-sm text-yellow-500 dark:text-yellow-400">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400">
                   <svg
                     className="w-4 h-4 mr-1"
                     fill="currentColor"
@@ -95,90 +97,186 @@ export default async function PhotoPage({ params }: PhotoPageProps) {
                 </span>
               )}
             </div>
-          )}
+          </div>
+        )}
 
-          {photo.description && (
-            <div>
-              <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
-                DESCRIPTION
-              </h2>
-              <p className="text-gray-700 dark:text-gray-300">{photo.description}</p>
-            </div>
-          )}
-
+        {/* Quick Info Bar */}
+        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
           {photo.location && (
-            <div>
-              <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
-                LOCATION
-              </h2>
-              <p className="text-gray-700 dark:text-gray-300">{photo.location}</p>
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span>{photo.location}</span>
             </div>
           )}
-
           {photo.capturedAt && (
-            <div>
-              <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
-                CAPTURED
-              </h2>
-              <p className="text-gray-700 dark:text-gray-300">
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span>
                 {new Date(photo.capturedAt).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
                 })}
-              </p>
+              </span>
             </div>
           )}
-
-          {photo.exif && (
-            <div>
-              <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
-                CAMERA INFO
-              </h2>
-              <div className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
-                {photo.exif.camera && <p>Camera: {photo.exif.camera}</p>}
-                {photo.exif.lens && <p>Lens: {photo.exif.lens}</p>}
-                {photo.exif.aperture && <p>Aperture: {photo.exif.aperture}</p>}
-                {photo.exif.shutter && <p>Shutter: {photo.exif.shutter}</p>}
-                {photo.exif.iso && <p>ISO: {photo.exif.iso}</p>}
-              </div>
+          {photo.exif?.camera && (
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span>{photo.exif.camera}</span>
             </div>
           )}
+        </div>
 
-          {photo.tags.length > 0 && (
-            <div>
-              <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">TAGS</h2>
-              <div className="flex flex-wrap gap-2">
-                {photo.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-3 py-1 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm rounded-full"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
+        {/* Description */}
+        {photo.description && (
+          <div className="prose dark:prose-invert max-w-none">
+            <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+              {photo.description}
+            </p>
+          </div>
+        )}
+
+        {/* EXIF Data - Collapsible */}
+        {photo.exif && (
+          <details className="group border border-gray-200 dark:border-gray-800 rounded-lg p-6">
+            <summary className="cursor-pointer font-semibold text-gray-900 dark:text-white flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Camera Settings
+              </span>
+              <svg className="w-5 h-5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </summary>
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              {photo.exif.camera && (
+                <div>
+                  <div className="text-gray-500 dark:text-gray-400 mb-1">Camera</div>
+                  <div className="font-medium text-gray-900 dark:text-white">{photo.exif.camera}</div>
+                </div>
+              )}
+              {photo.exif.lens && (
+                <div>
+                  <div className="text-gray-500 dark:text-gray-400 mb-1">Lens</div>
+                  <div className="font-medium text-gray-900 dark:text-white">{photo.exif.lens}</div>
+                </div>
+              )}
+              {photo.exif.aperture && (
+                <div>
+                  <div className="text-gray-500 dark:text-gray-400 mb-1">Aperture</div>
+                  <div className="font-medium text-gray-900 dark:text-white">{photo.exif.aperture}</div>
+                </div>
+              )}
+              {photo.exif.shutter && (
+                <div>
+                  <div className="text-gray-500 dark:text-gray-400 mb-1">Shutter</div>
+                  <div className="font-medium text-gray-900 dark:text-white">{photo.exif.shutter}</div>
+                </div>
+              )}
+              {photo.exif.iso && (
+                <div>
+                  <div className="text-gray-500 dark:text-gray-400 mb-1">ISO</div>
+                  <div className="font-medium text-gray-900 dark:text-white">{photo.exif.iso}</div>
+                </div>
+              )}
             </div>
-          )}
+          </details>
+        )}
 
-          {photo.collections.length > 0 && (
-            <div>
-              <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
-                COLLECTIONS
-              </h2>
-              <div className="space-y-2">
-                {photo.collections.map((slug) => (
-                  <Link
-                    key={slug}
-                    href={`/collections/${slug}`}
-                    className="block text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
-                  >
+        {/* Tags */}
+        {photo.tags.length > 0 && (
+          <div>
+            <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">
+              TAGS
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {photo.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Collections */}
+        {photo.collections.length > 0 && (
+          <div>
+            <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">
+              COLLECTIONS
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {photo.collections.map((slug) => (
+                <Link
+                  key={slug}
+                  href={`/collections/${slug}`}
+                  className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
+                >
+                  <svg className="w-5 h-5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                  <span className="font-medium text-gray-900 dark:text-white">
                     {slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                  </Link>
-                ))}
-              </div>
+                  </span>
+                </Link>
+              ))}
             </div>
-          )}
+          </div>
+        )}
+      </div>
+
+      {/* Bottom Navigation */}
+      <div className="border-t border-gray-200 dark:border-gray-800">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-between">
+            {prevPhoto ? (
+              <Link
+                href={`/photo/${prevPhoto.id}`}
+                className="group flex items-center gap-3 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                <div className="text-left">
+                  <div className="text-xs text-gray-500 dark:text-gray-500">Previous</div>
+                  <div className="font-medium">{prevPhoto.title || 'Untitled'}</div>
+                </div>
+              </Link>
+            ) : (
+              <div />
+            )}
+
+            {nextPhoto ? (
+              <Link
+                href={`/photo/${nextPhoto.id}`}
+                className="group flex items-center gap-3 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              >
+                <div className="text-right">
+                  <div className="text-xs text-gray-500 dark:text-gray-500">Next</div>
+                  <div className="font-medium">{nextPhoto.title || 'Untitled'}</div>
+                </div>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            ) : (
+              <div />
+            )}
+          </div>
         </div>
       </div>
     </div>
