@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useState, useEffect, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
-import { use } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import AdminLayout from '@/components/admin/AdminLayout';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import { updateCollection, getPhotos } from '@/lib/api';
-import { Collection, Photo } from '@/types';
+import { useState, useEffect, FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { use } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import AdminLayout from "@/components/admin/AdminLayout";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import { updateCollection, getPhotos } from "@/lib/api";
+import { Collection, Photo } from "@/types";
 
 // Feature flag - set to true to hide admin collections
 const HIDE_ADMIN_COLLECTIONS = true;
@@ -18,7 +18,9 @@ interface EditCollectionPageProps {
   params: Promise<{ slug: string }>;
 }
 
-export default function EditCollectionPage({ params }: EditCollectionPageProps) {
+export default function EditCollectionPage({
+  params,
+}: EditCollectionPageProps) {
   if (HIDE_ADMIN_COLLECTIONS) {
     return (
       <AdminLayout>
@@ -51,9 +53,9 @@ export default function EditCollectionPage({ params }: EditCollectionPageProps) 
   const [isSaving, setIsSaving] = useState(false);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [coverPhotoId, setCoverPhotoId] = useState('');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [coverPhotoId, setCoverPhotoId] = useState("");
 
   useEffect(() => {
     loadData();
@@ -83,7 +85,7 @@ export default function EditCollectionPage({ params }: EditCollectionPageProps) 
       setPhotos(photosData);
       setAllPhotos(allPhotosData);
     } catch (error) {
-      console.error('Failed to load collection:', error);
+      console.error("Failed to load collection:", error);
     } finally {
       setIsLoading(false);
     }
@@ -101,11 +103,11 @@ export default function EditCollectionPage({ params }: EditCollectionPageProps) 
         coverPhotoId,
       });
 
-      alert('Collection updated successfully!');
-      router.push('/admin/collections');
+      alert("Collection updated successfully!");
+      router.push("/admin/collections");
     } catch (error) {
-      console.error('Failed to update collection:', error);
-      alert('Failed to update collection. Please try again.');
+      console.error("Failed to update collection:", error);
+      alert("Failed to update collection. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -115,7 +117,9 @@ export default function EditCollectionPage({ params }: EditCollectionPageProps) 
     return (
       <AdminLayout>
         <div className="text-center py-12">
-          <p className="text-gray-500 dark:text-gray-400">Loading collection...</p>
+          <p className="text-gray-500 dark:text-gray-400">
+            Loading collection...
+          </p>
         </div>
       </AdminLayout>
     );
@@ -125,8 +129,13 @@ export default function EditCollectionPage({ params }: EditCollectionPageProps) 
     return (
       <AdminLayout>
         <div className="text-center py-12">
-          <p className="text-gray-500 dark:text-gray-400">Collection not found</p>
-          <Link href="/admin/collections" className="text-blue-600 hover:text-blue-700 mt-4 inline-block">
+          <p className="text-gray-500 dark:text-gray-400">
+            Collection not found
+          </p>
+          <Link
+            href="/admin/collections"
+            className="text-blue-600 hover:text-blue-700 mt-4 inline-block"
+          >
             ← Back to Collections
           </Link>
         </div>
@@ -156,14 +165,18 @@ export default function EditCollectionPage({ params }: EditCollectionPageProps) 
             variant="primary"
             disabled={isSaving}
           >
-            {isSaving ? 'Saving...' : 'Save'}
+            {isSaving ? "Saving..." : "Save"}
           </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Form */}
           <div className="lg:col-span-1">
-            <form id="collection-form" onSubmit={handleSubmit} className="space-y-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+            <form
+              id="collection-form"
+              onSubmit={handleSubmit}
+              className="space-y-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6"
+            >
               <Input
                 label="Title"
                 value={title}
@@ -194,10 +207,12 @@ export default function EditCollectionPage({ params }: EditCollectionPageProps) 
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Cover Photo
                 </label>
-                {coverPhotoId && photos.find(p => p.id === coverPhotoId) && (
+                {coverPhotoId && photos.find((p) => p.id === coverPhotoId) && (
                   <div className="relative aspect-video bg-gray-200 dark:bg-gray-900 rounded overflow-hidden mb-2">
                     <Image
-                      src={photos.find(p => p.id === coverPhotoId)!.src.medium}
+                      src={
+                        photos.find((p) => p.id === coverPhotoId)!.src.medium
+                      }
                       alt="Cover"
                       fill
                       className="object-cover"
@@ -237,7 +252,9 @@ export default function EditCollectionPage({ params }: EditCollectionPageProps) 
 
               {photos.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-500 dark:text-gray-400">No photos in this collection yet</p>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    No photos in this collection yet
+                  </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -246,7 +263,7 @@ export default function EditCollectionPage({ params }: EditCollectionPageProps) 
                       <div className="relative aspect-square bg-gray-200 dark:bg-gray-900 rounded overflow-hidden">
                         <Image
                           src={photo.src.medium}
-                          alt={photo.title || 'Photo'}
+                          alt={photo.title || "Photo"}
                           fill
                           className="object-cover"
                           sizes="200px"
@@ -256,12 +273,25 @@ export default function EditCollectionPage({ params }: EditCollectionPageProps) 
                         type="button"
                         className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => {
-                          console.log('Remove photo from collection:', photo.id);
+                          console.log(
+                            "Remove photo from collection:",
+                            photo.id
+                          );
                           // Remove photo logic here
                         }}
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -277,13 +307,25 @@ export default function EditCollectionPage({ params }: EditCollectionPageProps) 
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[80vh] overflow-y-auto p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Select Photos</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Select Photos
+                </h2>
                 <button
                   onClick={() => setShowPhotoModal(false)}
                   className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
@@ -301,7 +343,7 @@ export default function EditCollectionPage({ params }: EditCollectionPageProps) 
                   >
                     <Image
                       src={photo.src.thumbnail}
-                      alt={photo.title || 'Photo'}
+                      alt={photo.title || "Photo"}
                       fill
                       className="object-cover"
                       sizes="150px"

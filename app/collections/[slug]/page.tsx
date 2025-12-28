@@ -1,11 +1,8 @@
-import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import {
-  getCollectionBySlug,
-  getAllCollections,
-} from '@/lib/data';
-import MasonryGrid from '@/components/gallery/MasonryGrid';
-import { Photo } from '@/types';
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { getCollectionBySlug, getAllCollections } from "@/lib/data";
+import MasonryGrid from "@/components/gallery/MasonryGrid";
+import { Photo } from "@/types";
 
 interface CollectionPageProps {
   params: Promise<{
@@ -43,10 +40,12 @@ export default async function CollectionPage({ params }: CollectionPageProps) {
         </Link>
         <h1 className="text-4xl font-bold mb-2">{collection.title}</h1>
         {collection.description && (
-          <p className="text-gray-600 dark:text-gray-400 mb-4">{collection.description}</p>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            {collection.description}
+          </p>
         )}
         <p className="text-sm text-gray-500 dark:text-gray-500">
-          {photos.length} {photos.length === 1 ? 'photo' : 'photos'}
+          {photos.length} {photos.length === 1 ? "photo" : "photos"}
         </p>
       </div>
       <MasonryGrid photos={photos} />
