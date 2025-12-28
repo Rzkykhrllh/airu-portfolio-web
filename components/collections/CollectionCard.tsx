@@ -14,8 +14,9 @@ export default function CollectionCard({
   collection,
   photos,
 }: CollectionCardProps) {
-  const mainPhoto = photos[0];
-  const sidePhotos = photos.slice(1, 3);
+  // Use photos[0] as cover photo if available
+  const mainPhoto = photos?.[0];
+  const sidePhotos = photos?.slice(1, 3) || [];
 
 
   return (
@@ -31,27 +32,39 @@ export default function CollectionCard({
         <div className="grid grid-cols-2 gap-1 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800">
           {/* Main photo - left side, full height */}
           <div className="relative row-span-2 aspect-square">
-            <Image
-              src={mainPhoto.src.medium}
-              alt={mainPhoto.title || collection.title}
-              fill
-              sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 20vw"
-              className="object-cover"
-            />
-          </div>
-
-          {/* Side photos - right side, stacked */}
-          {sidePhotos.map((photo, index) => (
-            <div key={photo.id} className="relative aspect-square">
+            {mainPhoto ? (
               <Image
-                src={photo.src.medium}
-                alt={photo.title || collection.title}
+                src={mainPhoto.src.medium}
+                alt={mainPhoto.title || collection.title}
                 fill
                 sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 20vw"
                 className="object-cover"
               />
-            </div>
-          ))}
+            ) : (
+              <div className="w-full h-full bg-gray-300 dark:bg-gray-700" />
+            )}
+          </div>
+
+          {/* Side photos - right side, stacked */}
+          {sidePhotos.length > 0 ? (
+            sidePhotos.map((photo) => (
+              <div key={photo.id} className="relative aspect-square">
+                <Image
+                  src={photo.src.medium}
+                  alt={photo.title || collection.title}
+                  fill
+                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 20vw"
+                  className="object-cover"
+                />
+              </div>
+            ))
+          ) : (
+            // Placeholder divs to maintain grid layout
+            <>
+              <div className="relative aspect-square bg-gray-300 dark:bg-gray-700" />
+              <div className="relative aspect-square bg-gray-300 dark:bg-gray-700" />
+            </>
+          )}
         </div>
 
         {/* Title */}
