@@ -7,11 +7,11 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { createCollection } from '@/lib/api';
-
+import { useToast } from '@/components/providers/ToastProvider';
 
 export default function NewCollectionPage() {
-
   const router = useRouter();
+  const toast = useToast();
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
@@ -35,7 +35,7 @@ export default function NewCollectionPage() {
     e.preventDefault();
 
     if (!title || !slug) {
-      alert('Please fill in title and slug');
+      toast.error('Please fill in title and slug');
       return;
     }
 
@@ -49,11 +49,11 @@ export default function NewCollectionPage() {
         coverPhotoId: '1', // Default to first photo
       });
 
-      alert('Collection created successfully!');
+      toast.success('Collection created successfully!');
       router.push(`/admin/collections/${slug}`);
     } catch (error) {
       console.error('Failed to create collection:', error);
-      alert('Failed to create collection. Please try again.');
+      toast.error('Failed to create collection. Please try again.');
     } finally {
       setIsCreating(false);
     }

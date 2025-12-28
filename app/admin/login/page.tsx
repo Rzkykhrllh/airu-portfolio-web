@@ -21,10 +21,7 @@ export default function LoginPage() {
     try {
       const success = await login(username, password);
 
-      console.log("Login success:", success);
-
       if (success) {
-        console.log("Berhasil Login gua anjeng");
         router.push("/admin/photos");
       } else {
         setError("Invalid username or password");

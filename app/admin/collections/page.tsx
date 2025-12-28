@@ -8,10 +8,12 @@ import Button from "@/components/ui/Button";
 import { deleteCollection } from "@/lib/api";
 import { Collection } from "@/types";
 import { getAllCollections } from "@/lib/data";
+import { useToast } from "@/components/providers/ToastProvider";
 
 export default function AdminCollectionsPage() {
   // Hooks must be called before any early returns
   const router = useRouter();
+  const toast = useToast();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -42,11 +44,11 @@ export default function AdminCollectionsPage() {
 
     try {
       await deleteCollection(slug);
-      alert("Collection deleted successfully!");
+      toast.success("Collection deleted successfully!");
       loadCollections();
     } catch (error) {
       console.error("Failed to delete collection:", error);
-      alert("Failed to delete collection. Please try again.");
+      toast.error("Failed to delete collection. Please try again.");
     }
   };
 
