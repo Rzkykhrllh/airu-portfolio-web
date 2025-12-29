@@ -9,8 +9,8 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import TagInput from '@/components/admin/TagInput';
-import { getPhoto, updatePhoto, deletePhoto } from '@/lib/api';
-import { Photo } from '@/types';
+import { getPhoto, updatePhoto, deletePhoto, getCollections } from '@/lib/api';
+import { Photo, Collection } from '@/types';
 import { useToast } from '@/components/providers/ToastProvider';
 
 interface EditPhotoPageProps {
@@ -26,6 +26,8 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [availableCollections, setAvailableCollections] = useState<Collection[]>([]);
+  const [isLoadingCollections, setIsLoadingCollections] = useState(true);
 
   // Form state
   const [title, setTitle] = useState('');
@@ -44,6 +46,22 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
   useEffect(() => {
     loadPhoto();
   }, [id]);
+
+  useEffect(() => {
+    loadCollections();
+  }, []);
+
+  const loadCollections = async () => {
+    try {
+      const data = await getCollections();
+      setAvailableCollections(data);
+    } catch (error) {
+      console.error('Failed to load collections:', error);
+      toast.error('Failed to load collections');
+    } finally {
+      setIsLoadingCollections(false);
+    }
+  };
 
   const loadPhoto = async () => {
     setIsLoading(true);
@@ -244,27 +262,33 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Collections
               </label>
-              <div className="space-y-2">
-                {['tokyo-streets', 'portraits', 'landscapes', 'architecture'].map((col) => (
-                  <label key={col} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={collections.includes(col)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setCollections([...collections, col]);
-                        } else {
-                          setCollections(collections.filter(c => c !== col));
-                        }
-                      }}
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                    />
-                    <span className="ml-2 text-sm text-gray-700 dark:text-gray-300 capitalize">
-                      {col.replace('-', ' ')}
-                    </span>
-                  </label>
-                ))}
-              </div>
+              {isLoadingCollections ? (
+                <div className="text-sm text-gray-500 dark:text-gray-400">Loading collections...</div>
+              ) : availableCollections.length === 0 ? (
+                <div className="text-sm text-gray-500 dark:text-gray-400">No collections available</div>
+              ) : (
+                <div className="space-y-2">
+                  {availableCollections.map((col) => (
+                    <label key={col.slug} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={collections.includes(col.slug)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setCollections([...collections, col.slug]);
+                          } else {
+                            setCollections(collections.filter(c => c !== col.slug));
+                          }
+                        }}
+                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      />
+                      <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                        {col.title}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div>
