@@ -1,6 +1,17 @@
 import { getAllCollections, getPhotosByCollection } from "@/lib/data";
 import CollectionGrid from "@/components/collections/CollectionGrid";
 import { Photo } from "@/types";
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Collections - Photography Portfolio',
+  description: 'Browse curated photography collections organized by theme and location. Discover landscapes, portraits, urban scenes, and architectural photography.',
+  openGraph: {
+    title: 'Photography Collections',
+    description: 'Curated photography collections organized by theme',
+    type: 'website',
+  },
+};
 
 export default async function CollectionsPage() {
   const collections = await getAllCollections();
