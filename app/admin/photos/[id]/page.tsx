@@ -73,7 +73,7 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
         setDescription(data.description || '');
         setLocation(data.location || '');
         setTags(data.tags || []);
-        setCollections(data.collections || []);
+        setCollections(data.collections.map(c => c.id) || []);
         setFeatured(data.featured || false);
         setCapturedAt(data.capturedAt || '');
         setCamera(data.exif?.camera || '');
@@ -269,15 +269,15 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
               ) : (
                 <div className="space-y-2">
                   {availableCollections.map((col) => (
-                    <label key={col.slug} className="flex items-center">
+                    <label key={col.id} className="flex items-center">
                       <input
                         type="checkbox"
-                        checked={collections.includes(col.slug)}
+                        checked={collections.includes(col.id)}
                         onChange={(e) => {
                           if (e.target.checked) {
-                            setCollections([...collections, col.slug]);
+                            setCollections([...collections, col.id]);
                           } else {
-                            setCollections(collections.filter(c => c !== col.slug));
+                            setCollections(collections.filter(c => c !== col.id));
                           }
                         }}
                         className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"

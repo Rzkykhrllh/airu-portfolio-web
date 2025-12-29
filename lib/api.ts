@@ -81,8 +81,8 @@ export async function uploadPhoto(
   }
 
   if (metadata.collections && metadata.collections.length > 0) {
-    metadata.collections.forEach((collection) =>
-      formData.append("collections[]", collection)
+    metadata.collections.forEach((collectionId) =>
+      formData.append("collectionIds[]", collectionId)
     );
   }
 

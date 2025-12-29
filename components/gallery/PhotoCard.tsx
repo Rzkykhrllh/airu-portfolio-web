@@ -11,14 +11,6 @@ interface PhotoCardProps {
   priority?: boolean;
 }
 
-// Helper function to format collection slug to readable title
-const formatCollectionName = (slug: string): string => {
-  return slug
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-};
-
 export default function PhotoCard({ photo, priority = false }: PhotoCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -82,7 +74,7 @@ export default function PhotoCard({ photo, priority = false }: PhotoCardProps) {
                       <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
                     </svg>
                     <p className="text-xs text-gray-400">
-                      {displayCollections.map(formatCollectionName).join(' • ')}
+                      {displayCollections.map(c => c.name).join(' • ')}
                     </p>
                   </div>
                 )}
@@ -124,7 +116,7 @@ export default function PhotoCard({ photo, priority = false }: PhotoCardProps) {
                       <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
                     </svg>
                     <p className="text-xs text-gray-400">
-                      {displayCollections.map(formatCollectionName).join(' • ')}
+                      {displayCollections.map(c => c.name).join(' • ')}
                     </p>
                   </div>
                 )}
