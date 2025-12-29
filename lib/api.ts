@@ -40,7 +40,7 @@ export async function getPhotos(filters?: PhotoFilters): Promise<Photo[]> {
 
   // Fetch data from API
   const response = await apiFetch<BackendPhoto[]>(
-    `${API_ENDPOINTS.photos.list}${queryString}  `
+    `${API_ENDPOINTS.photos.list}${queryString}`
   );
 
   // Transform response data into frontend Photo type
@@ -90,8 +90,6 @@ export async function uploadPhoto(
   if (metadata.exif) {
     formData.append("exif", JSON.stringify(metadata.exif));
   }
-
-  console.log(metadata);
 
   const response = await uploadFetch<BackendPhoto>(
     API_ENDPOINTS.photos.create,
@@ -144,8 +142,6 @@ export async function getCollections(): Promise<Collection[]> {
   const response = await apiFetch<BackendCollection[]>(
     API_ENDPOINTS.collections.list
   );
-
-  console.log("Collection response (before transform):", response);
 
   return transformCollections(response);
 }

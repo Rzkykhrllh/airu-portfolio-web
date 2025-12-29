@@ -94,7 +94,7 @@ export function transformCollection(backendCollection: BackendCollection): Colle
       ? backendCollection.photos.map((p) => transformPhoto(p))
       : [],
   };
-}``
+}
 
 // Transform array of backend collections
 export function transformCollections(backendCollections: BackendCollection[]): Collection[] {
