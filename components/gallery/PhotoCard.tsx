@@ -15,22 +15,22 @@ export default function PhotoCard({ photo, priority = false }: PhotoCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <Link href={`/photo/${photo.id}`} className="block relative group">
+    <Link href={`/photo/${photo.id}`} className="block relative group w-full">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
-        className="relative overflow-hidden bg-gray-900"
-        style={{ aspectRatio: 1 / photo.aspectRatio }}
+        className="relative overflow-hidden bg-gray-900 w-full"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         <Image
           src={photo.src.medium}
           alt={photo.title || 'Photo'}
-          fill
+          width={1600}
+          height={1600}
           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          className="object-cover"
+          className="w-full h-auto"
           priority={priority}
           placeholder="blur"
           blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCwABmQAAAA"
