@@ -1,15 +1,16 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import AdminLayout from '@/components/admin/AdminLayout';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import TagInput from '@/components/admin/TagInput';
-import { uploadPhoto } from '@/lib/api';
-import { PhotoFormData } from '@/types';
+import { uploadPhoto, getCollections } from '@/lib/api';
+import { PhotoFormData, Collection } from '@/types';
 import { useToast } from '@/components/providers/ToastProvider';
+import exifr from 'exifr';
 
 export default function UploadPhotoPage() {
   const router = useRouter();
@@ -17,6 +18,8 @@ export default function UploadPhotoPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
+  const [collections, setCollections] = useState<Collection[]>([]);
+  const [isLoadingCollections, setIsLoadingCollections] = useState(true);
 
   // Form state
   const [formData, setFormData] = useState<PhotoFormData>({
@@ -28,7 +31,7 @@ export default function UploadPhotoPage() {
     featured: false,
     capturedAt: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
     exif: {
-      camera: '',
+      camera: 'Fujifilm X-S20', // Default camera
       lens: '',
       aperture: '',
       shutter: '',
@@ -36,20 +39,136 @@ export default function UploadPhotoPage() {
     },
   });
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Fetch collections on mount
+  useEffect(() => {
+    const loadCollections = async () => {
+      try {
+        const data = await getCollections();
+        setCollections(data);
+      } catch (error) {
+        console.error('Failed to load collections:', error);
+        toast.error('Failed to load collections');
+      } finally {
+        setIsLoadingCollections(false);
+      }
+    };
+
+    loadCollections();
+  }, [toast]);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setSelectedFile(file);
-    setPreview(URL.createObjectURL(file));
+    const previewUrl = URL.createObjectURL(file);
+    setPreview(previewUrl);
 
-    // Auto-fill title from filename (without extension)
-    if (!formData.title) {
-      setFormData(prev => ({
-        ...prev,
-        title: file.name.replace(/\.[^/.]+$/, ''),
-      }));
-    }
+    // Extract image dimensions (always works)
+    const img = new window.Image();
+    img.onload = async () => {
+      const width = img.naturalWidth;
+      const height = img.naturalHeight;
+      const aspectRatio = height / width;
+
+      try {
+        // Try to extract EXIF data
+        const exifData = await exifr.parse(file);
+
+        console.log('Raw EXIF data:', exifData);
+
+        // Format capture date
+        let capturedDate = '';
+        if (exifData?.DateTimeOriginal) {
+          capturedDate = new Date(exifData.DateTimeOriginal).toISOString().split('T')[0];
+        } else if (exifData?.CreateDate) {
+          capturedDate = new Date(exifData.CreateDate).toISOString().split('T')[0];
+        } else if (exifData?.DateTime) {
+          capturedDate = new Date(exifData.DateTime).toISOString().split('T')[0];
+        }
+
+        // Format camera name
+        let camera = exifData?.Model || exifData?.Make || 'Fujifilm X-S20';
+
+        // If camera is just the model (e.g., "X-S20"), prepend "Fujifilm"
+        if (camera && /^X-[ST]\d+$/i.test(camera)) {
+          camera = `Fujifilm ${camera.toUpperCase()}`;
+        } else if (camera === 'X-S20') {
+          camera = 'Fujifilm X-S20';
+        }
+
+        // Format lens name
+        const lens = exifData?.LensModel || exifData?.Lens || '';
+
+        // Format aperture (f/number)
+        const aperture = exifData?.FNumber ? `f/${exifData.FNumber}` : '';
+
+        // Format shutter speed
+        let shutter = '';
+        if (exifData?.ExposureTime) {
+          const exp = exifData.ExposureTime;
+          shutter = exp < 1 ? `1/${Math.round(1/exp)}s` : `${exp}s`;
+        }
+
+        // Format ISO
+        const iso = exifData?.ISO?.toString() || exifData?.ISOSpeedRatings?.toString() || '';
+
+        // Auto-fill form data
+        setFormData(prev => ({
+          ...prev,
+          title: prev.title || file.name.replace(/\.[^/.]+$/, ''),
+          capturedAt: capturedDate || prev.capturedAt,
+          exif: {
+            camera: camera,
+            lens: lens,
+            aperture: aperture,
+            shutter: shutter,
+            iso: iso,
+          },
+        }));
+
+        // Log extracted info
+        console.log('Image info extracted:', {
+          dimensions: `${width}x${height}`,
+          aspectRatio: aspectRatio.toFixed(2),
+          fileSize: (file.size / 1024 / 1024).toFixed(2) + ' MB',
+          exif: {
+            camera,
+            lens,
+            aperture,
+            shutter,
+            iso,
+            capturedDate
+          }
+        });
+
+        if (exifData && Object.keys(exifData).length > 0) {
+          toast.success('Image info extracted successfully!');
+        } else {
+          toast.info('Image loaded (no EXIF data found)');
+          // Still set defaults
+          setFormData(prev => ({
+            ...prev,
+            title: prev.title || file.name.replace(/\.[^/.]+$/, ''),
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to extract EXIF data:', error);
+        toast.info('Image loaded (EXIF extraction failed)');
+
+        // Fallback: still set preview and default values
+        setFormData(prev => ({
+          ...prev,
+          title: prev.title || file.name.replace(/\.[^/.]+$/, ''),
+        }));
+      }
+    };
+
+    img.onerror = () => {
+      toast.error('Failed to load image');
+    };
+
+    img.src = previewUrl;
   };
 
   const removeFile = () => {
@@ -285,22 +404,28 @@ export default function UploadPhotoPage() {
                 <label className="block text-sm font-medium text-gray-900 dark:text-white mb-3">
                   Collections
                 </label>
-                <div className="space-y-2">
-                  {['tokyo-streets', 'portraits', 'landscapes', 'architecture'].map((collection) => (
-                    <div key={collection} className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id={collection}
-                        checked={formData.collections.includes(collection)}
-                        onChange={() => toggleCollection(collection)}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                      />
-                      <label htmlFor={collection} className="text-sm text-gray-900 dark:text-white capitalize">
-                        {collection.replace('-', ' ')}
-                      </label>
-                    </div>
-                  ))}
-                </div>
+                {isLoadingCollections ? (
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Loading collections...</div>
+                ) : collections.length === 0 ? (
+                  <div className="text-sm text-gray-500 dark:text-gray-400">No collections available</div>
+                ) : (
+                  <div className="space-y-2">
+                    {collections.map((collection) => (
+                      <div key={collection.slug} className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id={collection.slug}
+                          checked={formData.collections.includes(collection.slug)}
+                          onChange={() => toggleCollection(collection.slug)}
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                        />
+                        <label htmlFor={collection.slug} className="text-sm text-gray-900 dark:text-white">
+                          {collection.title}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* EXIF Data */}

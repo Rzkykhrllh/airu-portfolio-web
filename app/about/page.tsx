@@ -61,32 +61,32 @@ export default function AboutPage() {
             <p>
               <span className="text-gray-600 dark:text-gray-400">Email:</span>{' '}
               <a
-                href="mailto:contact@example.com"
+                href="mailto:m.rizky.khairullah@gmail.com"
                 className="hover:text-gray-900 dark:hover:text-white transition-colors"
               >
-                contact@example.com
+                m.rizky.khairullah@gmail.com
+              </a>
+            </p>
+            <p>
+              <span className="text-gray-600 dark:text-gray-400">Unsplash:</span>{' '}
+              <a
+                href="https://unsplash.com/@airuphotograph"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-gray-900 dark:hover:text-white transition-colors"
+              >
+                @airuphotograph
               </a>
             </p>
             <p>
               <span className="text-gray-600 dark:text-gray-400">Instagram:</span>{' '}
               <a
-                href="https://instagram.com"
+                href="https://instagram.com/frame_by_airu"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-gray-900 dark:hover:text-white transition-colors"
               >
-                @photographer
-              </a>
-            </p>
-            <p>
-              <span className="text-gray-600 dark:text-gray-400">Twitter:</span>{' '}
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-gray-900 dark:hover:text-white transition-colors"
-              >
-                @photographer
+                @frame_by_airu
               </a>
             </p>
           </div>
@@ -102,7 +102,7 @@ export default function AboutPage() {
             If you'd like to work together, please reach out via email.
           </p>
           <a
-            href="mailto:contact@example.com"
+            href="mailto:m.rizky.khairullah@gmail.com"
             className="inline-block px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-black font-medium rounded-lg hover:bg-gray-700 dark:hover:bg-gray-200 transition-colors"
           >
             Contact Me
