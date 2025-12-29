@@ -37,9 +37,24 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   // This prevents hydration mismatch
   if (!isMounted) {
     return (
-      <div className="min-h-screen bg-gray-100 dark:bg-black flex items-center justify-center">
-        <div className="animate-pulse text-gray-600 dark:text-gray-400">
-          Loading...
+      <div className="min-h-screen bg-gray-100 dark:bg-black">
+        {/* Header Skeleton */}
+        <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+          <div className="h-16 px-4 flex items-center justify-between animate-pulse">
+            <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+          </div>
+        </div>
+        {/* Content Skeleton */}
+        <div className="p-8">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );

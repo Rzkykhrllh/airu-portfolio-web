@@ -20,14 +20,12 @@ export async function generateStaticParams() {
 export default async function CollectionPage({ params }: CollectionPageProps) {
   const { slug } = await params;
   const collection = await getCollectionBySlug(slug);
-  console.log(collection);
 
   if (!collection) {
     notFound();
   }
 
   const photos: Photo[] = collection.photos ?? [];
-  console.log(photos);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
