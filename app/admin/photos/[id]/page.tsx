@@ -36,6 +36,7 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
   const [tags, setTags] = useState<string[]>([]);
   const [collections, setCollections] = useState<string[]>([]);
   const [featured, setFeatured] = useState(false);
+  const [visibility, setVisibility] = useState<'PUBLIC' | 'COLLECTION_ONLY' | 'PRIVATE'>('PUBLIC');
   const [capturedAt, setCapturedAt] = useState('');
   const [camera, setCamera] = useState('');
   const [lens, setLens] = useState('');
@@ -75,6 +76,7 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
         setTags(data.tags || []);
         setCollections(data.collections.map(c => c.id) || []);
         setFeatured(data.featured || false);
+        setVisibility(data.visibility || 'PUBLIC');
         setCapturedAt(data.capturedAt || '');
         setCamera(data.exif?.camera || '');
         setLens(data.exif?.lens || '');
@@ -101,6 +103,7 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
         tags,
         collections,
         featured,
+        visibility,
         capturedAt,
         exif: {
           camera,
@@ -303,6 +306,26 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
                   Featured (Photographer's Pick)
                 </span>
               </label>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Visibility
+              </label>
+              <select
+                value={visibility}
+                onChange={(e) => setVisibility(e.target.value as 'PUBLIC' | 'COLLECTION_ONLY' | 'PRIVATE')}
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="PUBLIC">Public (Show everywhere)</option>
+                <option value="COLLECTION_ONLY">Collection Only (Not in gallery)</option>
+                <option value="PRIVATE">Private (Admin only)</option>
+              </select>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {visibility === 'PUBLIC' && 'Visible in gallery, collections, and admin'}
+                {visibility === 'COLLECTION_ONLY' && 'Visible in collections and admin only, not in main gallery'}
+                {visibility === 'PRIVATE' && 'Only visible to admins, hidden from public'}
+              </p>
             </div>
 
             {/* EXIF Data */}

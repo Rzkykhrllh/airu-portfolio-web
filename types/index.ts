@@ -1,3 +1,5 @@
+export type PhotoVisibility = 'PUBLIC' | 'COLLECTION_ONLY' | 'PRIVATE';
+
 export type Photo = {
   id: string;
   src: {
@@ -16,6 +18,7 @@ export type Photo = {
     slug: string;
   }>;
   featured: boolean;
+  visibility: PhotoVisibility;
   capturedAt?: string; // ISO date
   exif?: {
     camera?: string;
@@ -45,6 +48,7 @@ export type PhotoFormData = {
   tags: string[];
   collections: string[];
   featured: boolean;
+  visibility: PhotoVisibility;
   capturedAt: string;
   exif: {
     camera: string;
@@ -71,10 +75,13 @@ export type AuthState = {
   user: User | null;
 };
 
+export type PhotoScope = 'public' | 'collection' | 'admin';
+
 export type PhotoFilters = {
   collection?: string;
   tags?: string[];
   featured?: boolean;
+  scope?: PhotoScope;
   search?: string;
   limit?: number;
 };

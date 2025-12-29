@@ -42,9 +42,11 @@ export default function EditCollectionPage({
     setIsLoading(true);
     try {
       // Fetch collection and all photos in parallel
+      // Admin: Show ALL photos regardless of visibility (PUBLIC, COLLECTION_ONLY, PRIVATE)
+      // scope=admin requires authentication on backend
       const [collectionData, allPhotosData] = await Promise.all([
         getCollection(slug),
-        getPhotos(),
+        getPhotos({ scope: 'admin' }),
       ]);
 
       if (collectionData) {

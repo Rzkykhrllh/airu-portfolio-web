@@ -29,6 +29,7 @@ export default function UploadPhotoPage() {
     tags: [],
     collections: [],
     featured: false,
+    visibility: 'PUBLIC',
     capturedAt: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
     exif: {
       camera: 'Fujifilm X-S20', // Default camera
@@ -384,6 +385,27 @@ export default function UploadPhotoPage() {
                   <label htmlFor="featured" className="text-sm font-medium text-gray-900 dark:text-white">
                     Mark as featured photo
                   </label>
+                </div>
+
+                {/* Visibility */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                    Visibility
+                  </label>
+                  <select
+                    value={formData.visibility}
+                    onChange={(e) => handleInputChange('visibility', e.target.value as 'PUBLIC' | 'COLLECTION_ONLY' | 'PRIVATE')}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="PUBLIC">Public (Show everywhere)</option>
+                    <option value="COLLECTION_ONLY">Collection Only (Not in gallery)</option>
+                    <option value="PRIVATE">Private (Admin only)</option>
+                  </select>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {formData.visibility === 'PUBLIC' && 'Visible in gallery, collections, and admin'}
+                    {formData.visibility === 'COLLECTION_ONLY' && 'Visible in collections and admin only, not in main gallery'}
+                    {formData.visibility === 'PRIVATE' && 'Only visible to admins, hidden from public'}
+                  </p>
                 </div>
               </div>
 

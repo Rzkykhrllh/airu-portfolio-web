@@ -26,7 +26,13 @@ export default function AdminPhotosPage() {
   const loadPhotos = async () => {
     setIsLoading(true);
     try {
-      const data = await getPhotos({ ...filters, search: searchQuery });
+      // Admin: Show ALL photos regardless of visibility (PUBLIC, COLLECTION_ONLY, PRIVATE)
+      // scope=admin requires authentication on backend
+      const data = await getPhotos({
+        ...filters,
+        scope: 'admin',
+        search: searchQuery
+      });
       setPhotos(data);
     } catch (error) {
       console.error('Failed to load photos:', error);

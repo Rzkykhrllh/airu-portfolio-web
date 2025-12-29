@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getCollectionBySlug, getAllCollections } from "@/lib/data";
+import { getCollectionBySlug, getAllCollections, getPhotosForCollection } from "@/lib/data";
 import MasonryGrid from "@/components/gallery/MasonryGrid";
 import { Photo } from "@/types";
 
@@ -25,7 +25,7 @@ export default async function CollectionPage({ params }: CollectionPageProps) {
     notFound();
   }
 
-  const photos: Photo[] = collection.photos ?? [];
+  const photos: Photo[] = await getPhotosForCollection(slug);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

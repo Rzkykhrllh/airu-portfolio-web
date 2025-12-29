@@ -18,16 +18,23 @@ import {
 
 
 export async function getPhotos(filters?: PhotoFilters): Promise<Photo[]> {
-  // Buiild query parameters
+  // Build query parameters
   const params = new URLSearchParams();
+
+  // Scope parameter for visibility filtering (handled by backend)
+  // public: PUBLIC only (default)
+  // collection: PUBLIC + COLLECTION_ONLY
+  // admin: PUBLIC + COLLECTION_ONLY + PRIVATE (requires auth)
+  if (filters?.scope) {
+    params.set("scope", filters.scope);
+  }
 
   if (filters?.featured !== undefined) {
     params.append("featured", String(filters?.featured));
   }
 
-  // TODO: Adjust the details with backend.
   if (filters?.collection) {
-    params.set(`collection`, filters.collection);
+    params.set("collection", filters.collection);
   }
 
   if (filters?.tags && filters.tags.length > 0) {
@@ -74,6 +81,7 @@ export async function uploadPhoto(
   formData.append("description", metadata.description);
   formData.append("location", metadata.location);
   formData.append("featured", String(metadata.featured));
+  formData.append("visibility", metadata.visibility);
   formData.append("capturedAt", metadata.capturedAt);
 
   if (metadata.tags && metadata.tags.length > 0) {
@@ -111,6 +119,7 @@ export async function updatePhoto(
   if (data.description !== undefined) payload.description = data.description;
   if (data.location !== undefined) payload.location = data.location;
   if (data.featured !== undefined) payload.featured = data.featured;
+  if (data.visibility !== undefined) payload.visibility = data.visibility;
   if (data.capturedAt !== undefined) payload.capturedAt = data.capturedAt;
   if (data.tags && data.tags.length > 0) payload.tags = data.tags;
   if (data.collections && data.collections.length > 0) payload.collectionsIds = data.collections;

@@ -6,6 +6,7 @@ export interface BackendPhoto {
   description?: string;
   location?: string;
   featured: boolean;
+  visibility: string; // 'PUBLIC' | 'COLLECTION_ONLY' | 'PRIVATE'
   sortOrder: number;
   metadata: Record<string, any>;
   urlSmall: string;
@@ -61,6 +62,7 @@ export function transformPhoto(backendPhoto: BackendPhoto): Photo {
     tags,
     collections,
     featured: backendPhoto.featured,
+    visibility: backendPhoto.visibility as 'PUBLIC' | 'COLLECTION_ONLY' | 'PRIVATE',
     createdAt: backendPhoto.createdAt,
     capturedAt: backendPhoto.capturedAt || undefined,
     exif: backendPhoto.metadata || undefined,

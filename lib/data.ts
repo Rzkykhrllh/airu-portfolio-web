@@ -4,11 +4,18 @@ import collectionsData from "@/data/collections.json";
 import { getPhotos, getPhoto, getCollections, getCollection } from "./api";
 
 export async function getAllPhotos(): Promise<Photo[]> {
-  return await getPhotos();
+  return await getPhotos({ scope: 'public' });
 }
 
 export async function getFeaturedPhotos(): Promise<Photo[]> {
-  return await getPhotos({ featured: true });
+  return await getPhotos({ featured: true, scope: 'public' });
+}
+
+export async function getPhotosForCollection(collectionSlug?: string): Promise<Photo[]> {
+  return await getPhotos({
+    scope: 'collection',
+    collection: collectionSlug
+  });
 }
 
 export async function getPhotoById(id: string): Promise<Photo | undefined> {
@@ -53,4 +60,13 @@ export async function getPreviousPhoto(
   const currentIndex = photos.findIndex((photo) => photo.id === currentId);
   if (currentIndex === -1 || currentIndex === 0) return null;
   return photos[currentIndex - 1];
+}
+
+// ============ Admin Functions ============
+// These functions are for admin use and show ALL photos regardless of visibility
+// NOTE: scope=admin requires authentication on the backend
+
+export async function getAllPhotosAdmin(): Promise<Photo[]> {
+  // Admin sees all photos: PUBLIC + COLLECTION_ONLY + PRIVATE
+  return await getPhotos({ scope: 'admin' });
 }
