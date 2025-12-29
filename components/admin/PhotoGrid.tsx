@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { Photo } from '@/types';
 import { deletePhoto } from '@/lib/api';
+import { useToast } from '@/components/providers/ToastProvider';
 
 interface PhotoGridProps {
   photos: Photo[];
@@ -13,6 +14,7 @@ interface PhotoGridProps {
 
 export default function PhotoGrid({ photos, onPhotoDeleted }: PhotoGridProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const toast = useToast();
 
   const handleDelete = async (e: React.MouseEvent, photoId: string, photoTitle: string) => {
     e.preventDefault(); // Prevent link navigation
@@ -26,11 +28,11 @@ export default function PhotoGrid({ photos, onPhotoDeleted }: PhotoGridProps) {
 
     try {
       await deletePhoto(photoId);
-      alert('Photo deleted successfully!');
+      toast.success('Photo deleted successfully!');
       onPhotoDeleted?.(); // Refresh the list
     } catch (error) {
       console.error('Failed to delete photo:', error);
-      alert('Failed to delete photo. Please try again.');
+      toast.error('Failed to delete photo. Please try again.');
     } finally {
       setDeletingId(null);
     }

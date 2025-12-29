@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { Photo } from '@/types';
 import { deletePhoto } from '@/lib/api';
+import { useToast } from '@/components/providers/ToastProvider';
 
 interface PhotoListItemProps {
   photo: Photo;
@@ -13,6 +14,7 @@ interface PhotoListItemProps {
 
 export default function PhotoListItem({ photo, onPhotoDeleted }: PhotoListItemProps) {
   const [isDeleting, setIsDeleting] = useState(false);
+  const toast = useToast();
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.preventDefault(); // Prevent link navigation
@@ -26,11 +28,11 @@ export default function PhotoListItem({ photo, onPhotoDeleted }: PhotoListItemPr
 
     try {
       await deletePhoto(photo.id);
-      alert('Photo deleted successfully!');
+      toast.success('Photo deleted successfully!');
       onPhotoDeleted?.(); // Refresh the list
     } catch (error) {
       console.error('Failed to delete photo:', error);
-      alert('Failed to delete photo. Please try again.');
+      toast.error('Failed to delete photo. Please try again.');
     } finally {
       setIsDeleting(false);
     }
