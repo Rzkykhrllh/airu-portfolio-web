@@ -11,8 +11,19 @@ interface PhotoCardProps {
   priority?: boolean;
 }
 
+// Helper function to format collection slug to readable title
+const formatCollectionName = (slug: string): string => {
+  return slug
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
 export default function PhotoCard({ photo, priority = false }: PhotoCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+
+  // Get first 3 collections
+  const displayCollections = photo.collections.slice(0, 3);
 
   return (
     <Link href={`/photo/${photo.id}`} className="block relative group w-full">
@@ -53,19 +64,31 @@ export default function PhotoCard({ photo, priority = false }: PhotoCardProps) {
             className="text-white w-full"
           >
             <div className="flex items-start justify-between">
-              <div>
-                {photo.title && (
-                  <h3 className="text-lg font-semibold mb-1">{photo.title}</h3>
-                )}
+              <div className="space-y-2">
+                {/* Location */}
                 {photo.location && (
-                  <p className="text-sm text-gray-300">{photo.location}</p>
+                  <div className="flex items-center gap-1.5">
+                    <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                    </svg>
+                    <p className="text-sm text-gray-300">{photo.location}</p>
+                  </div>
                 )}
-                {photo.exif && (
-                  <p className="text-xs text-gray-400 mt-2">
-                    {photo.exif.camera} • {photo.exif.lens}
-                  </p>
+
+                {/* Collections */}
+                {displayCollections.length > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+                    </svg>
+                    <p className="text-xs text-gray-400">
+                      {displayCollections.map(formatCollectionName).join(' • ')}
+                    </p>
+                  </div>
                 )}
               </div>
+
+              {/* Featured Badge */}
               {photo.featured && (
                 <svg
                   className="w-5 h-5 text-yellow-400 flex-shrink-0"
@@ -83,14 +106,31 @@ export default function PhotoCard({ photo, priority = false }: PhotoCardProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent md:hidden flex items-end p-4">
           <div className="text-white w-full">
             <div className="flex items-start justify-between">
-              <div>
-                {photo.title && (
-                  <h3 className="text-base font-semibold mb-1">{photo.title}</h3>
-                )}
+              <div className="space-y-1.5">
+                {/* Location */}
                 {photo.location && (
-                  <p className="text-sm text-gray-300">{photo.location}</p>
+                  <div className="flex items-center gap-1.5">
+                    <svg className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                    </svg>
+                    <p className="text-xs text-gray-300">{photo.location}</p>
+                  </div>
+                )}
+
+                {/* Collections */}
+                {displayCollections.length > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    <svg className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+                    </svg>
+                    <p className="text-xs text-gray-400">
+                      {displayCollections.map(formatCollectionName).join(' • ')}
+                    </p>
+                  </div>
                 )}
               </div>
+
+              {/* Featured Badge */}
               {photo.featured && (
                 <svg
                   className="w-4 h-4 text-yellow-400 flex-shrink-0"
