@@ -1,4 +1,4 @@
-import { getAllCollections, getPhotosByCollection } from "@/lib/data";
+import { getAllCollections } from "@/lib/data";
 import CollectionGrid from "@/components/collections/CollectionGrid";
 import { Photo } from "@/types";
 import { Metadata } from 'next';
