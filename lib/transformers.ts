@@ -15,27 +15,38 @@ export interface BackendPhoto {
   capturedAt?: string | null;
   updatedAt: string;
 
-  // Tags information from junction table - Optional since not always included
+  // Tags information - Can be junction table or direct array
   tags?: Array<{
     photoId: string;
     tag: string;
-  }>;
+  }> | string[];
 
-  // Collection information from junction table - Optional since not always included
+  // Collection information - Array of collection objects
   collections?: Array<{
-    photoId: string;
-    collectionId: string;
-    collection: {
-      id: string;
-      slug: string;
-      name: string;
-      description?: string;
-    };
+    id: string;
+    name: string;
+    slug: string;
   }>;
 }
 
 // Transform backend photo into frontend photo type
 export function transformPhoto(backendPhoto: BackendPhoto): Photo {
+  // Handle tags - can be junction table or direct array
+  let tags: string[] = [];
+  if (backendPhoto.tags) {
+    if (Array.isArray(backendPhoto.tags) && backendPhoto.tags.length > 0) {
+      // Check if it's junction table format or direct array
+      if (typeof backendPhoto.tags[0] === 'string') {
+        tags = backendPhoto.tags as string[];
+      } else {
+        tags = (backendPhoto.tags as Array<{ photoId: string; tag: string }>).map(t => t.tag);
+      }
+    }
+  }
+
+  // Handle collections - backend always returns array of collection objects
+  const collections = backendPhoto.collections || [];
+
   return {
     id: backendPhoto.id,
     src: {
@@ -47,13 +58,12 @@ export function transformPhoto(backendPhoto: BackendPhoto): Photo {
     title: backendPhoto.title,
     description: backendPhoto.description,
     location: backendPhoto.location,
-    tags: backendPhoto.tags?.map(t => t.tag) || [],
-    collections: backendPhoto.collections?.map(c => c.collection.slug) || [],
-
+    tags,
+    collections,
     featured: backendPhoto.featured,
     createdAt: backendPhoto.createdAt,
     capturedAt: backendPhoto.capturedAt || undefined,
-    exif: backendPhoto.metadata?.exif || undefined,
+    exif: backendPhoto.metadata || undefined,
   }
 }
 
@@ -84,6 +94,7 @@ export interface BackendCollection {
 export function transformCollection(backendCollection: BackendCollection): Collection {
   
   return {
+    id: backendCollection.id,
     slug: backendCollection.slug,
     title: backendCollection.name,
     description: backendCollection.description,

@@ -10,7 +10,11 @@ export type Photo = {
   description?: string;
   location?: string;
   tags: string[];
-  collections: string[]; // collection slugs
+  collections: Array<{
+    id: string;
+    name: string;
+    slug: string;
+  }>;
   featured: boolean;
   capturedAt?: string; // ISO date
   exif?: {
@@ -24,6 +28,7 @@ export type Photo = {
 };
 
 export type Collection = {
+  id: string;
   slug: string;
   title: string;
   description?: string;
