@@ -1,5 +1,16 @@
 import { getAllPhotos } from '@/lib/data';
 import MasonryGrid from '@/components/gallery/MasonryGrid';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Gallery - Photography Portfolio',
+  description: 'Explore a curated collection of photographs from around the world. Browse through stunning landscapes, portraits, urban scenes, and architectural photography.',
+  openGraph: {
+    title: 'Photography Gallery',
+    description: 'Explore stunning photographs from around the world',
+    type: 'website',
+  },
+};
 
 export default async function HomePage() {
   const photos = await getAllPhotos();
