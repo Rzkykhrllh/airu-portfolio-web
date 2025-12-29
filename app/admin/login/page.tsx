@@ -85,10 +85,6 @@ export default function LoginPage() {
           >
             {isLoading ? "Signing in..." : "Sign In"}
           </Button>
-
-          <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-            Default: admin / admin123
-          </div>
         </form>
       </div>
     </div>
