@@ -17,6 +17,19 @@ export default function PhotoCard({ photo, priority = false }: PhotoCardProps) {
   // Get first 3 collections
   const displayCollections = photo.collections.slice(0, 3);
 
+  // Only enable hover on devices that support hover (desktop)
+  const handleMouseEnter = () => {
+    if (window.matchMedia('(hover: hover)').matches) {
+      setIsHovered(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (window.matchMedia('(hover: hover)').matches) {
+      setIsHovered(false);
+    }
+  };
+
   return (
     <Link href={`/photo/${photo.id}`} className="block relative group w-full">
       <motion.div
@@ -24,8 +37,8 @@ export default function PhotoCard({ photo, priority = false }: PhotoCardProps) {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
         className="relative overflow-hidden bg-gray-900 w-full"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
         <Image
           src={photo.src.medium}
@@ -39,102 +52,18 @@ export default function PhotoCard({ photo, priority = false }: PhotoCardProps) {
           blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCwABmQAAAA"
         />
 
-        {/* Overlay - Desktop only */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isHovered ? 1 : 0 }}
-          transition={{ duration: 0.2 }}
-          className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent hidden md:flex items-end p-6"
-        >
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{
-              opacity: isHovered ? 1 : 0,
-              y: isHovered ? 0 : 10,
-            }}
-            transition={{ duration: 0.2, delay: 0.05 }}
-            className="text-white w-full"
-          >
-            <div className="flex items-start justify-between">
-              <div className="space-y-2">
-                {/* Location */}
-                {photo.location && (
-                  <div className="flex items-center gap-1.5">
-                    <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                    </svg>
-                    <p className="text-sm text-gray-300">{photo.location}</p>
-                  </div>
-                )}
-
-                {/* Collections */}
-                {displayCollections.length > 0 && (
-                  <div className="flex items-center gap-1.5">
-                    <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
-                    </svg>
-                    <p className="text-xs text-gray-400">
-                      {displayCollections.map(c => c.name).join(' • ')}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Featured Badge */}
-              {photo.featured && (
-                <svg
-                  className="w-5 h-5 text-yellow-400 flex-shrink-0"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              )}
-            </div>
-          </motion.div>
-        </motion.div>
-
-        {/* Overlay - Mobile (always visible) */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent md:hidden flex items-end p-4">
-          <div className="text-white w-full">
-            <div className="flex items-start justify-between">
-              <div className="space-y-1.5">
-                {/* Location */}
-                {photo.location && (
-                  <div className="flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                    </svg>
-                    <p className="text-xs text-gray-300">{photo.location}</p>
-                  </div>
-                )}
-
-                {/* Collections */}
-                {displayCollections.length > 0 && (
-                  <div className="flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
-                    </svg>
-                    <p className="text-xs text-gray-400">
-                      {displayCollections.map(c => c.name).join(' • ')}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Featured Badge */}
-              {photo.featured && (
-                <svg
-                  className="w-4 h-4 text-yellow-400 flex-shrink-0"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              )}
-            </div>
+        {/* Featured Badge - Top Right (Always visible on all devices) */}
+        {photo.featured && (
+          <div className="absolute top-3 right-3 z-10">
+            <svg
+              className="w-5 h-5 md:w-6 md:h-6 text-yellow-400 drop-shadow-lg"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
           </div>
-        </div>
+        )}
       </motion.div>
     </Link>
   );

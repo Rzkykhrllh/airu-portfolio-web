@@ -4,19 +4,11 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            © {new Date().getFullYear()} Photography Portfolio. All rights reserved.
+            © {new Date().getFullYear()} Airu Photography. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <a
-              href="https://instagram.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-sm"
-            >
-              Instagram
-            </a>
-            <a
-              href="https://twitter.com"
+              href="https://twitter.com/__airu___"
               target="_blank"
               rel="noopener noreferrer"
               className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-sm"
@@ -24,7 +16,23 @@ export default function Footer() {
               Twitter
             </a>
             <a
-              href="mailto:contact@example.com"
+              href="https://instagram.com/frame_by_airu"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-sm"
+            >
+              Instagram
+            </a>
+            <a
+              href="https://unsplash.com/@airuphotograph"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-sm"
+            >
+              Unsplash
+            </a>
+            <a
+              href="mailto:m.rizky.khairullah@gmail.com"
               className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-sm"
             >
               Contact

@@ -4,8 +4,11 @@ import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import '@/styles/globals.css';
 
 export const metadata: Metadata = {
-  title: 'Photography Portfolio',
-  description: 'A stunning photography portfolio showcasing beautiful moments',
+  title: 'Airu Photography',
+  description: 'Photography portfolio by Airu — Based in Tokyo, shooting with Fuji X-S20',
+  icons: {
+    icon: '/icon',
+  },
 };
 
 export default function RootLayout({
