@@ -5,7 +5,7 @@ import {
   Collection,
   CollectionFormData,
 } from "@/types";
-import { apiFetch, uploadFetch } from "./fetch";
+import { apiFetch, publicFetch, adminFetch, uploadFetch } from "./fetch";
 import { API_ENDPOINTS } from "./config";
 import {
   transformPhoto,
@@ -34,7 +34,7 @@ export async function getPhotos(filters?: PhotoFilters): Promise<Photo[]> {
   }
 
   if (filters?.collection) {
-    params.set("collection", filters.collection);
+    params.set("collectionSlug", filters.collection);
   }
 
   if (filters?.tags && filters.tags.length > 0) {
@@ -45,8 +45,11 @@ export async function getPhotos(filters?: PhotoFilters): Promise<Photo[]> {
 
   const queryString = params.toString() ? `?${params.toString()}` : "";
 
-  // Fetch data from API
-  const response = await apiFetch<BackendPhoto[]>(
+  // Special handling: scope=admin forces adminFetch, others use publicFetch
+  // This overrides route-based detection for getPhotos
+  const fetchFn = filters?.scope === 'admin' ? adminFetch : publicFetch;
+
+  const response = await fetchFn<BackendPhoto[]>(
     `${API_ENDPOINTS.photos.list}${queryString}`
   );
 
@@ -147,18 +150,51 @@ export async function deletePhoto(id: string): Promise<void> {
 
 // ============ Collection API ============
 
-export async function getCollections(): Promise<Collection[]> {
-  const response = await apiFetch<BackendCollection[]>(
-    API_ENDPOINTS.collections.list
+export async function getCollections(
+  scope?: 'public' | 'admin'
+): Promise<Collection[]> {
+  const params = new URLSearchParams();
+
+  // Add scope parameter if specified
+  // public (default): Collections with PUBLIC + COLLECTION_ONLY photos
+  // admin: Collections with ALL photos (requires auth)
+  if (scope) {
+    params.set('scope', scope);
+  }
+
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+
+  // scope=admin → adminFetch (with token), otherwise publicFetch
+  const fetchFn = scope === 'admin' ? adminFetch : publicFetch;
+
+  const response = await fetchFn<BackendCollection[]>(
+    `${API_ENDPOINTS.collections.list}${queryString}`
   );
 
   return transformCollections(response);
 }
 
-export async function getCollection(slug: string): Promise<Collection | null> {
+export async function getCollection(
+  slug: string,
+  scope?: 'public' | 'admin'
+): Promise<Collection | null> {
   try {
-    const response = await apiFetch<BackendCollection>(
-      API_ENDPOINTS.collections.detail(slug)
+    const params = new URLSearchParams();
+
+    // Add scope parameter if specified
+    // public (default): PUBLIC + COLLECTION_ONLY photos
+    // admin: ALL photos (requires auth)
+    if (scope) {
+      params.set('scope', scope);
+    }
+
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+
+    // scope=admin → adminFetch (with token), otherwise publicFetch
+    const fetchFn = scope === 'admin' ? adminFetch : publicFetch;
+
+    const response = await fetchFn<BackendCollection>(
+      `${API_ENDPOINTS.collections.detail(slug)}${queryString}`
     );
     return transformCollection(response);
   } catch (error) {

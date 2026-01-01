@@ -63,10 +63,20 @@ export async function getPreviousPhoto(
 }
 
 // ============ Admin Functions ============
-// These functions are for admin use and show ALL photos regardless of visibility
+// These functions are for admin use and show ALL photos/collections regardless of visibility
 // NOTE: scope=admin requires authentication on the backend
 
 export async function getAllPhotosAdmin(): Promise<Photo[]> {
   // Admin sees all photos: PUBLIC + COLLECTION_ONLY + PRIVATE
   return await getPhotos({ scope: 'admin' });
+}
+
+export async function getAllCollectionsAdmin(): Promise<Collection[]> {
+  // Admin sees collections with ALL photos: PUBLIC + COLLECTION_ONLY + PRIVATE
+  return await getCollections('admin');
+}
+
+export async function getCollectionBySlugAdmin(slug: string): Promise<Collection | null> {
+  // Admin sees collection with ALL photos: PUBLIC + COLLECTION_ONLY + PRIVATE
+  return await getCollection(slug, 'admin');
 }

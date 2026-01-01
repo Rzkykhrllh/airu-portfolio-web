@@ -7,7 +7,7 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import Button from "@/components/ui/Button";
 import { deleteCollection } from "@/lib/api";
 import { Collection } from "@/types";
-import { getAllCollections } from "@/lib/data";
+import { getAllCollectionsAdmin } from "@/lib/data";
 import { useToast } from "@/components/providers/ToastProvider";
 
 export default function AdminCollectionsPage() {
@@ -24,7 +24,8 @@ export default function AdminCollectionsPage() {
   const loadCollections = async () => {
     setIsLoading(true);
     try {
-      const data = await getAllCollections();
+      // Admin: Get collections with ALL photos (PUBLIC + COLLECTION_ONLY + PRIVATE)
+      const data = await getAllCollectionsAdmin();
       setCollections(data);
     } catch (error) {
       console.error("Failed to load collections:", error);

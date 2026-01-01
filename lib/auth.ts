@@ -1,7 +1,7 @@
 "use client";
 
 import { User } from "@/types";
-import { apiFetch } from "./fetch";
+import { publicFetch, adminFetch } from "./fetch";
 import { API_ENDPOINTS, STORAGE_KEYS } from "./config";
 
 // Backend Login Response
@@ -21,10 +21,10 @@ export async function login(
   password: string
 ): Promise<boolean> {
   try {
-    const response = await apiFetch<LoginResponse>(
+    const response = await publicFetch<LoginResponse>(
       API_ENDPOINTS.authentication.login,
       {
-        method: "post",
+        method: "POST",
         body: JSON.stringify({ username, password }),
       }
     );
@@ -74,12 +74,24 @@ export function isAuthenticated(): boolean {
 
 export async function verifyToken(): Promise<boolean> {
   try {
-    await apiFetch(API_ENDPOINTS.health.authenticated, {
+    await adminFetch(API_ENDPOINTS.health.authenticated, {
       method: "GET",
     });
     return true;
   } catch {
     logout(); // Clear invalid token
     return false;
+  }
+}
+
+/**
+ * Redirect to login if not authenticated
+ * Use this in admin pages to protect routes
+ */
+export function requireAuth(): void {
+  if (typeof window === "undefined") return;
+
+  if (!isAuthenticated()) {
+    window.location.href = "/admin/login";
   }
 }
