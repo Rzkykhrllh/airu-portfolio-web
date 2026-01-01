@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: airu-portfolio-fe
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      # Use backend container name as hostname when in same Docker network
+      - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL:-http://airu-portfolio-api:8080}
+    networks:
+      - airu-portfolio-network
+
+networks:
+  airu-portfolio-network:
+    external: true
+    name: airu-portfolio-be_airu-portfolio-network

@@ -4,18 +4,22 @@ import { getCollectionBySlug, getAllCollections } from "@/lib/data";
 import MasonryGrid from "@/components/gallery/MasonryGrid";
 import { Photo } from "@/types";
 
+// Force dynamic rendering (don't pre-generate at build time)
+export const dynamic = 'force-dynamic';
+
 interface CollectionPageProps {
   params: Promise<{
     slug: string;
   }>;
 }
 
-export async function generateStaticParams() {
-  const collections = await getAllCollections();
-  return collections.map((collection) => ({
-    slug: collection.slug,
-  }));
-}
+// Remove generateStaticParams - pages generated on-demand
+// export async function generateStaticParams() {
+//   const collections = await getAllCollections();
+//   return collections.map((collection) => ({
+//     slug: collection.slug,
+//   }));
+// }
 
 export default async function CollectionPage({ params }: CollectionPageProps) {
   const { slug } = await params;

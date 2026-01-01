@@ -3,6 +3,9 @@ import CollectionGrid from "@/components/collections/CollectionGrid";
 import { Photo } from "@/types";
 import { Metadata } from 'next';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Collections - Photography Portfolio',
   description: 'Browse curated photography collections organized by theme and location. Discover landscapes, portraits, urban scenes, and architectural photography.',

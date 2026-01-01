@@ -8,18 +8,22 @@ import {
 } from '@/lib/data';
 import PhotoDetailClientWrapper from '@/components/photo/PhotoDetailClientWrapper';
 
+// Force dynamic rendering (don't pre-generate at build time)
+export const dynamic = 'force-dynamic';
+
 interface PhotoPageProps {
   params: Promise<{
     id: string;
   }>;
 }
 
-export async function generateStaticParams() {
-  const photos = await getAllPhotos();
-  return photos.map((photo) => ({
-    id: photo.id,
-  }));
-}
+// Remove generateStaticParams - pages generated on-demand
+// export async function generateStaticParams() {
+//   const photos = await getAllPhotos();
+//   return photos.map((photo) => ({
+//     id: photo.id,
+//   }));
+// }
 
 export default async function PhotoPage({ params }: PhotoPageProps) {
   const { id } = await params;

@@ -2,6 +2,9 @@ import { getAllPhotos } from '@/lib/data';
 import MasonryGrid from '@/components/gallery/MasonryGrid';
 import { Metadata } from 'next';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Gallery - Photography Portfolio',
   description: 'Explore a curated collection of photographs from around the world. Browse through stunning landscapes, portraits, urban scenes, and architectural photography.',
