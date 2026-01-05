@@ -42,7 +42,7 @@ export default async function PhotoPage({ params }: PhotoPageProps) {
       <div className="relative bg-gray-100 dark:bg-black">
         {/* Top Navigation Bar */}
         <div className="absolute top-0 left-0 right-0 z-10 px-4 sm:px-6 lg:px-8 py-6">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="max-w-screen-2xl mx-auto flex items-center justify-between">
             <Link
               href="/"
               className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors bg-white/80 dark:bg-black/80 backdrop-blur-sm px-4 py-2 rounded-full"
