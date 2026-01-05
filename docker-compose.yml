@@ -7,12 +7,12 @@ services:
       dockerfile: Dockerfile
     container_name: airu-portfolio-fe
     restart: unless-stopped
-    ports:
-      - "3000:3000"
     environment:
       - NODE_ENV=production
-      # Use backend container name as hostname when in same Docker network
-      - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL:-http://airu-portfolio-api:8080}
+      # Client-side API calls (browser → nginx → backend)
+      - NEXT_PUBLIC_API_BASE_URL=/api
+      # Server-side API calls (Next.js SSR → backend directly)
+      - API_BASE_URL=http://airu-portfolio-api:8080
     networks:
       - airu-portfolio-network
 

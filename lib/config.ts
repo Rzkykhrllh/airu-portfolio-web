@@ -1,4 +1,17 @@
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+// Dynamic API Base URL for SSR and Client-side
+// - Server-side (SSR): Uses API_BASE_URL to connect directly to backend container
+// - Client-side (Browser): Uses NEXT_PUBLIC_API_BASE_URL to go through nginx proxy
+const getApiBaseUrl = (): string => {
+  // Server-side (SSR) - use direct backend URL
+  if (typeof window === 'undefined') {
+    return process.env.API_BASE_URL || 'http://localhost:8080';
+  }
+
+  // Client-side (Browser) - use nginx proxy path
+  return process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 
 export const API_ENDPOINTS = {
   photos: {
