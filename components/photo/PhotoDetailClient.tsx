@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Photo } from '@/types';
 import Lightbox from '@/components/ui/Lightbox';
-import { getNextPhoto, getPreviousPhoto } from '@/lib/data';
+import { getNextPhoto, getPreviousPhoto, getPhotoById } from '@/lib/data';
 
 interface PhotoDetailClientProps {
   photo: Photo;
@@ -20,6 +20,18 @@ export default function PhotoDetailClient({ photo, nextPhotoId, prevPhotoId }: P
   const [currentPhoto, setCurrentPhoto] = useState(photo);
   const [currentNextId, setCurrentNextId] = useState(nextPhotoId);
   const [currentPrevId, setCurrentPrevId] = useState(prevPhotoId);
+
+  // Get collection slug from URL for scoped navigation
+  const collectionSlug = searchParams.get('collection') || undefined;
+
+  // Build URL with collection context preserved
+  const buildPhotoUrl = (photoId: string, includeFullscreen: boolean = false) => {
+    const params = new URLSearchParams();
+    if (collectionSlug) params.set('collection', collectionSlug);
+    if (includeFullscreen) params.set('view', 'fullscreen');
+    const queryString = params.toString();
+    return `/photo/${photoId}${queryString ? `?${queryString}` : ''}`;
+  };
 
   // Check if lightbox should be open based on URL
   useEffect(() => {
@@ -42,6 +54,7 @@ export default function PhotoDetailClient({ photo, nextPhotoId, prevPhotoId }: P
       const url = new URL(window.location.href);
       const photoId = url.pathname.split('/').pop();
       const viewParam = url.searchParams.get('view');
+      const urlCollectionSlug = url.searchParams.get('collection') || undefined;
 
       // Update lightbox state based on URL
       setIsLightboxOpen(viewParam === 'fullscreen');
@@ -49,17 +62,14 @@ export default function PhotoDetailClient({ photo, nextPhotoId, prevPhotoId }: P
       // If photo ID changed, fetch the new photo
       if (photoId && photoId !== currentPhoto.id) {
         try {
-          const newPhoto = await getNextPhoto(currentPhoto.id) || await getPreviousPhoto(currentPhoto.id);
-          // Try to find the photo by fetching from all photos
-          const { getPhotoById } = await import('@/lib/data');
           const fetchedPhoto = await getPhotoById(photoId);
 
           if (fetchedPhoto) {
             setCurrentPhoto(fetchedPhoto);
 
-            // Update next/prev IDs
-            const newNextPhoto = await getNextPhoto(fetchedPhoto.id);
-            const newPrevPhoto = await getPreviousPhoto(fetchedPhoto.id);
+            // Update next/prev IDs (use collection context from URL)
+            const newNextPhoto = await getNextPhoto(fetchedPhoto.id, urlCollectionSlug);
+            const newPrevPhoto = await getPreviousPhoto(fetchedPhoto.id, urlCollectionSlug);
             setCurrentNextId(newNextPhoto?.id);
             setCurrentPrevId(newPrevPhoto?.id);
           }
@@ -74,49 +84,49 @@ export default function PhotoDetailClient({ photo, nextPhotoId, prevPhotoId }: P
   }, [currentPhoto.id]);
 
   const handleNext = currentNextId ? async () => {
-    // Fetch next photo without page navigation for smooth transition
-    const nextPhoto = await getNextPhoto(currentPhoto.id);
+    // Fetch next photo without page navigation for smooth transition (use collection context)
+    const nextPhoto = await getNextPhoto(currentPhoto.id, collectionSlug);
     if (nextPhoto) {
       setCurrentPhoto(nextPhoto);
 
-      // Update next/prev IDs
-      const newNextPhoto = await getNextPhoto(nextPhoto.id);
-      const newPrevPhoto = await getPreviousPhoto(nextPhoto.id);
+      // Update next/prev IDs (use collection context)
+      const newNextPhoto = await getNextPhoto(nextPhoto.id, collectionSlug);
+      const newPrevPhoto = await getPreviousPhoto(nextPhoto.id, collectionSlug);
       setCurrentNextId(newNextPhoto?.id);
       setCurrentPrevId(newPrevPhoto?.id);
 
-      // Update URL silently without page reload
-      window.history.pushState(null, '', `/photo/${nextPhoto.id}?view=fullscreen`);
+      // Update URL silently without page reload (preserve collection context)
+      window.history.pushState(null, '', buildPhotoUrl(nextPhoto.id, true));
     }
   } : undefined;
 
   const handlePrev = currentPrevId ? async () => {
-    // Fetch prev photo without page navigation for smooth transition
-    const prevPhoto = await getPreviousPhoto(currentPhoto.id);
+    // Fetch prev photo without page navigation for smooth transition (use collection context)
+    const prevPhoto = await getPreviousPhoto(currentPhoto.id, collectionSlug);
     if (prevPhoto) {
       setCurrentPhoto(prevPhoto);
 
-      // Update next/prev IDs
-      const newNextPhoto = await getNextPhoto(prevPhoto.id);
-      const newPrevPhoto = await getPreviousPhoto(prevPhoto.id);
+      // Update next/prev IDs (use collection context)
+      const newNextPhoto = await getNextPhoto(prevPhoto.id, collectionSlug);
+      const newPrevPhoto = await getPreviousPhoto(prevPhoto.id, collectionSlug);
       setCurrentNextId(newNextPhoto?.id);
       setCurrentPrevId(newPrevPhoto?.id);
 
-      // Update URL silently without page reload
-      window.history.pushState(null, '', `/photo/${prevPhoto.id}?view=fullscreen`);
+      // Update URL silently without page reload (preserve collection context)
+      window.history.pushState(null, '', buildPhotoUrl(prevPhoto.id, true));
     }
   } : undefined;
 
   const handleOpenLightbox = () => {
     setIsLightboxOpen(true);
-    // Add fullscreen param to URL without page reload
-    window.history.pushState(null, '', `/photo/${currentPhoto.id}?view=fullscreen`);
+    // Add fullscreen param to URL without page reload (preserve collection context)
+    window.history.pushState(null, '', buildPhotoUrl(currentPhoto.id, true));
   };
 
   const handleCloseLightbox = () => {
     setIsLightboxOpen(false);
-    // Remove fullscreen param from URL without page reload
-    window.history.pushState(null, '', `/photo/${currentPhoto.id}`);
+    // Remove fullscreen param from URL without page reload (preserve collection context)
+    window.history.pushState(null, '', buildPhotoUrl(currentPhoto.id, false));
   };
 
   return (

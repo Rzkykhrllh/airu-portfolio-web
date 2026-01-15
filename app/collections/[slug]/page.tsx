@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getCollectionBySlug, getAllCollections } from "@/lib/data";
+import { getCollectionBySlug } from "@/lib/data";
 import MasonryGrid from "@/components/gallery/MasonryGrid";
 import { Photo } from "@/types";
 
@@ -30,7 +30,6 @@ export default async function CollectionPage({ params }: CollectionPageProps) {
   }
 
   // Use photos from collection object (returned by backend with collection data)
-  // This is more efficient than making a separate API call to getPhotos
   const photos: Photo[] = collection.photos || [];
 
   return (
@@ -52,7 +51,7 @@ export default async function CollectionPage({ params }: CollectionPageProps) {
           {photos.length} {photos.length === 1 ? "photo" : "photos"}
         </p>
       </div>
-      <MasonryGrid photos={photos} />
+      <MasonryGrid photos={photos} collectionSlug={slug} />
     </div>
   );
 }

@@ -9,16 +9,22 @@ import { Photo } from '@/types';
 interface PhotoCardProps {
   photo: Photo;
   priority?: boolean;
+  collectionSlug?: string;
 }
 
-export default function PhotoCard({ photo, priority = false }: PhotoCardProps) {
+export default function PhotoCard({ photo, priority = false, collectionSlug }: PhotoCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   // Get first 3 collections
   const displayCollections = photo.collections.slice(0, 3);
 
+  // Build photo URL with optional collection context
+  const photoUrl = collectionSlug
+    ? `/photo/${photo.id}?collection=${collectionSlug}`
+    : `/photo/${photo.id}`;
+
   return (
-    <Link href={`/photo/${photo.id}`} className="block relative group w-full">
+    <Link href={photoUrl} className="block relative group w-full">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

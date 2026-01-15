@@ -10,10 +10,10 @@ export async function getFeaturedPhotos(): Promise<Photo[]> {
 }
 
 export async function getPhotosForCollection(collectionSlug?: string): Promise<Photo[]> {
-  return await getPhotos({
-    scope: 'collection',
-    collection: collectionSlug
-  });
+  if (!collectionSlug) return [];
+  // Use collection API to get photos - same source as collection page display
+  const collection = await getCollection(collectionSlug);
+  return collection?.photos || [];
 }
 
 export async function getPhotoById(id: string): Promise<Photo | undefined> {
@@ -32,17 +32,24 @@ export async function getCollectionBySlug(
   return collection;
 }
 
-export async function getNextPhoto(currentId: string): Promise<Photo | null> {
-  const photos = await getAllPhotos();
+export async function getNextPhoto(currentId: string, collectionSlug?: string): Promise<Photo | null> {
+  // If collectionSlug provided, navigate within collection only
+  const photos = collectionSlug
+    ? await getPhotosForCollection(collectionSlug)
+    : await getAllPhotos();
   const currentIndex = photos.findIndex((photo) => photo.id === currentId);
   if (currentIndex === -1 || currentIndex === photos.length - 1) return null;
   return photos[currentIndex + 1];
 }
 
 export async function getPreviousPhoto(
-  currentId: string
+  currentId: string,
+  collectionSlug?: string
 ): Promise<Photo | null> {
-  const photos = await getAllPhotos();
+  // If collectionSlug provided, navigate within collection only
+  const photos = collectionSlug
+    ? await getPhotosForCollection(collectionSlug)
+    : await getAllPhotos();
   const currentIndex = photos.findIndex((photo) => photo.id === currentId);
   if (currentIndex === -1 || currentIndex === 0) return null;
   return photos[currentIndex - 1];

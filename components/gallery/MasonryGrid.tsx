@@ -6,9 +6,10 @@ import PhotoCard from './PhotoCard';
 
 interface MasonryGridProps {
   photos: Photo[];
+  collectionSlug?: string;
 }
 
-export default function MasonryGrid({ photos }: MasonryGridProps) {
+export default function MasonryGrid({ photos, collectionSlug }: MasonryGridProps) {
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -43,7 +44,7 @@ export default function MasonryGrid({ photos }: MasonryGridProps) {
           variants={itemVariants}
           className="break-inside-avoid mb-0"
         >
-          <PhotoCard photo={photo} priority={index < 4} />
+          <PhotoCard photo={photo} priority={index < 4} collectionSlug={collectionSlug} />
         </motion.div>
       ))}
     </motion.div>

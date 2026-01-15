@@ -15,6 +15,9 @@ interface PhotoPageProps {
   params: Promise<{
     id: string;
   }>;
+  searchParams: Promise<{
+    collection?: string;
+  }>;
 }
 
 // Remove generateStaticParams - pages generated on-demand
@@ -25,16 +28,24 @@ interface PhotoPageProps {
 //   }));
 // }
 
-export default async function PhotoPage({ params }: PhotoPageProps) {
+export default async function PhotoPage({ params, searchParams }: PhotoPageProps) {
   const { id } = await params;
+  const { collection: collectionSlug } = await searchParams;
   const photo = await getPhotoById(id);
 
   if (!photo) {
     notFound();
   }
 
-  const nextPhoto = await getNextPhoto(id);
-  const prevPhoto = await getPreviousPhoto(id);
+  // Pass collectionSlug for scoped navigation within collection
+  const nextPhoto = await getNextPhoto(id, collectionSlug);
+  const prevPhoto = await getPreviousPhoto(id, collectionSlug);
+
+  // Build URLs with collection context preserved
+  const buildPhotoUrl = (photoId: string) =>
+    collectionSlug ? `/photo/${photoId}?collection=${collectionSlug}` : `/photo/${photoId}`;
+  const backUrl = collectionSlug ? `/collections/${collectionSlug}` : '/';
+  const backLabel = collectionSlug ? '← Collection' : '← Gallery';
 
   return (
     <div className="min-h-screen">
@@ -44,16 +55,16 @@ export default async function PhotoPage({ params }: PhotoPageProps) {
         <div className="absolute top-0 left-0 right-0 z-10 px-4 sm:px-6 lg:px-8 py-6">
           <div className="max-w-screen-2xl mx-auto flex items-center justify-between">
             <Link
-              href="/"
+              href={backUrl}
               className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors bg-white/80 dark:bg-black/80 backdrop-blur-sm px-4 py-2 rounded-full"
             >
-              ← Gallery
+              {backLabel}
             </Link>
 
             <div className="flex items-center gap-4">
               {prevPhoto && (
                 <Link
-                  href={`/photo/${prevPhoto.id}`}
+                  href={buildPhotoUrl(prevPhoto.id)}
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors bg-white/80 dark:bg-black/80 backdrop-blur-sm px-4 py-2 rounded-full"
                 >
                   ← Prev
@@ -61,7 +72,7 @@ export default async function PhotoPage({ params }: PhotoPageProps) {
               )}
               {nextPhoto && (
                 <Link
-                  href={`/photo/${nextPhoto.id}`}
+                  href={buildPhotoUrl(nextPhoto.id)}
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors bg-white/80 dark:bg-black/80 backdrop-blur-sm px-4 py-2 rounded-full"
                 >
                   Next →
@@ -249,7 +260,7 @@ export default async function PhotoPage({ params }: PhotoPageProps) {
           <div className="flex items-center justify-between">
             {prevPhoto ? (
               <Link
-                href={`/photo/${prevPhoto.id}`}
+                href={buildPhotoUrl(prevPhoto.id)}
                 className="group flex items-center gap-3 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -266,7 +277,7 @@ export default async function PhotoPage({ params }: PhotoPageProps) {
 
             {nextPhoto ? (
               <Link
-                href={`/photo/${nextPhoto.id}`}
+                href={buildPhotoUrl(nextPhoto.id)}
                 className="group flex items-center gap-3 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
                 <div className="text-right">
