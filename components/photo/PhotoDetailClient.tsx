@@ -125,8 +125,12 @@ export default function PhotoDetailClient({ photo, nextPhotoId, prevPhotoId }: P
 
   const handleCloseLightbox = () => {
     setIsLightboxOpen(false);
-    // Remove fullscreen param from URL without page reload (preserve collection context)
-    window.history.pushState(null, '', buildPhotoUrl(currentPhoto.id, false));
+    // Rerender (push) If navigated different photo, else just remove fullscreen param
+    if (currentPhoto.id !== photo.id) {
+      router.push(buildPhotoUrl(currentPhoto.id, false));
+    } else {
+      window.history.pushState(null, '', buildPhotoUrl(currentPhoto.id, false));
+    }
   };
 
   return (
