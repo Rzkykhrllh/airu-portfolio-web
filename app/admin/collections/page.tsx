@@ -16,6 +16,7 @@ export default function AdminCollectionsPage() {
   const toast = useToast();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadCollections();
@@ -23,12 +24,14 @@ export default function AdminCollectionsPage() {
 
   const loadCollections = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       // Admin: Get collections with ALL photos (PUBLIC + COLLECTION_ONLY + PRIVATE)
       const data = await getAllCollectionsAdmin();
       setCollections(data);
     } catch (error) {
       console.error("Failed to load collections:", error);
+      setError(error instanceof Error ? error.message : "Failed to load collections");
     } finally {
       setIsLoading(false);
     }
@@ -82,6 +85,12 @@ export default function AdminCollectionsPage() {
             <p className="text-gray-500 dark:text-gray-400">
               Loading collections...
             </p>
+          </div>
+        ) : error ? (
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-red-200 dark:border-red-900/50 p-12 text-center">
+            <p className="text-red-600 dark:text-red-400 mb-2">Failed to load collections</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{error}</p>
+            <Button variant="secondary" onClick={loadCollections}>Try Again</Button>
           </div>
         ) : collections.length === 0 ? (
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-12 text-center">

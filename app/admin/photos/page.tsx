@@ -16,6 +16,7 @@ export default function AdminPhotosPage() {
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<PhotoFilters>({});
 
@@ -25,6 +26,7 @@ export default function AdminPhotosPage() {
 
   const loadPhotos = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       // Admin: Show ALL photos regardless of visibility (PUBLIC, COLLECTION_ONLY, PRIVATE)
       // scope=admin requires authentication on backend
@@ -36,6 +38,7 @@ export default function AdminPhotosPage() {
       setPhotos(data);
     } catch (error) {
       console.error('Failed to load photos:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load photos');
     } finally {
       setIsLoading(false);
     }
@@ -105,6 +108,12 @@ export default function AdminPhotosPage() {
         {isLoading ? (
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-12 text-center">
             <p className="text-gray-500 dark:text-gray-400">Loading photos...</p>
+          </div>
+        ) : error ? (
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-red-200 dark:border-red-900/50 p-12 text-center">
+            <p className="text-red-600 dark:text-red-400 mb-2">Failed to load photos</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{error}</p>
+            <Button variant="secondary" onClick={loadPhotos}>Try Again</Button>
           </div>
         ) : photos.length === 0 ? (
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-12 text-center">

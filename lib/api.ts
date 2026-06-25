@@ -5,7 +5,7 @@ import {
   Collection,
   CollectionFormData,
 } from "@/types";
-import { apiFetch, publicFetch, adminFetch, uploadFetch } from "./fetch";
+import { apiFetch, publicFetch, adminFetch, uploadFetch, ApiError } from "./fetch";
 import { API_ENDPOINTS } from "./config";
 import {
   transformPhoto,
@@ -49,16 +49,26 @@ export async function getPhotos(filters?: PhotoFilters): Promise<Photo[]> {
   // This overrides route-based detection for getPhotos
   const fetchFn = filters?.scope === 'admin' ? adminFetch : publicFetch;
 
-  const response = await fetchFn<BackendPhoto[]>(
-    `${API_ENDPOINTS.photos.list}${queryString}`
-  );
+  // Try/catch only for public calls — admin pages handle their own errors
+  if (filters?.scope === 'admin') {
+    const response = await fetchFn<BackendPhoto[]>(
+      `${API_ENDPOINTS.photos.list}${queryString}`
+    );
+    return transformPhotos(response);
+  }
 
-  // Transform response data into frontend Photo type
-  const photos = transformPhotos(response);
+  try {
+    const response = await fetchFn<BackendPhoto[]>(
+      `${API_ENDPOINTS.photos.list}${queryString}`
+    );
 
-  // TODO: Add fe for searching photos by title or description
+    const photos = transformPhotos(response);
 
-  return photos;
+    return photos;
+  } catch (error) {
+    console.error("Failed to fetch photos:", error);
+    return [];
+  }
 }
 
 export async function getPhoto(id: string): Promise<Photo | null> {
@@ -69,8 +79,11 @@ export async function getPhoto(id: string): Promise<Photo | null> {
     const photo = transformPhoto(response)
     return photo;
   } catch (error) {
-    console.log("Failed to fetch photo", error);
-    return null;
+    if (error instanceof ApiError && error.status === 404) {
+      return null;
+    }
+    console.error("Failed to fetch photo:", error);
+    throw error;
   }
 }
 
@@ -167,11 +180,24 @@ export async function getCollections(
   // scope=admin → adminFetch (with token), otherwise publicFetch
   const fetchFn = scope === 'admin' ? adminFetch : publicFetch;
 
-  const response = await fetchFn<BackendCollection[]>(
-    `${API_ENDPOINTS.collections.list}${queryString}`
-  );
+  // Try/catch only for public calls — admin pages handle their own errors
+  if (scope === 'admin') {
+    const response = await fetchFn<BackendCollection[]>(
+      `${API_ENDPOINTS.collections.list}${queryString}`
+    );
+    return transformCollections(response);
+  }
 
-  return transformCollections(response);
+  try {
+    const response = await fetchFn<BackendCollection[]>(
+      `${API_ENDPOINTS.collections.list}${queryString}`
+    );
+
+    return transformCollections(response);
+  } catch (error) {
+    console.error("Failed to fetch collections:", error);
+    return [];
+  }
 }
 
 export async function getCollection(
@@ -198,8 +224,11 @@ export async function getCollection(
     );
     return transformCollection(response);
   } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      return null;
+    }
     console.error("Failed to fetch collection:", error);
-    return null;
+    throw error;
   }
 }
 

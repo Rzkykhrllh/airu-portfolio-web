@@ -1,5 +1,13 @@
 import { API_BASE_URL, STORAGE_KEYS } from "./config";
 
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+  }
+}
+
 interface ApiResponse<T> {
   success: boolean;
   data?: T;
@@ -37,7 +45,7 @@ export async function publicFetch<T>(
 
   if (!response.ok || !jsonResponse.success) {
     const errorMessage = jsonResponse.message || "An error occurred";
-    throw new Error(errorMessage);
+    throw new ApiError(errorMessage, response.status);
   }
 
   return (jsonResponse.data ?? jsonResponse) as T;
@@ -54,7 +62,7 @@ export async function adminFetch<T>(
       : null;
 
   if (!token) {
-    throw new Error("Authentication required");
+    throw new ApiError("Authentication required", 401);
   }
 
   const headers: Record<string, string> = {
@@ -74,7 +82,7 @@ export async function adminFetch<T>(
 
   if (!response.ok || !jsonResponse.success) {
     const errorMessage = jsonResponse.message || "An error occurred";
-    throw new Error(errorMessage);
+    throw new ApiError(errorMessage, response.status);
   }
 
   return (jsonResponse.data ?? jsonResponse) as T;
@@ -129,7 +137,7 @@ export async function uploadFetch<T>(
   // Error Handling
   if (!response.ok || !jsonResponse.success) {
     const errorMessage = jsonResponse.message || "Upload failed";
-    throw new Error(errorMessage);
+    throw new ApiError(errorMessage, response.status);
   }
 
   return jsonResponse.data as T;
