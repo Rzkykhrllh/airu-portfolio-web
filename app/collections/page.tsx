@@ -1,37 +1,35 @@
 import { getAllCollections } from "@/lib/data";
 import CollectionGrid from "@/components/collections/CollectionGrid";
-import { Photo } from "@/types";
 import { Metadata } from 'next';
 
-// Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Collections - Photography Portfolio',
-  description: 'Browse curated photography collections organized by theme and location. Discover landscapes, portraits, urban scenes, and architectural photography.',
+  title: 'Collections — Airu Photography',
+  description: 'Photographs grouped by place, mood, and moment.',
   openGraph: {
-    title: 'Photography Collections',
-    description: 'Curated photography collections organized by theme',
+    title: 'Collections — Airu Photography',
+    description: 'Photographs grouped by place, mood, and moment.',
     type: 'website',
   },
 };
 
 export default async function CollectionsPage() {
   const collections = await getAllCollections();
-  const collectionPhotos = new Map<string, Photo[]>();
 
   return (
-    <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="mb-12">
-        <h1 className="text-4xl font-bold mb-2">Collections</h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Sorted by vibe. Scroll through and see what catches your eye
-        </p>
+    <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="flex items-baseline justify-between pt-10 pb-7 border-b border-gray-200 dark:border-white/10 mb-8">
+        <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
+          Collections
+        </h1>
+        {collections.length > 0 && (
+          <span className="text-sm text-gray-400 dark:text-gray-500 tabular-nums">
+            {collections.length} collections
+          </span>
+        )}
       </div>
-      <CollectionGrid
-        collections={collections}
-        collectionPhotos={collectionPhotos}
-      />
+      <CollectionGrid collections={collections} />
     </div>
   );
 }

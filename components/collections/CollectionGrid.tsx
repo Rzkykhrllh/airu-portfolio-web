@@ -1,52 +1,41 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { Collection, Photo } from '@/types';
+import { motion, useReducedMotion } from 'framer-motion';
+import { Collection } from '@/types';
 import CollectionCard from './CollectionCard';
 
 interface CollectionGridProps {
   collections: Collection[];
-  collectionPhotos: Map<string, Photo[]>;
 }
 
-export default function CollectionGrid({
-  collections,
-  collectionPhotos,
-}: CollectionGridProps) {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.4,
-      },
-    },
-  };
+export default function CollectionGrid({ collections }: CollectionGridProps) {
+  const shouldReduce = useReducedMotion();
 
   return (
     <motion.div
-      variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+      variants={{
+        hidden: {},
+        visible: {
+          transition: { staggerChildren: shouldReduce ? 0 : 0.06 },
+        },
+      }}
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10"
     >
       {collections.map((collection) => {
-        const photos = collection["photos"] || [];
-        // if (photos.length < 3) return null;
-
+        const photos = (collection as any)["photos"] || [];
         return (
-          <motion.div key={collection.slug} variants={itemVariants}>
+          <motion.div
+            key={collection.slug}
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: { duration: shouldReduce ? 0 : 0.5, ease: [0.22, 1, 0.36, 1] },
+              },
+            }}
+          >
             <CollectionCard collection={collection} photos={photos} />
           </motion.div>
         );
