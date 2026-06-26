@@ -1,9 +1,5 @@
-'use client';
-
-import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import { Photo } from '@/types';
 
 interface PhotoCardProps {
@@ -13,135 +9,57 @@ interface PhotoCardProps {
 }
 
 export default function PhotoCard({ photo, priority = false, collectionSlug }: PhotoCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
-
-  // Get first 3 collections
-  const displayCollections = photo.collections.slice(0, 3);
-
-  // Build photo URL with optional collection context
   const photoUrl = collectionSlug
     ? `/photo/${photo.id}?collection=${collectionSlug}`
     : `/photo/${photo.id}`;
 
   return (
     <Link href={photoUrl} className="block relative group w-full">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="relative overflow-hidden bg-gray-900 w-full"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
+      {/* bg-gray-100/dark:bg-gray-900 shows while image loads */}
+      <div className="relative overflow-hidden bg-gray-100 dark:bg-gray-900 w-full">
         <Image
           src={photo.src.medium}
-          alt={photo.title || 'Photo'}
+          alt={photo.title || 'Photograph by Airu'}
           width={1600}
-          height={1600}
+          height={Math.round(1600 * photo.aspectRatio)}
           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          className="w-full h-auto"
+          className="w-full h-auto block"
           priority={priority}
           placeholder="blur"
           blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCwABmQAAAA"
         />
 
-        {/* Overlay - Desktop only */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isHovered ? 1 : 0 }}
-          transition={{ duration: 0.2 }}
-          className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent hidden md:flex items-end p-6"
+        {/* Desktop: hover-revealed overlay — CSS only, no JS */}
+        <div
+          className="absolute inset-0 hidden md:flex items-end opacity-0 group-hover:opacity-100 transition-opacity duration-[200ms] ease-out motion-reduce:duration-0 pointer-events-none"
+          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.18) 45%, transparent 72%)' }}
         >
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{
-              opacity: isHovered ? 1 : 0,
-              y: isHovered ? 0 : 10,
-            }}
-            transition={{ duration: 0.2, delay: 0.05 }}
-            className="text-white w-full"
-          >
-            <div className="flex items-start justify-between">
-              <div className="space-y-2">
-                {/* Location */}
-                {photo.location && (
-                  <div className="flex items-center gap-1.5">
-                    <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                    </svg>
-                    <p className="text-sm text-gray-300">{photo.location}</p>
-                  </div>
-                )}
-
-                {/* Collections */}
-                {displayCollections.length > 0 && (
-                  <div className="flex items-center gap-1.5">
-                    <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
-                    </svg>
-                    <p className="text-xs text-gray-400">
-                      {displayCollections.map((c) => c.name).join(' • ')}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Featured Badge */}
-              {photo.featured && (
-                <svg
-                  className="w-5 h-5 text-yellow-400 flex-shrink-0"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              )}
-            </div>
-          </motion.div>
-        </motion.div>
-
-        {/* Overlay - Mobile (always visible) */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent md:hidden flex items-end p-4">
-          <div className="text-white w-full">
-            <div className="flex items-start justify-between">
-              <div className="space-y-1.5">
-                {/* Location */}
-                {photo.location && (
-                  <div className="flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                    </svg>
-                    <p className="text-xs text-gray-300">{photo.location}</p>
-                  </div>
-                )}
-
-                {/* Collections */}
-                {displayCollections.length > 0 && (
-                  <div className="flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
-                    </svg>
-                    <p className="text-xs text-gray-400">
-                      {displayCollections.map((c) => c.name).join(' • ')}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Featured Badge */}
-              {photo.featured && (
-                <svg
-                  className="w-4 h-4 text-yellow-400 flex-shrink-0"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              )}
-            </div>
+          <div className="px-4 pb-4 pt-10 w-full">
+            {photo.title && (
+              <p className="text-white text-sm font-medium leading-snug mb-0.5 line-clamp-2">
+                {photo.title}
+              </p>
+            )}
+            {photo.location && (
+              <p className="text-xs" style={{ color: 'rgba(255,255,255,0.58)' }}>
+                {photo.location}
+              </p>
+            )}
           </div>
         </div>
-      </motion.div>
+
+        {/* Mobile: permanent subtle bottom fade with location only */}
+        {photo.location && (
+          <div
+            className="absolute inset-x-0 bottom-0 md:hidden pointer-events-none"
+            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.52) 0%, transparent 65%)' }}
+          >
+            <p className="px-3 pb-2.5 pt-8 text-xs" style={{ color: 'rgba(255,255,255,0.65)' }}>
+              {photo.location}
+            </p>
+          </div>
+        )}
+      </div>
     </Link>
   );
 }
