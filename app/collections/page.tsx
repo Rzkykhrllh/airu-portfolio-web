@@ -15,7 +15,8 @@ export const metadata: Metadata = {
 };
 
 export default async function CollectionsPage() {
-  const collections = await getAllCollections();
+  const allCollections = await getAllCollections();
+  const collections = allCollections.filter((c) => c.photoCount > 0);
 
   return (
     <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
