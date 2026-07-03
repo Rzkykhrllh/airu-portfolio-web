@@ -138,7 +138,7 @@ export async function updatePhoto(
   if (data.visibility !== undefined) payload.visibility = data.visibility;
   if (data.capturedAt !== undefined) payload.capturedAt = data.capturedAt;
   if (data.tags && data.tags.length > 0) payload.tags = data.tags;
-  if (data.collections && data.collections.length > 0) payload.collectionsIds = data.collections;
+  if (data.collections !== undefined) payload.collectionIds = data.collections;
   if (data.exif !== undefined) payload.exif = data.exif;
 
   const respone = await apiFetch<BackendPhoto>(
@@ -239,7 +239,6 @@ export async function createCollection(
     slug: data.slug,
     name: data.title,
     description: data.description,
-    coverPhotoId: data.coverPhotoId,
   };
 
   const response = await apiFetch<BackendCollection>(
@@ -262,7 +261,6 @@ export async function updateCollection(
   if (data.title !== undefined) payload.name = data.title;
   if (data.slug !== undefined) payload.slug = data.slug;
   if (data.description !== undefined) payload.description = data.description;
-  if (data.coverPhotoId !== undefined) payload.coverPhotoId = data.coverPhotoId;
 
   const response = await apiFetch<BackendCollection>(
     API_ENDPOINTS.collections.update(slug),
@@ -279,6 +277,24 @@ export async function deleteCollection(slug: string): Promise<void> {
   await apiFetch(API_ENDPOINTS.collections.delete(slug), {
     method: "DELETE",
   });
+}
+
+export async function reorderCollectionPhotos(
+  slug: string,
+  photoIds: string[]
+): Promise<Collection> {
+  const response = await apiFetch<BackendCollection>(
+    API_ENDPOINTS.collections.reorder(slug),
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ photoIds }),
+    }
+  );
+
+  return transformCollection(response);
 }
 
 // Get photos by collection slug

@@ -80,8 +80,6 @@ export interface BackendCollection {
   slug: string;
   name: string;
   description?: string;
-  coverPhotoId: string;
-  sortOrder: number;
   createdAt: string;
   updatedAt: string;
 
@@ -100,7 +98,6 @@ export function transformCollection(backendCollection: BackendCollection): Colle
     slug: backendCollection.slug,
     title: backendCollection.name,
     description: backendCollection.description,
-    coverPhotoId: backendCollection.coverPhotoId,
     photoCount: backendCollection._count?.photos || backendCollection.photos?.length || 0,
     // Transform photos if they exist
     photos: backendCollection.photos

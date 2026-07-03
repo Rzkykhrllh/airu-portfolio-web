@@ -35,9 +35,8 @@ export type Collection = {
   slug: string;
   title: string;
   description?: string;
-  coverPhotoId: string;
   photoCount: number;
-  photos?: Photo[]; // Optional: included when fetching with photos relation
+  photos?: Photo[]; // Optional: included when fetching with photos relation. photos[0] is the cover.
 };
 
 // Admin-specific types
@@ -63,7 +62,6 @@ export type CollectionFormData = {
   title: string;
   slug: string;
   description: string;
-  coverPhotoId: string;
 };
 
 export type User = {

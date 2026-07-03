@@ -46,7 +46,6 @@ export default function NewCollectionPage() {
         title,
         slug,
         description,
-        coverPhotoId: '1', // Default to first photo
       });
 
       toast.success('Collection created successfully!');
@@ -101,7 +100,7 @@ export default function NewCollectionPage() {
             </div>
 
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              You can add photos and select a cover photo after creating the collection
+              You can add photos after creating the collection. The first photo becomes the cover.
             </p>
           </div>
 

@@ -31,6 +31,7 @@ export const API_ENDPOINTS = {
     create: "/collections",
     update: (slug: string) => `/collections/slug/${slug}`,
     delete: (slug: string) => `/collections/slug/${slug}`,
+    reorder: (slug: string) => `/collections/slug/${slug}/order`,
   },
   authentication:{
     login: "/auth/login",
