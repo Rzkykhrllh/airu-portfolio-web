@@ -1,8 +1,27 @@
 import { Photo, Collection } from "@/types";
-import { getPhotos, getPhoto, getCollections, getCollection } from "./api";
+import { getPhotos, getPhotosPage, getPhoto, getCollections, getCollection } from "./api";
+
+const GALLERY_PAGE_SIZE = 30;
 
 export async function getAllPhotos(): Promise<Photo[]> {
-  return await getPhotos({ scope: 'public' });
+  // Used for prev/next photo navigation, which needs the full ordered list.
+  // Bumped well above the old 100-photo default so navigation doesn't
+  // silently break once the library grows past that.
+  return await getPhotos({ scope: 'public', limit: 1000 });
+}
+
+export async function getGalleryPage(page: number): Promise<{
+  photos: Photo[];
+  total: number;
+  hasMore: boolean;
+}> {
+  const { photos, total, totalPages } = await getPhotosPage({
+    scope: 'public',
+    page,
+    limit: GALLERY_PAGE_SIZE,
+  });
+
+  return { photos, total, hasMore: page < totalPages };
 }
 
 export async function getFeaturedPhotos(): Promise<Photo[]> {

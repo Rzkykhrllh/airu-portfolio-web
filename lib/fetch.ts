@@ -24,6 +24,13 @@ interface ApiResponse<T> {
   };
 }
 
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
 // Public API Fetch - NEVER sends auth token (for public pages)
 export async function publicFetch<T>(
   endpoint: string,
@@ -49,6 +56,34 @@ export async function publicFetch<T>(
   }
 
   return (jsonResponse.data ?? jsonResponse) as T;
+}
+
+// Public API Fetch that also surfaces pagination metadata (list endpoints only)
+export async function publicFetchWithMeta<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<{ data: T; pagination?: PaginationMeta }> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(options.headers as Record<string, string>),
+  };
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers,
+  });
+
+  const jsonResponse: ApiResponse<T> = await response.json();
+
+  if (!response.ok || !jsonResponse.success) {
+    const errorMessage = jsonResponse.message || "An error occurred";
+    throw new ApiError(errorMessage, response.status);
+  }
+
+  return {
+    data: (jsonResponse.data ?? jsonResponse) as T,
+    pagination: jsonResponse.pagination,
+  };
 }
 
 // Admin API Fetch - ALWAYS sends auth token (for admin pages)

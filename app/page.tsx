@@ -1,4 +1,4 @@
-import { getAllPhotos } from '@/lib/data';
+import { getGalleryPage } from '@/lib/data';
 import GalleryView from '@/components/gallery/GalleryView';
 import { Metadata } from 'next';
 
@@ -15,11 +15,11 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const photos = await getAllPhotos();
+  const { photos, total, hasMore } = await getGalleryPage(1);
 
   return (
     <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
-      <GalleryView photos={photos} totalCount={photos.length} />
+      <GalleryView initialPhotos={photos} totalCount={total} initialHasMore={hasMore} />
     </div>
   );
 }

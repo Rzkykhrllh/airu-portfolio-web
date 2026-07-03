@@ -1,18 +1,29 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useInView } from 'react-intersection-observer';
 import MasonryGrid from './MasonryGrid';
 import { gridIcons, Columns } from './grid-icons';
+import { getGalleryPage } from '@/lib/data';
 import { Photo } from '@/types';
 
 interface GalleryViewProps {
-  photos: Photo[];
+  initialPhotos: Photo[];
   totalCount: number;
+  initialHasMore: boolean;
 }
 
-export default function GalleryView({ photos, totalCount }: GalleryViewProps) {
+export default function GalleryView({ initialPhotos, totalCount, initialHasMore }: GalleryViewProps) {
   const [columns, setColumns] = useState<Columns>(3);
   const [mounted, setMounted] = useState(false);
+
+  const [photos, setPhotos] = useState<Photo[]>(initialPhotos);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const isFetchingRef = useRef(false);
+
+  const { ref: sentinelRef, inView } = useInView({ rootMargin: '600px 0px' });
 
   useEffect(() => {
     setMounted(true);
@@ -26,6 +37,31 @@ export default function GalleryView({ photos, totalCount }: GalleryViewProps) {
     setColumns(n);
     localStorage.setItem('gallery-columns', String(n));
   };
+
+  const loadMore = useCallback(async () => {
+    if (isFetchingRef.current || !hasMore) return;
+    isFetchingRef.current = true;
+    setIsLoadingMore(true);
+
+    try {
+      const nextPage = page + 1;
+      const result = await getGalleryPage(nextPage);
+      setPhotos((prev) => [...prev, ...result.photos]);
+      setPage(nextPage);
+      setHasMore(result.hasMore);
+    } catch (error) {
+      console.error('Failed to load more photos:', error);
+    } finally {
+      isFetchingRef.current = false;
+      setIsLoadingMore(false);
+    }
+  }, [page, hasMore]);
+
+  useEffect(() => {
+    if (inView && hasMore) {
+      loadMore();
+    }
+  }, [inView, hasMore, loadMore]);
 
   return (
     <>
@@ -53,12 +89,23 @@ export default function GalleryView({ photos, totalCount }: GalleryViewProps) {
           </div>
           {totalCount > 0 && (
             <span className="text-sm text-gray-400 dark:text-gray-500 tabular-nums">
-              {totalCount} photographs
+              {photos.length < totalCount ? `${photos.length} of ${totalCount}` : totalCount} photographs
             </span>
           )}
         </div>
       </div>
       <MasonryGrid photos={photos} columns={columns} />
+
+      {hasMore && (
+        <div ref={sentinelRef} className="flex justify-center py-12">
+          {isLoadingMore && (
+            <div
+              className="w-5 h-5 border-2 border-gray-300 dark:border-gray-700 border-t-gray-900 dark:border-t-white rounded-full animate-spin"
+              aria-label="Loading more photographs"
+            />
+          )}
+        </div>
+      )}
     </>
   );
 }

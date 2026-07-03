@@ -5,7 +5,7 @@ import {
   Collection,
   CollectionFormData,
 } from "@/types";
-import { apiFetch, publicFetch, adminFetch, uploadFetch, ApiError } from "./fetch";
+import { apiFetch, publicFetch, publicFetchWithMeta, adminFetch, uploadFetch, ApiError } from "./fetch";
 import { API_ENDPOINTS } from "./config";
 import {
   transformPhoto,
@@ -17,8 +17,7 @@ import {
 } from "./transformers";
 
 
-export async function getPhotos(filters?: PhotoFilters): Promise<Photo[]> {
-  // Build query parameters
+function buildPhotoQueryParams(filters?: PhotoFilters): URLSearchParams {
   const params = new URLSearchParams();
 
   // Scope parameter for visibility filtering (handled by backend)
@@ -41,9 +40,17 @@ export async function getPhotos(filters?: PhotoFilters): Promise<Photo[]> {
     params.set("tag", filters.tags.join(","));
   }
 
+  if (filters?.page) {
+    params.set("page", String(filters.page));
+  }
+
   params.set("limit", String(filters?.limit ?? 100));
 
-  const queryString = params.toString() ? `?${params.toString()}` : "";
+  return params;
+}
+
+export async function getPhotos(filters?: PhotoFilters): Promise<Photo[]> {
+  const queryString = `?${buildPhotoQueryParams(filters).toString()}`;
 
   // Special handling: scope=admin forces adminFetch, others use publicFetch
   // This overrides route-based detection for getPhotos
@@ -68,6 +75,30 @@ export async function getPhotos(filters?: PhotoFilters): Promise<Photo[]> {
   } catch (error) {
     console.error("Failed to fetch photos:", error);
     return [];
+  }
+}
+
+// Paginated photo fetch that also exposes total/hasMore, for infinite-scroll UIs.
+// Public scope only (no admin use case for infinite scroll today).
+export async function getPhotosPage(
+  filters?: PhotoFilters
+): Promise<{ photos: Photo[]; total: number; page: number; totalPages: number }> {
+  const queryString = `?${buildPhotoQueryParams(filters).toString()}`;
+
+  try {
+    const { data, pagination } = await publicFetchWithMeta<BackendPhoto[]>(
+      `${API_ENDPOINTS.photos.list}${queryString}`
+    );
+
+    return {
+      photos: transformPhotos(data),
+      total: pagination?.total ?? data.length,
+      page: pagination?.page ?? filters?.page ?? 1,
+      totalPages: pagination?.totalPages ?? 1,
+    };
+  } catch (error) {
+    console.error("Failed to fetch photos:", error);
+    return { photos: [], total: 0, page: 1, totalPages: 1 };
   }
 }
 

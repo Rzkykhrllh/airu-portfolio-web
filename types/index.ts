@@ -82,4 +82,5 @@ export type PhotoFilters = {
   scope?: PhotoScope;
   search?: string;
   limit?: number;
+  page?: number;
 };
