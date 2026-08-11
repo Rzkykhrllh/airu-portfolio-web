@@ -1,11 +1,13 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import {
   getPhotoById,
   getAllPhotos,
   getNextPhoto,
   getPreviousPhoto,
 } from '@/lib/data';
+import { SITE_URL } from '@/lib/config';
 import PhotoDetailClientWrapper from '@/components/photo/PhotoDetailClientWrapper';
 
 // Force dynamic rendering (don't pre-generate at build time)
@@ -27,6 +29,43 @@ interface PhotoPageProps {
 //     id: photo.id,
 //   }));
 // }
+
+export async function generateMetadata({ params }: PhotoPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const photo = await getPhotoById(id);
+
+  if (!photo) {
+    return { title: 'Photo not found — Airu Photography' };
+  }
+
+  const title = photo.title ? `${photo.title} — Airu Photography` : 'Airu Photography';
+  const description =
+    photo.description ||
+    [photo.location, photo.capturedAt ? new Date(photo.capturedAt).getFullYear().toString() : null]
+      .filter(Boolean)
+      .join(' · ') ||
+    'Photography portfolio by Airu — Based in Tokyo, shooting with Fuji X-S20';
+  const pageUrl = `${SITE_URL}/photo/${photo.id}`;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: pageUrl },
+    openGraph: {
+      title,
+      description,
+      url: pageUrl,
+      type: 'article',
+      images: [{ url: photo.src.medium }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [photo.src.medium],
+    },
+  };
+}
 
 export default async function PhotoPage({ params, searchParams }: PhotoPageProps) {
   const { id } = await params;

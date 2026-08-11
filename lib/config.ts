@@ -13,6 +13,10 @@ const getApiBaseUrl = (): string => {
 
 export const API_BASE_URL = getApiBaseUrl();
 
+// Canonical public site URL — used for absolute URLs in metadata (Open
+// Graph, sitemap, robots), which need a full URL regardless of request host.
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://byairu.com";
+
 export const API_ENDPOINTS = {
   photos: {
     list: "/photos",
