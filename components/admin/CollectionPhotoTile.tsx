@@ -15,9 +15,10 @@ interface CollectionPhotoTileProps {
   collectionId: string;
   isCover?: boolean;
   onRemoved: (photoId: string) => void;
+  onEdit: (photoId: string) => void;
 }
 
-export default function CollectionPhotoTile({ photo, collectionId, isCover, onRemoved }: CollectionPhotoTileProps) {
+export default function CollectionPhotoTile({ photo, collectionId, isCover, onRemoved, onEdit }: CollectionPhotoTileProps) {
   const toast = useToast();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: photo.id });
 
@@ -113,6 +114,18 @@ export default function CollectionPhotoTile({ photo, collectionId, isCover, onRe
         >
           <svg className="w-4 h-4 text-gray-600 dark:text-gray-300" fill="currentColor" viewBox="0 0 20 20">
             <path d="M7 4a1 1 0 11-2 0 1 1 0 012 0zM7 10a1 1 0 11-2 0 1 1 0 012 0zM7 16a1 1 0 11-2 0 1 1 0 012 0zM15 4a1 1 0 11-2 0 1 1 0 012 0zM15 10a1 1 0 11-2 0 1 1 0 012 0zM15 16a1 1 0 11-2 0 1 1 0 012 0z" />
+          </svg>
+        </button>
+
+        {/* Edit button */}
+        <button
+          type="button"
+          onClick={() => onEdit(photo.id)}
+          className="absolute top-2 left-2 p-1.5 bg-white/90 dark:bg-gray-900/90 rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Edit photo info"
+        >
+          <svg className="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
           </svg>
         </button>
 

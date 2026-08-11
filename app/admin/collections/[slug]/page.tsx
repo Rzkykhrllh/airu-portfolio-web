@@ -18,6 +18,7 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import CollectionPhotoTile from "@/components/admin/CollectionPhotoTile";
+import PhotoEditModal from "@/components/admin/PhotoEditModal";
 import {
   updateCollection,
   updatePhoto,
@@ -48,6 +49,7 @@ export default function EditCollectionPage({
   const [modalSearch, setModalSearch] = useState("");
   const [addingPhotoId, setAddingPhotoId] = useState<string | null>(null);
   const [isSavingOrder, setIsSavingOrder] = useState(false);
+  const [editingPhotoId, setEditingPhotoId] = useState<string | null>(null);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -128,6 +130,21 @@ export default function EditCollectionPage({
 
   const handleRemovePhoto = (photoId: string) => {
     setPhotos((prev) => prev.filter((p) => p.id !== photoId));
+  };
+
+  const handlePhotoUpdated = (updated: Photo) => {
+    const stillInCollection = updated.collections.some((c) => c.id === collection?.id);
+    setPhotos((prev) =>
+      stillInCollection
+        ? prev.map((p) => (p.id === updated.id ? updated : p))
+        : prev.filter((p) => p.id !== updated.id)
+    );
+    setEditingPhotoId(null);
+  };
+
+  const handlePhotoDeleted = (photoId: string) => {
+    setPhotos((prev) => prev.filter((p) => p.id !== photoId));
+    setEditingPhotoId(null);
   };
 
   const handleAddPhoto = async (photo: Photo) => {
@@ -248,6 +265,7 @@ export default function EditCollectionPage({
                       collectionId={collection.id}
                       isCover={index === 0}
                       onRemoved={handleRemovePhoto}
+                      onEdit={setEditingPhotoId}
                     />
                   ))}
                 </div>
@@ -399,6 +417,16 @@ export default function EditCollectionPage({
             )}
           </div>
         </div>
+      )}
+
+      {/* Edit Photo Modal */}
+      {editingPhotoId && (
+        <PhotoEditModal
+          photoId={editingPhotoId}
+          onClose={() => setEditingPhotoId(null)}
+          onUpdated={handlePhotoUpdated}
+          onDeleted={handlePhotoDeleted}
+        />
       )}
     </AdminLayout>
   );
