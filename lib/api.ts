@@ -40,6 +40,18 @@ function buildPhotoQueryParams(filters?: PhotoFilters): URLSearchParams {
     params.set("tag", filters.tags.join(","));
   }
 
+  if (filters?.search) {
+    params.set("search", filters.search);
+  }
+
+  if (filters?.sort) {
+    params.set("sort", filters.sort);
+  }
+
+  if (filters?.visibility) {
+    params.set("visibility", filters.visibility);
+  }
+
   if (filters?.page) {
     params.set("page", String(filters.page));
   }

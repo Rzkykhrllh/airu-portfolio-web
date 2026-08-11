@@ -75,12 +75,16 @@ export type AuthState = {
 
 export type PhotoScope = 'public' | 'collection' | 'admin';
 
+export type PhotoSort = 'newest' | 'oldest' | 'title';
+
 export type PhotoFilters = {
   collection?: string;
   tags?: string[];
   featured?: boolean;
   scope?: PhotoScope;
   search?: string;
+  sort?: PhotoSort;
+  visibility?: PhotoVisibility;
   limit?: number;
   page?: number;
 };

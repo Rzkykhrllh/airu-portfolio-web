@@ -9,22 +9,38 @@ import PhotoGrid from '@/components/admin/PhotoGrid';
 import PhotoList from '@/components/admin/PhotoList';
 import PhotoEditModal from '@/components/admin/PhotoEditModal';
 import PhotoAddModal from '@/components/admin/PhotoAddModal';
-import { getPhotos } from '@/lib/api';
-import { Photo, PhotoFilters } from '@/types';
+import { getPhotos, getCollections } from '@/lib/api';
+import { Photo, PhotoFilters, Collection } from '@/types';
 
 export default function AdminPhotosPage() {
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState<PhotoFilters>({});
+  const [searchInput, setSearchInput] = useState('');
+  const [filters, setFilters] = useState<PhotoFilters>({ sort: 'newest' });
+  const [availableCollections, setAvailableCollections] = useState<Collection[]>([]);
   const [editingPhotoId, setEditingPhotoId] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
     loadPhotos();
   }, [filters]);
+
+  // Debounce free-text search into `filters` so it goes through the same
+  // server-side round-trip as the other filters instead of firing per keystroke.
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setFilters((prev) => ({ ...prev, search: searchInput.trim() || undefined }));
+    }, 300);
+    return () => clearTimeout(handle);
+  }, [searchInput]);
+
+  useEffect(() => {
+    getCollections('admin')
+      .then(setAvailableCollections)
+      .catch((error) => console.error('Failed to load collections:', error));
+  }, []);
 
   const loadPhotos = async () => {
     setIsLoading(true);
@@ -35,7 +51,6 @@ export default function AdminPhotosPage() {
       const data = await getPhotos({
         ...filters,
         scope: 'admin',
-        search: searchQuery
       });
       setPhotos(data);
     } catch (error) {
@@ -44,10 +59,6 @@ export default function AdminPhotosPage() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleSearch = () => {
-    loadPhotos();
   };
 
   const handlePhotoUploaded = (photo: Photo) => {
@@ -84,34 +95,72 @@ export default function AdminPhotosPage() {
 
         {/* Filters */}
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <ViewToggle view={view} onChange={setView} />
 
-            {/* Search - Hidden until implemented */}
-            {/* <div className="flex-1 max-w-md">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Search by title, location..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                />
-                <Button variant="secondary" onClick={handleSearch}>
-                  Search
-                </Button>
-              </div>
-            </div> */}
-
-            <div className="flex-1" />
+            <div className="flex-1 min-w-[200px] max-w-md">
+              <Input
+                placeholder="Search by title, location, tag..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+              />
+            </div>
 
             <select
               className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={filters.collection ?? ''}
               onChange={(e) => {
                 const value = e.target.value;
-                setFilters({
-                  ...filters,
+                setFilters((prev) => ({ ...prev, collection: value || undefined }));
+              }}
+            >
+              <option value="">All Collections</option>
+              {availableCollections.map((col) => (
+                <option key={col.slug} value={col.slug}>
+                  {col.title}
+                </option>
+              ))}
+            </select>
+
+            <select
+              className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={filters.visibility ?? ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                setFilters((prev) => ({
+                  ...prev,
+                  visibility: value === '' ? undefined : (value as PhotoFilters['visibility']),
+                }));
+              }}
+            >
+              <option value="">All Visibility</option>
+              <option value="PUBLIC">Public</option>
+              <option value="COLLECTION_ONLY">Collection Only</option>
+              <option value="PRIVATE">Private</option>
+            </select>
+
+            <select
+              className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={filters.sort ?? 'newest'}
+              onChange={(e) => {
+                const value = e.target.value as PhotoFilters['sort'];
+                setFilters((prev) => ({ ...prev, sort: value }));
+              }}
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="title">Title A–Z</option>
+            </select>
+
+            <select
+              className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={filters.featured === undefined ? '' : String(filters.featured)}
+              onChange={(e) => {
+                const value = e.target.value;
+                setFilters((prev) => ({
+                  ...prev,
                   featured: value === '' ? undefined : value === 'true',
-                });
+                }));
               }}
             >
               <option value="">All Photos</option>
