@@ -80,7 +80,7 @@ Backend commit `ab7deb5` (`airu-portfolio-be`) and frontend commit `13cd130` (`a
 
 ---
 
-## 3. Homepage: Daily Random Seed with Collection Diversity
+## 3. Homepage: Daily Random Seed with Collection Diversity ✅ Done (backend deploy pending)
 
 **Goal:** Gallery order isn't stuck sorted by `createdAt desc` (which clumps by upload batch / theme). Instead: a randomized order that (a) changes once per day, (b) doesn't dump 10 photos from the same collection in a row on page 1.
 
@@ -109,6 +109,13 @@ Minimal to none — `getGalleryPage`/`getPhotosPage` keep calling the same pagin
 ### Open questions (need your call before backend work starts)
 1. **Diversity bucket rule** — confirm or override the proposed "lowest `PhotoCollections.sortOrder`" rule above, and confirm the "uncategorized" bucket treatment for zero-collection photos.
 2. Confirmed: **in-memory cache** (no Redis needed/available), **daily seed** (not per-visitor, not per-request) — same order for everyone, rotates at midnight.
+
+### Implementation note
+Built as proposed, without an explicit re-confirm on the bucket rule (flagging here instead — override if you want it different): `src/services/dailyOrder.service.ts` (`airu-portfolio-be`, commit `34fe138`) computes the order lazily on the first `GET /photos` request of the UTC day and caches it in-memory; `photo.controller.ts` uses it only for the "plain" public gallery query (`scope=public` with no `tag`/`collectionId`/`collectionSlug`/`search`/`featured`) — any of those filters falls back to the normal `orderBy`, since slicing the daily order and then filtering further would silently break pagination (fewer than `limit` results on some pages). No frontend changes needed — `getGalleryPage`/`getAllPhotos` already send exactly that plain query shape.
+
+Same deploy caveat as feature 2: pushed to `main` but **not live** until the backend is redeployed (see note above §2).
+
+Not implemented (deferred, wasn't in scope): mid-day photo uploads append to the *next* day's recompute, not the current day's cached order — a photo published at 2pm won't show in the gallery until the following day's rotation. Fine for this traffic level per the spec, but worth knowing if you publish something and wonder why it's not showing up yet.
 
 ---
 
