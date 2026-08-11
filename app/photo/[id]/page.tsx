@@ -6,9 +6,11 @@ import {
   getAllPhotos,
   getNextPhoto,
   getPreviousPhoto,
+  getRelatedPhotos,
 } from '@/lib/data';
 import { SITE_URL } from '@/lib/config';
 import PhotoDetailClientWrapper from '@/components/photo/PhotoDetailClientWrapper';
+import RelatedPhotos from '@/components/photo/RelatedPhotos';
 
 // Force dynamic rendering (don't pre-generate at build time)
 export const dynamic = 'force-dynamic';
@@ -79,6 +81,9 @@ export default async function PhotoPage({ params, searchParams }: PhotoPageProps
   // Pass collectionSlug for scoped navigation within collection
   const nextPhoto = await getNextPhoto(id, collectionSlug);
   const prevPhoto = await getPreviousPhoto(id, collectionSlug);
+  const relatedPhotos = await getRelatedPhotos(photo);
+  const relatedHeading =
+    photo.collections.length === 1 ? `More from ${photo.collections[0].name}` : 'Related Photos';
 
   // Build URLs with collection context preserved
   const buildPhotoUrl = (photoId: string) =>
@@ -291,6 +296,9 @@ export default async function PhotoPage({ params, searchParams }: PhotoPageProps
             </div>
           </div>
         )}
+
+        {/* Related Photos */}
+        <RelatedPhotos photos={relatedPhotos} heading={relatedHeading} />
       </div>
 
       {/* Bottom Navigation */}

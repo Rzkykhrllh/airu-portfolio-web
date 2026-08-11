@@ -40,6 +40,28 @@ export async function getPhotoById(id: string): Promise<Photo | undefined> {
   return photo ?? undefined;
 }
 
+export async function getRelatedPhotos(photo: Photo, limit = 8): Promise<Photo[]> {
+  if (photo.collections.length === 0) return [];
+
+  const collectionPhotoLists = await Promise.all(
+    photo.collections.map((c) => getPhotosForCollection(c.slug))
+  );
+
+  const seen = new Set([photo.id]);
+  const related: Photo[] = [];
+
+  for (const list of collectionPhotoLists) {
+    for (const candidate of list) {
+      if (seen.has(candidate.id)) continue;
+      seen.add(candidate.id);
+      related.push(candidate);
+      if (related.length >= limit) return related;
+    }
+  }
+
+  return related;
+}
+
 export async function getAllCollections(): Promise<Collection[]> {
   return await getCollections();
 }
