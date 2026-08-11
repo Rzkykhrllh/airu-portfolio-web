@@ -117,6 +117,8 @@ Same deploy caveat as feature 2: pushed to `main` but **not live** until the bac
 
 Not implemented (deferred, wasn't in scope): mid-day photo uploads append to the *next* day's recompute, not the current day's cached order — a photo published at 2pm won't show in the gallery until the following day's rotation. Fine for this traffic level per the spec, but worth knowing if you publish something and wonder why it's not showing up yet.
 
+**Added after initial build (commit `369097d`):** `GET /photos?scope=public` accepts `order=chronological` as an explicit escape hatch back to the pre-feature-3 behavior (`sort`/`createdAt desc`), no redeploy needed to roll back — just a different query param. Defaults to `order=daily-random`, so the homepage's behavior is unchanged; this is purely an operational off-switch. Not wired into the frontend (no UI toggle) since it wasn't asked for — only the API-level switch was requested.
+
 ---
 
 ## 4. Per-Photo SEO + Visibility Leak Fix
