@@ -152,7 +152,7 @@ Just the two new `app/` files + the `generateMetadata` addition. No changes to `
 
 ---
 
-## 5. Admin Login Rate Limiting
+## 5. Admin Login Rate Limiting ✅ Done (scope expanded — see note)
 
 **Goal:** Stop unlimited brute-force / credential-stuffing attempts against the admin login.
 
@@ -171,7 +171,18 @@ Just the two new `app/` files + the `generateMetadata` addition. No changes to `
 3. Apply it in `src/routes/auth.routes.ts` on the `login` (and optionally `register`) route only — not globally, so it doesn't throttle normal photo/collection reads.
 
 ### Frontend impact
-None, beyond making sure the login form surfaces the 429 response as a readable "too many attempts, try again later" message instead of a generic error.
+None, beyond making sure the login form surfaces the 429 response as a readable "too many attempts, try again later" message instead of a generic error. (Not built — the form still shows a generic error on 429; low priority since this path is rare.)
+
+### Implementation note — scope expanded past the original plan
+While wiring this up, checked whether `/auth/register` was "still reachable" as flagged above: it was — **fully public, no invite/approval, no auth gate**. Since this app has a single `User` model with no role/permission distinction, anyone could `POST /auth/register` with an arbitrary username/password and get back a fully-privileged admin JWT, no password-guessing needed at all. That's a bigger hole than the login brute-force this task started as, so it got fixed in the same pass rather than deferred:
+
+- `POST /auth/register` now requires `authenticateToken` — only an already-authenticated admin can create another account (chosen over deleting the route outright, since there turned out to be **two** legitimate accounts already, `airu` and `nadia` — not single-admin as assumed earlier in this doc).
+- `POST /auth/login`: 10 attempts / IP / 15 min via `express-rate-limit`.
+- Also added `app.set("trust proxy", 1)` in `app.ts` — the app runs behind Nginx (per `DEPLOYMENT-GUIDE.md`, single hop), and without this, `express-rate-limit` would either key every visitor by the proxy's shared IP (one bucket for everyone, real users lock each other out) or outright reject requests over the unconfigured `X-Forwarded-For` header. This wasn't set anywhere before.
+
+Pushed as `airu-portfolio-be` commit `33f7036`, deployed via Dokploy auto-deploy (confirmed live).
+
+**Incident during testing, self-caused and self-resolved:** tested the fix against the live tunnel before the Dokploy deploy had actually rolled out, so the *old* unpatched `/auth/register` briefly handled the test request and created a real user (`test` / `test1234`) on production. Caught immediately by checking the response code (`201` instead of the expected `401`), traced the actual running container (`airu-fotografi-be-yl1tcf`, found via the `airu-upload-relay` socat container it's tunneled through — not the more obviously-named `airu-portfolio-api`, which turned out to be a stale/unused container) and its DB (`dokploy-postgres` / `portfolio_db`, likewise not the more obviously-named `airu-portfolio-db*` containers, which are also stale), then deleted the `test` row directly (`DELETE FROM users WHERE username = 'test' AND id = '...'`, confirmed by row count and a follow-up `SELECT`). Re-verified after the real deploy landed: `register` without a token now correctly returns `401` and creates nothing. Worth knowing for next time: this Contabo box has several orphaned containers (`airu-portfolio-api`, `airu-portfolio-fe`, `airu-portfolio-db`, `airu-portfolio-db-iszn8t`, `airu-dev-web-frontend-qke9wa`) alongside the ones actually live (`airu-fotografi-be-yl1tcf`, `airu-fotografi-fe-5uu3jv`, `dokploy-postgres`) — not cleaned up here since it wasn't this task's scope, but worth a cleanup pass sometime so "which container is real" isn't a live debugging question again. Also noted in passing: a `dokploy-redis` container already exists on the box, which may be usable for the feature-3 Redis migration mentioned earlier instead of standing up a new one.
 
 ---
 
