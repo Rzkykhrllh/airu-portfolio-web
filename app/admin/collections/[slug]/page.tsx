@@ -68,9 +68,12 @@ export default function EditCollectionPage({
       // Fetch collection and all photos in parallel
       // Admin: Show ALL photos regardless of visibility (PUBLIC, COLLECTION_ONLY, PRIVATE)
       // scope=admin requires authentication on backend
+      // limit bumped past the 100-photo default (same fix as the photos list
+      // page) — otherwise "Add Photos" silently couldn't offer anything past
+      // the first 100 uploaded.
       const [collectionData, allPhotosData] = await Promise.all([
         getCollection(slug, 'admin'),
-        getPhotos({ scope: 'admin' }),
+        getPhotos({ scope: 'admin', limit: 1000 }),
       ]);
 
       if (collectionData) {

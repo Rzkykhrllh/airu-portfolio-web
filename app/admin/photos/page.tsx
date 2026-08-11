@@ -48,9 +48,14 @@ export default function AdminPhotosPage() {
     try {
       // Admin: Show ALL photos regardless of visibility (PUBLIC, COLLECTION_ONLY, PRIVATE)
       // scope=admin requires authentication on backend
+      // limit bumped past the 100-photo default — same silent cap already
+      // fixed on the homepage (commit 381be13), just never caught here.
+      // The library is already past 300 photos, so this was hiding ~70% of
+      // it from the admin list entirely.
       const data = await getPhotos({
         ...filters,
         scope: 'admin',
+        limit: 1000,
       });
       setPhotos(data);
     } catch (error) {

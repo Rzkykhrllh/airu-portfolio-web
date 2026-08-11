@@ -103,7 +103,7 @@ export async function getPreviousPhoto(
 
 export async function getAllPhotosAdmin(): Promise<Photo[]> {
   // Admin sees all photos: PUBLIC + COLLECTION_ONLY + PRIVATE
-  return await getPhotos({ scope: 'admin' });
+  return await getPhotos({ scope: 'admin', limit: 1000 });
 }
 
 export async function getAllCollectionsAdmin(): Promise<Collection[]> {
