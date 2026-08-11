@@ -4,7 +4,7 @@ Status: **draft for review** — not started. Written after auditing current FE 
 
 ---
 
-## 1. Admin: Modal-based Photo Management
+## 1. Admin: Modal-based Photo Management ✅ Done
 
 **Goal:** No more full-page navigation for add/edit photo in admin. Everything happens as a popup over the current list/grid.
 
