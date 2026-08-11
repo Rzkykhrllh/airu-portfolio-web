@@ -1,7 +1,6 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Photo, PhotoVisibility } from '@/types';
 import { deletePhoto, updatePhoto } from '@/lib/api';
@@ -11,10 +10,11 @@ import FeaturedToggle from './FeaturedToggle';
 
 interface PhotoListItemProps {
   photo: Photo;
+  onPhotoClick: (photoId: string) => void;
   onPhotoDeleted?: () => void;
 }
 
-export default function PhotoListItem({ photo, onPhotoDeleted }: PhotoListItemProps) {
+export default function PhotoListItem({ photo, onPhotoClick, onPhotoDeleted }: PhotoListItemProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [featured, setFeatured] = useState(photo.featured);
   const [visibility, setVisibility] = useState(photo.visibility);
@@ -80,9 +80,12 @@ export default function PhotoListItem({ photo, onPhotoDeleted }: PhotoListItemPr
 
   return (
     <div className="relative">
-      <Link
-        href={`/admin/photos/${photo.id}`}
-        className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => onPhotoClick(photo.id)}
+        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onPhotoClick(photo.id)}
+        className="flex items-center gap-4 p-4 cursor-pointer bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
       >
         {/* Thumbnail */}
         <div className="relative w-20 h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-900 rounded overflow-hidden">
@@ -163,7 +166,7 @@ export default function PhotoListItem({ photo, onPhotoDeleted }: PhotoListItemPr
             </div>
           </div>
         </div>
-      </Link>
+      </div>
     </div>
   );
 }

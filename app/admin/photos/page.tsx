@@ -1,24 +1,26 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import ViewToggle from '@/components/admin/ViewToggle';
 import PhotoGrid from '@/components/admin/PhotoGrid';
 import PhotoList from '@/components/admin/PhotoList';
+import PhotoEditModal from '@/components/admin/PhotoEditModal';
+import PhotoAddModal from '@/components/admin/PhotoAddModal';
 import { getPhotos } from '@/lib/api';
 import { Photo, PhotoFilters } from '@/types';
 
 export default function AdminPhotosPage() {
-  const router = useRouter();
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<PhotoFilters>({});
+  const [editingPhotoId, setEditingPhotoId] = useState<string | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
     loadPhotos();
@@ -48,6 +50,21 @@ export default function AdminPhotosPage() {
     loadPhotos();
   };
 
+  const handlePhotoUploaded = (photo: Photo) => {
+    setPhotos((prev) => [photo, ...prev]);
+    setShowAddModal(false);
+  };
+
+  const handlePhotoUpdated = (updated: Photo) => {
+    setPhotos((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+    setEditingPhotoId(null);
+  };
+
+  const handlePhotoDeleted = (photoId: string) => {
+    setPhotos((prev) => prev.filter((p) => p.id !== photoId));
+    setEditingPhotoId(null);
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -60,7 +77,7 @@ export default function AdminPhotosPage() {
             </p>
           </div>
 
-          <Button variant="primary" onClick={() => router.push('/admin/photos/upload')}>
+          <Button variant="primary" onClick={() => setShowAddModal(true)}>
             + Upload
           </Button>
         </div>
@@ -122,13 +139,29 @@ export default function AdminPhotosPage() {
         ) : (
           <>
             {view === 'grid' ? (
-              <PhotoGrid photos={photos} onPhotoDeleted={loadPhotos} />
+              <PhotoGrid photos={photos} onPhotoClick={setEditingPhotoId} onPhotoDeleted={loadPhotos} />
             ) : (
-              <PhotoList photos={photos} onPhotoDeleted={loadPhotos} />
+              <PhotoList photos={photos} onPhotoClick={setEditingPhotoId} onPhotoDeleted={loadPhotos} />
             )}
           </>
         )}
       </div>
+
+      {editingPhotoId && (
+        <PhotoEditModal
+          photoId={editingPhotoId}
+          onClose={() => setEditingPhotoId(null)}
+          onUpdated={handlePhotoUpdated}
+          onDeleted={handlePhotoDeleted}
+        />
+      )}
+
+      {showAddModal && (
+        <PhotoAddModal
+          onClose={() => setShowAddModal(false)}
+          onUploaded={handlePhotoUploaded}
+        />
+      )}
     </AdminLayout>
   );
 }

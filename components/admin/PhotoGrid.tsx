@@ -1,7 +1,6 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Photo, PhotoVisibility } from '@/types';
 import { deletePhoto, updatePhoto } from '@/lib/api';
@@ -11,14 +10,15 @@ import FeaturedToggle from './FeaturedToggle';
 
 interface PhotoGridProps {
   photos: Photo[];
+  onPhotoClick: (photoId: string) => void;
   onPhotoDeleted?: () => void;
 }
 
-export default function PhotoGrid({ photos, onPhotoDeleted }: PhotoGridProps) {
+export default function PhotoGrid({ photos, onPhotoClick, onPhotoDeleted }: PhotoGridProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {photos.map((photo) => (
-        <PhotoGridItem key={photo.id} photo={photo} onPhotoDeleted={onPhotoDeleted} />
+        <PhotoGridItem key={photo.id} photo={photo} onPhotoClick={onPhotoClick} onPhotoDeleted={onPhotoDeleted} />
       ))}
     </div>
   );
@@ -26,10 +26,11 @@ export default function PhotoGrid({ photos, onPhotoDeleted }: PhotoGridProps) {
 
 interface PhotoGridItemProps {
   photo: Photo;
+  onPhotoClick: (photoId: string) => void;
   onPhotoDeleted?: () => void;
 }
 
-function PhotoGridItem({ photo, onPhotoDeleted }: PhotoGridItemProps) {
+function PhotoGridItem({ photo, onPhotoClick, onPhotoDeleted }: PhotoGridItemProps) {
   const toast = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
   const [featured, setFeatured] = useState(photo.featured);
@@ -95,9 +96,12 @@ function PhotoGridItem({ photo, onPhotoDeleted }: PhotoGridItemProps) {
 
   return (
     <div className="relative group">
-      <Link
-        href={`/admin/photos/${photo.id}`}
-        className="block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow"
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => onPhotoClick(photo.id)}
+        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onPhotoClick(photo.id)}
+        className="block w-full text-left cursor-pointer bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow"
       >
         <div className="relative aspect-square bg-gray-200 dark:bg-gray-900">
           <Image
@@ -159,7 +163,7 @@ function PhotoGridItem({ photo, onPhotoDeleted }: PhotoGridItemProps) {
             </div>
           )}
         </div>
-      </Link>
+      </div>
     </div>
   );
 }
