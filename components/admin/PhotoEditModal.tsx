@@ -144,7 +144,7 @@ export default function PhotoEditModal({ photoId, onClose, onUpdated, onDeleted 
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-gray-800 rounded-lg max-w-5xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-white dark:bg-gray-800 rounded-lg max-w-7xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
@@ -166,17 +166,17 @@ export default function PhotoEditModal({ photoId, onClose, onUpdated, onDeleted 
           </div>
         ) : (
           <>
-            <form id="photo-edit-form" onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6">
+            <form id="photo-edit-form" onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-8 p-6">
               {/* Photo Preview */}
               <div>
                 <div className="sticky top-20">
-                  <div className="relative w-full aspect-square bg-gray-200 dark:bg-gray-900 rounded-lg overflow-hidden">
+                  <div className="relative w-full h-[70vh] bg-gray-100 dark:bg-gray-900 rounded-lg overflow-hidden">
                     <Image
                       src={photo.src.full}
                       alt={photo.title || 'Photo'}
                       fill
-                      className="object-cover"
-                      sizes="(max-width: 1024px) 100vw, 50vw"
+                      className="object-contain"
+                      sizes="(max-width: 1024px) 100vw, 60vw"
                     />
                   </div>
                 </div>
@@ -190,6 +190,26 @@ export default function PhotoEditModal({ photoId, onClose, onUpdated, onDeleted 
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Enter photo title"
                 />
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Visibility
+                  </label>
+                  <select
+                    value={visibility}
+                    onChange={(e) => setVisibility(e.target.value as 'PUBLIC' | 'COLLECTION_ONLY' | 'PRIVATE')}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="PUBLIC">Public (Show everywhere)</option>
+                    <option value="COLLECTION_ONLY">Collection Only (Not in gallery)</option>
+                    <option value="PRIVATE">Private (Admin only)</option>
+                  </select>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {visibility === 'PUBLIC' && 'Visible in gallery, collections, and admin'}
+                    {visibility === 'COLLECTION_ONLY' && 'Visible in collections and admin only, not in main gallery'}
+                    {visibility === 'PRIVATE' && 'Only visible to admins, hidden from public'}
+                  </p>
+                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -270,26 +290,6 @@ export default function PhotoEditModal({ photoId, onClose, onUpdated, onDeleted 
                       Featured (Photographer's Pick)
                     </span>
                   </label>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Visibility
-                  </label>
-                  <select
-                    value={visibility}
-                    onChange={(e) => setVisibility(e.target.value as 'PUBLIC' | 'COLLECTION_ONLY' | 'PRIVATE')}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="PUBLIC">Public (Show everywhere)</option>
-                    <option value="COLLECTION_ONLY">Collection Only (Not in gallery)</option>
-                    <option value="PRIVATE">Private (Admin only)</option>
-                  </select>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {visibility === 'PUBLIC' && 'Visible in gallery, collections, and admin'}
-                    {visibility === 'COLLECTION_ONLY' && 'Visible in collections and admin only, not in main gallery'}
-                    {visibility === 'PRIVATE' && 'Only visible to admins, hidden from public'}
-                  </p>
                 </div>
 
                 {/* EXIF Data */}
