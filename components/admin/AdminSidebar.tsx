@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { getInquiries } from '@/lib/api';
 
 const navItems = [
   {
@@ -22,6 +24,15 @@ const navItems = [
       </svg>
     ),
   },
+  {
+    label: 'Inquiries',
+    href: '/admin/inquiries',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
 ];
 
 interface AdminSidebarProps {
@@ -31,6 +42,13 @@ interface AdminSidebarProps {
 
 export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
+  const [unreadInquiries, setUnreadInquiries] = useState(0);
+
+  useEffect(() => {
+    getInquiries({ limit: 1 })
+      .then((result) => setUnreadInquiries(result.unreadCount))
+      .catch((error) => console.error('Failed to load inquiry count:', error));
+  }, []);
 
   return (
     <>
@@ -71,7 +89,16 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                 }`}
               >
                 {item.icon}
-                <span className="font-medium">{item.label}</span>
+                <span className="font-medium flex-1">{item.label}</span>
+                {item.href === '/admin/inquiries' && unreadInquiries > 0 && (
+                  <span
+                    className={`text-xs font-semibold rounded-full px-2 py-0.5 ${
+                      isActive ? 'bg-white/20 text-white' : 'bg-blue-600 text-white'
+                    }`}
+                  >
+                    {unreadInquiries}
+                  </span>
+                )}
               </Link>
             );
           })}

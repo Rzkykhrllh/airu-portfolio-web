@@ -4,8 +4,10 @@ import {
   PhotoFilters,
   Collection,
   CollectionFormData,
+  Inquiry,
+  InquiryFormData,
 } from "@/types";
-import { apiFetch, publicFetch, publicFetchWithMeta, adminFetch, uploadFetch, ApiError } from "./fetch";
+import { apiFetch, publicFetch, publicFetchWithMeta, adminFetch, adminFetchWithMeta, uploadFetch, ApiError } from "./fetch";
 import { API_ENDPOINTS } from "./config";
 import {
   transformPhoto,
@@ -343,4 +345,49 @@ export async function reorderCollectionPhotos(
 // Get photos by collection slug
 export async function getPhotosByCollection(slug: string): Promise<Photo[]> {
   return getPhotos({ collection: slug });
+}
+
+// ============ Inquiries (contact form) ============
+
+export async function submitInquiry(data: InquiryFormData): Promise<void> {
+  await publicFetch(API_ENDPOINTS.inquiries.create, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getInquiries(params?: {
+  page?: number;
+  limit?: number;
+  read?: boolean;
+}): Promise<{ inquiries: Inquiry[]; unreadCount: number; total: number; totalPages: number }> {
+  const query = new URLSearchParams();
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.limit) query.set("limit", String(params.limit));
+  if (params?.read !== undefined) query.set("read", String(params.read));
+
+  const queryString = query.toString() ? `?${query.toString()}` : "";
+  const { data, pagination, unreadCount } = await adminFetchWithMeta<Inquiry[]>(
+    `${API_ENDPOINTS.inquiries.list}${queryString}`
+  );
+
+  return {
+    inquiries: data,
+    unreadCount: unreadCount ?? 0,
+    total: pagination?.total ?? data.length,
+    totalPages: pagination?.totalPages ?? 1,
+  };
+}
+
+export async function markInquiryRead(id: string, read: boolean): Promise<Inquiry> {
+  return adminFetch<Inquiry>(API_ENDPOINTS.inquiries.markRead(id), {
+    method: "PATCH",
+    body: JSON.stringify({ read }),
+  });
+}
+
+export async function deleteInquiry(id: string): Promise<void> {
+  await adminFetch(API_ENDPOINTS.inquiries.delete(id), {
+    method: "DELETE",
+  });
 }

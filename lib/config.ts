@@ -41,6 +41,12 @@ export const API_ENDPOINTS = {
     login: "/auth/login",
     register: "/auth/register",
   },
+  inquiries: {
+    create: "/inquiries",
+    list: "/inquiries",
+    markRead: (id: string) => `/inquiries/${id}/read`,
+    delete: (id: string) => `/inquiries/${id}`,
+  },
   health: {
     public: "/health",
     authenticated: "/user/health",

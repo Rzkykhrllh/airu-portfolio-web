@@ -88,3 +88,21 @@ export type PhotoFilters = {
   limit?: number;
   page?: number;
 };
+
+export type InquiryFormData = {
+  name: string;
+  email: string;
+  projectType?: string;
+  message: string;
+  company?: string; // honeypot — must stay empty
+};
+
+export type Inquiry = {
+  id: string;
+  name: string;
+  email: string;
+  projectType?: string | null;
+  message: string;
+  read: boolean;
+  createdAt: string;
+};

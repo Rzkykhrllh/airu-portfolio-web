@@ -22,6 +22,9 @@ interface ApiResponse<T> {
     total: number;
     totalPages: number;
   };
+  // Endpoint-specific extras that don't fit `pagination` (e.g. inquiries'
+  // unread count) ride along here rather than growing this interface per field.
+  [extra: string]: unknown;
 }
 
 export interface PaginationMeta {
@@ -121,6 +124,47 @@ export async function adminFetch<T>(
   }
 
   return (jsonResponse.data ?? jsonResponse) as T;
+}
+
+// Admin API Fetch that also surfaces pagination + any extra top-level
+// response fields (list endpoints only) — mirrors publicFetchWithMeta.
+export async function adminFetchWithMeta<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<{ data: T; pagination?: PaginationMeta; unreadCount?: number }> {
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem(STORAGE_KEYS.authToken)
+      : null;
+
+  if (!token) {
+    throw new ApiError("Authentication required", 401);
+  }
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(options.headers as Record<string, string>),
+  };
+
+  headers["Authorization"] = `Bearer ${token}`;
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers,
+  });
+
+  const jsonResponse: ApiResponse<T> = await response.json();
+
+  if (!response.ok || !jsonResponse.success) {
+    const errorMessage = jsonResponse.message || "An error occurred";
+    throw new ApiError(errorMessage, response.status);
+  }
+
+  return {
+    data: (jsonResponse.data ?? jsonResponse) as T,
+    pagination: jsonResponse.pagination,
+    unreadCount: jsonResponse.unreadCount as number | undefined,
+  };
 }
 
 /**

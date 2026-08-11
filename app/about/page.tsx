@@ -1,14 +1,24 @@
 import { Metadata } from "next";
+import { getPhotoById } from "@/lib/data";
+import AboutHero from "@/components/about/AboutHero";
+import ContactForm from "@/components/about/ContactForm";
 
-export const metadata: Metadata = {
-  title: "About — Airu Photography",
-  description: "Airu — Tokyo-based photographer. Shooting with Fujifilm X-S20.",
-  openGraph: {
+const PORTRAIT_PHOTO_ID = "fb96d8e1-e8b1-40cd-b2c0-8f301b8cbb8e";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const portrait = await getPhotoById(PORTRAIT_PHOTO_ID);
+
+  return {
     title: "About — Airu Photography",
-    description: "Tokyo-based photographer capturing everyday moments.",
-    type: "profile",
-  },
-};
+    description: "Airu — Tokyo-based photographer. Shooting with Fujifilm X-S20.",
+    openGraph: {
+      title: "About — Airu Photography",
+      description: "Tokyo-based photographer capturing everyday moments.",
+      type: "profile",
+      images: portrait ? [{ url: portrait.src.medium }] : undefined,
+    },
+  };
+}
 
 const links = [
   { label: "Email", href: "mailto:m.rizky.khairullah@gmail.com", display: "m.rizky.khairullah@gmail.com", external: false },
@@ -17,7 +27,9 @@ const links = [
   { label: "Unsplash", href: "https://unsplash.com/@airuphotograph", display: "@airuphotograph", external: true },
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const portrait = await getPhotoById(PORTRAIT_PHOTO_ID);
+
   return (
     <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Heading — same pattern as Gallery / Collections */}
@@ -27,24 +39,11 @@ export default function AboutPage() {
         </h1>
       </div>
 
-      <div className="py-12 max-w-xl space-y-12">
-        {/* Bio */}
-        <div className="space-y-4 text-gray-700 dark:text-gray-300 leading-relaxed">
-          <p>
-            Hi, I'm Airu — a photographer based in Tokyo, shooting with a Fujifilm X-S20.
-          </p>
-          <p>
-            Through my camera, I try to preserve simple scenes, quiet details,
-            and moments that feel meaningful in everyday life. I explore streets,
-            landscapes, travel scenes, and portraits across Japan and beyond.
-          </p>
-          <p>
-            Open for commercial work, editorial projects, and collaborations.
-          </p>
-        </div>
+      <AboutHero photo={portrait} />
 
-        {/* Contact */}
-        <div className="space-y-3">
+      <div className="max-w-xl pb-16 space-y-16">
+        {/* Contact links */}
+        <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-white/10">
           {links.map(({ label, href, display, external }) => (
             <div key={label} className="flex items-baseline gap-6">
               <span className="text-xs text-gray-400 dark:text-gray-500 w-20 shrink-0">
@@ -61,13 +60,16 @@ export default function AboutPage() {
           ))}
         </div>
 
-        {/* CTA */}
-        <a
-          href="mailto:m.rizky.khairullah@gmail.com"
-          className="inline-block px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-black text-sm font-medium hover:opacity-80 transition-opacity"
-        >
-          Get in touch
-        </a>
+        {/* Contact form */}
+        <div className="pt-4 border-t border-gray-200 dark:border-white/10">
+          <p
+            className="text-2xl italic text-gray-900 dark:text-white mb-6"
+            style={{ fontFamily: "var(--font-cormorant), serif", fontWeight: 500 }}
+          >
+            Get in touch.
+          </p>
+          <ContactForm />
+        </div>
       </div>
     </div>
   );
