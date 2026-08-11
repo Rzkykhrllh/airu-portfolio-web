@@ -121,7 +121,7 @@ Not implemented (deferred, wasn't in scope): mid-day photo uploads append to the
 
 ---
 
-## 4. Per-Photo SEO + Visibility Leak Fix
+## 4. Per-Photo SEO + Visibility Leak Fix ✅ Done
 
 **Goal:** Photo detail pages get real metadata (title, description, OG image) for link previews and search indexing. Bundled with a bug fix found while scoping this: the detail endpoint currently ignores visibility entirely.
 
@@ -149,6 +149,13 @@ const photo = await prisma.photo.findUnique({ where, ... });
 
 ### Frontend impact
 Just the two new `app/` files + the `generateMetadata` addition. No changes to `lib/api.ts` needed — reuses existing public fetch functions.
+
+### Implementation note
+Backend fix landed as `findFirst({ where: isAuthenticated ? { id } : { id, visibility: "PUBLIC" } })` — needed `findFirst` over `findUnique` as anticipated, since `findUnique`'s `where` can only contain unique fields (`id, visibility` together isn't one). `airu-portfolio-be` commit `67a8412`, deployed and verified live: unauthenticated requests for both a real `PRIVATE` and a real `COLLECTION_ONLY` photo id now 404, admin (authenticated) access unaffected.
+
+Frontend: `generateMetadata()` added to `app/photo/[id]/page.tsx` (title, description with location+year fallback, OG + Twitter card images), plus `app/sitemap.ts` and `app/robots.ts`. New `SITE_URL` export in `lib/config.ts` (`NEXT_PUBLIC_SITE_URL` env override, defaults to `https://byairu.com`) since nothing in the codebase had a canonical site URL before this. `airu-porto-fe` commit `9c723e3`.
+
+Verified end-to-end against the live site: `/sitemap.xml` and `/robots.txt` render correctly and don't list the private/collection-only photo ids used to test the backend fix; a photo page's rendered `<title>`/OG/Twitter tags match the photo's real data; the private photo's detail page correctly 404s instead of rendering.
 
 ---
 
