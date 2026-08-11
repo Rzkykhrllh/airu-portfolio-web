@@ -30,7 +30,7 @@ Status: **draft for review** — not started. Written after auditing current FE 
 
 ---
 
-## 2. Admin Photos List: Filters
+## 2. Admin Photos List: Filters ✅ Done (backend deploy pending — see note)
 
 **Goal:** `/admin/photos` gets a real filter bar: search, collection, visibility, sort.
 
@@ -72,6 +72,11 @@ Confirmed against `prisma/schema.prisma`: `Photo.tags` is `PhotoTags[]` with a p
 
 ### Open decision
 Filter client-side (over the full admin-scope fetch, `limit=100` today) vs. server-side (send filters as query params, backend does the `where`/`orderBy`). Given search needs a backend round-trip anyway, and collection count will keep growing, **recommend fully server-side** for all four filters — one consistent code path, and it stops silently breaking once photo count exceeds the `limit=100` default.
+
+**Resolved: went server-side**, as recommended.
+
+### Implementation note
+Backend commit `ab7deb5` (`airu-portfolio-be`) and frontend commit `13cd130` (`airu-porto-fe`) are both pushed to `main`. **The backend change needs an actual deploy to take effect** — local dev talks to the backend through an SSH tunnel on `:8201` (per infra notes, this is not a locally-running instance of the edited code), and nothing in this repo auto-deploys on `git push` (no CI workflow, Dokploy is presumably pull/webhook-driven separately). Search/sort/visibility filters will silently no-op (zod will just ignore unknown params, existing behavior) until that backend is redeployed.
 
 ---
 
