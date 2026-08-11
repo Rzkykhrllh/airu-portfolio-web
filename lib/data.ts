@@ -10,7 +10,7 @@ export async function getAllPhotos(): Promise<Photo[]> {
   return await getPhotos({ scope: 'public', limit: 1000 });
 }
 
-export async function getGalleryPage(page: number): Promise<{
+export async function getGalleryPage(page: number, search?: string): Promise<{
   photos: Photo[];
   total: number;
   hasMore: boolean;
@@ -19,6 +19,7 @@ export async function getGalleryPage(page: number): Promise<{
     scope: 'public',
     page,
     limit: GALLERY_PAGE_SIZE,
+    search: search || undefined,
   });
 
   return { photos, total, hasMore: page < totalPages };
