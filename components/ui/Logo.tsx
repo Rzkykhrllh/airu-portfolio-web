@@ -154,7 +154,7 @@ export function Logo({ className = '', size = 'md', animated = true }: LogoProps
         <TextWrapper
           className="dark:text-white text-black"
           style={{
-            fontFamily: "'Cormorant Garamond', serif",
+            fontFamily: 'var(--font-cormorant), serif',
             fontSize: config.frameSize,
             fontWeight: 600,
             fontStyle: 'italic',
@@ -172,7 +172,7 @@ export function Logo({ className = '', size = 'md', animated = true }: LogoProps
           <span
             className="dark:text-neutral-500 text-neutral-400"
             style={{
-              fontFamily: "'Cormorant Garamond', serif",
+              fontFamily: 'var(--font-cormorant), serif',
               fontSize: config.bySize,
               fontWeight: 300,
               fontStyle: 'italic',
@@ -184,7 +184,7 @@ export function Logo({ className = '', size = 'md', animated = true }: LogoProps
           <span
             className="dark:text-white text-black"
             style={{
-              fontFamily: "'Cormorant Garamond', serif",
+              fontFamily: 'var(--font-cormorant), serif',
               fontSize: config.airuSize,
               fontWeight: 600,
               fontStyle: 'italic',

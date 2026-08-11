@@ -1,7 +1,20 @@
 import type { Metadata } from 'next';
+import { Cormorant_Garamond } from 'next/font/google';
 import ConditionalLayout from '@/components/layout/ConditionalLayout';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import '@/styles/globals.css';
+
+// Was referenced by name ("'Cormorant Garamond', serif") in the logo and
+// nowhere ever loaded — silently falling back to the browser's default
+// serif. next/font self-hosts it (no FOUT, no external request) and
+// exposes it as a CSS variable everything else can reference.
+const cormorantGaramond = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['300', '500', '600'],
+  style: ['normal', 'italic'],
+  variable: '--font-cormorant',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'Airu Photography',
@@ -17,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={cormorantGaramond.variable}>
       <body>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <ConditionalLayout>{children}</ConditionalLayout>
