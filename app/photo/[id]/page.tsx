@@ -9,6 +9,7 @@ import {
   getRelatedPhotos,
 } from '@/lib/data';
 import { SITE_URL } from '@/lib/config';
+import { buildPhotoImageObject, toJsonLdScript } from '@/lib/structuredData';
 import PhotoDetailClientWrapper from '@/components/photo/PhotoDetailClientWrapper';
 import RelatedPhotos from '@/components/photo/RelatedPhotos';
 
@@ -91,8 +92,14 @@ export default async function PhotoPage({ params, searchParams }: PhotoPageProps
   const backUrl = collectionSlug ? `/collections/${collectionSlug}` : '/';
   const backLabel = collectionSlug ? '← Collection' : '← Gallery';
 
+  const jsonLd = buildPhotoImageObject(photo, `${SITE_URL}/photo/${photo.id}`);
+
   return (
     <div className="min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: toJsonLdScript(jsonLd) }}
+      />
       {/* Hero Image Section */}
       <div className="relative bg-gray-100 dark:bg-black">
         {/* Top Navigation Bar */}

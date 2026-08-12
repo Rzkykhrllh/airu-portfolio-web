@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { getPhotoById } from "@/lib/data";
+import { buildPhotographerProfilePage, toJsonLdScript } from "@/lib/structuredData";
 import AboutHero from "@/components/about/AboutHero";
 import ContactForm from "@/components/about/ContactForm";
 
@@ -35,9 +36,14 @@ const links = [
 
 export default async function AboutPage() {
   const portrait = await getPhotoById(PORTRAIT_PHOTO_ID);
+  const jsonLd = buildPhotographerProfilePage(portrait?.src.medium);
 
   return (
     <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: toJsonLdScript(jsonLd) }}
+      />
       {/* Heading — same pattern as Gallery / Collections */}
       <div className="pt-10 pb-7 border-b border-gray-200 dark:border-white/10">
         <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
