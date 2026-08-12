@@ -5,6 +5,12 @@ import ContactForm from "@/components/about/ContactForm";
 
 const PORTRAIT_PHOTO_ID = "fb96d8e1-e8b1-40cd-b2c0-8f301b8cbb8e";
 
+// Force dynamic rendering — this page now fetches from the backend
+// (portrait photo), which isn't reachable at build time in this deploy
+// setup (same reason app/page.tsx, app/photo/[id]/page.tsx, and
+// app/collections/page.tsx are all force-dynamic already).
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata(): Promise<Metadata> {
   const portrait = await getPhotoById(PORTRAIT_PHOTO_ID);
 

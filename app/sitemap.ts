@@ -2,6 +2,11 @@ import type { MetadataRoute } from 'next';
 import { SITE_URL } from '@/lib/config';
 import { getAllPhotos, getAllCollections } from '@/lib/data';
 
+// Force dynamic — fetches from the backend, which isn't reachable at build
+// time in this deploy setup (the backend hostname only resolves on the
+// runtime overlay network, not inside the isolated build container).
+export const dynamic = 'force-dynamic';
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [photos, collections] = await Promise.all([getAllPhotos(), getAllCollections()]);
 
