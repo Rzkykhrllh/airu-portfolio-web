@@ -4,10 +4,13 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { Photo } from '@/types';
 import PhotoCard from './PhotoCard';
 
+// Custom breakpoints (not Tailwind's sm/md/lg defaults): <425px = 1 column
+// always, 425px+ = 2 columns, 768px+ = 3 columns, 1024px+ = 4 columns — each
+// zoom level caps out at its number but still degrades gracefully below it.
 const columnClasses: Record<number, string> = {
-  2: 'columns-1 sm:columns-2 gap-0',
-  3: 'columns-1 md:columns-2 lg:columns-3 gap-0',
-  4: 'columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-0',
+  2: 'columns-1 min-[425px]:columns-2 gap-0',
+  3: 'columns-1 min-[425px]:columns-2 md:columns-3 gap-0',
+  4: 'columns-1 min-[425px]:columns-2 md:columns-3 lg:columns-4 gap-0',
 };
 
 interface MasonryGridProps {

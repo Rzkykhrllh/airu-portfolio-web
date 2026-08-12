@@ -202,10 +202,11 @@ export default function GalleryView({ initialPhotos, totalCount: initialTotalCou
             )}
           </button>
 
-          {/* Zoom controls — every level collapses to 1 column below `sm`
-              anyway (see MasonryGrid's columnClasses), so hide entirely on
-              mobile instead of showing controls that visibly do nothing. */}
-          <div className="hidden sm:flex items-center gap-1">
+          {/* Zoom controls — below `md` (768px) every level renders the same
+              (1 column under 425px, 2 columns from 425–767px regardless of
+              which level is picked — see MasonryGrid's columnClasses), so
+              hide entirely until the point where they first diverge. */}
+          <div className="hidden md:flex items-center gap-1">
             {([2, 3, 4] as Columns[]).map((n) => (
               <button
                 key={n}
