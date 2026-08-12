@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import MasonryGrid from '@/components/gallery/MasonryGrid';
-import { gridIcons, Columns } from '@/components/gallery/grid-icons';
+import MasonryGrid, { ColumnPrefs, DEFAULT_COLUMN_PREFS } from '@/components/gallery/MasonryGrid';
+import ZoomControls from '@/components/gallery/ZoomControls';
 import { Photo, Collection } from '@/types';
 
 interface CollectionViewProps {
@@ -13,21 +13,7 @@ interface CollectionViewProps {
 }
 
 export default function CollectionView({ collection, photos, slug }: CollectionViewProps) {
-  const [columns, setColumns] = useState<Columns>(3);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    const saved = localStorage.getItem('gallery-columns');
-    if (saved === '2' || saved === '3' || saved === '4') {
-      setColumns(Number(saved) as Columns);
-    }
-  }, []);
-
-  const handleSetColumns = (n: Columns) => {
-    setColumns(n);
-    localStorage.setItem('gallery-columns', String(n));
-  };
+  const [columnPrefs, setColumnPrefs] = useState<ColumnPrefs>(DEFAULT_COLUMN_PREFS);
 
   return (
     <>
@@ -43,22 +29,7 @@ export default function CollectionView({ collection, photos, slug }: CollectionV
             {collection.title}
           </h1>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1">
-              {([2, 3, 4] as Columns[]).map((n) => (
-                <button
-                  key={n}
-                  onClick={() => handleSetColumns(n)}
-                  aria-label={`${n} columns`}
-                  className={`p-1.5 rounded transition-colors ${
-                    mounted && columns === n
-                      ? 'text-gray-900 dark:text-white'
-                      : 'text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400'
-                  }`}
-                >
-                  {gridIcons[n]}
-                </button>
-              ))}
-            </div>
+            <ZoomControls onChange={setColumnPrefs} />
             {photos.length > 0 && (
               <span className="text-sm text-gray-400 dark:text-gray-500 tabular-nums">
                 {photos.length} photographs
@@ -73,7 +44,7 @@ export default function CollectionView({ collection, photos, slug }: CollectionV
         )}
       </div>
 
-      <MasonryGrid photos={photos} columns={columns} collectionSlug={slug} />
+      <MasonryGrid photos={photos} columns={columnPrefs} collectionSlug={slug} />
     </>
   );
 }

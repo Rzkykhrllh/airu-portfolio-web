@@ -1,8 +1,13 @@
 import type { ReactElement } from 'react';
 
-export type Columns = 2 | 3 | 4;
+export type Columns = 1 | 2 | 3 | 4;
 
 export const gridIcons: Record<Columns, ReactElement> = {
+  1: (
+    <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor">
+      <rect x="0" y="0" width="16" height="12" rx="0.5" />
+    </svg>
+  ),
   2: (
     <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor">
       <rect x="0" y="0" width="7" height="5" rx="0.5" />

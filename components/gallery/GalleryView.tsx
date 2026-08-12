@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useInView } from 'react-intersection-observer';
-import MasonryGrid from './MasonryGrid';
-import { gridIcons, Columns } from './grid-icons';
+import MasonryGrid, { ColumnPrefs, DEFAULT_COLUMN_PREFS } from './MasonryGrid';
+import ZoomControls from './ZoomControls';
 import { getGalleryPage, getAllCollections } from '@/lib/data';
 import { Photo, Collection } from '@/types';
 
@@ -14,8 +14,7 @@ interface GalleryViewProps {
 }
 
 export default function GalleryView({ initialPhotos, totalCount: initialTotalCount, initialHasMore }: GalleryViewProps) {
-  const [columns, setColumns] = useState<Columns>(3);
-  const [mounted, setMounted] = useState(false);
+  const [columnPrefs, setColumnPrefs] = useState<ColumnPrefs>(DEFAULT_COLUMN_PREFS);
 
   const [photos, setPhotos] = useState<Photo[]>(initialPhotos);
   const [page, setPage] = useState(1);
@@ -38,23 +37,10 @@ export default function GalleryView({ initialPhotos, totalCount: initialTotalCou
   const { ref: sentinelRef, inView } = useInView({ rootMargin: '600px 0px' });
 
   useEffect(() => {
-    setMounted(true);
-    const saved = localStorage.getItem('gallery-columns');
-    if (saved === '2' || saved === '3' || saved === '4') {
-      setColumns(Number(saved) as Columns);
-    }
-  }, []);
-
-  useEffect(() => {
     getAllCollections()
       .then(setAvailableCollections)
       .catch((error) => console.error('Failed to load collections:', error));
   }, []);
-
-  const handleSetColumns = (n: Columns) => {
-    setColumns(n);
-    localStorage.setItem('gallery-columns', String(n));
-  };
 
   const loadMore = useCallback(async () => {
     if (isFetchingRef.current || !hasMore) return;
@@ -202,26 +188,7 @@ export default function GalleryView({ initialPhotos, totalCount: initialTotalCou
             )}
           </button>
 
-          {/* Zoom controls — below `md` (768px) every level renders the same
-              (1 column under 425px, 2 columns from 425–767px regardless of
-              which level is picked — see MasonryGrid's columnClasses), so
-              hide entirely until the point where they first diverge. */}
-          <div className="hidden md:flex items-center gap-1">
-            {([2, 3, 4] as Columns[]).map((n) => (
-              <button
-                key={n}
-                onClick={() => handleSetColumns(n)}
-                aria-label={`${n} columns`}
-                className={`p-1.5 rounded transition-colors ${
-                  mounted && columns === n
-                    ? 'text-gray-900 dark:text-white'
-                    : 'text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400'
-                }`}
-              >
-                {gridIcons[n]}
-              </button>
-            ))}
-          </div>
+          <ZoomControls onChange={setColumnPrefs} />
           {totalCount > 0 && (
             <span className="text-sm text-gray-400 dark:text-gray-500 tabular-nums">
               {photos.length < totalCount ? `${photos.length} of ${totalCount}` : totalCount} photographs
@@ -242,7 +209,7 @@ export default function GalleryView({ initialPhotos, totalCount: initialTotalCou
           No photographs match your filters.
         </div>
       ) : (
-        <MasonryGrid photos={photos} columns={columns} />
+        <MasonryGrid photos={photos} columns={columnPrefs} />
       )}
 
       {hasMore && !isSearching && (
