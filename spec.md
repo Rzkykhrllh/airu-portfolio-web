@@ -199,3 +199,28 @@ Pushed as `airu-portfolio-be` commit `33f7036`, deployed via Dokploy auto-deploy
 3. **Feature 4** (SEO + visibility fix) — do the backend visibility fix first (small, self-contained), then the sitemap/metadata frontend work. Independent of 1–3.
 4. **Feature 2** (filters) — needs a small, well-scoped backend change (search + sort params) plus frontend wiring. Do after 1 so the admin list UI isn't being touched by two efforts at once.
 5. **Feature 3** (random seed) — backend-heavy, needs the diversity bucket rule confirmed first (only open question left, cache/seed strategy is already settled above). Independent of the rest, can be done in parallel by backend while frontend does 1–2.
+
+---
+
+## 6. Client-Facing Improvements ✅ Done
+
+Follow-up round after all 5 core features shipped — a discussion about public-site polish (not originally in this doc) turned into four shipped pieces plus two bugs found along the way. `airu-porto-fe` commits `63dce4b` → `4cc40ef`; `airu-portfolio-be` commit `6df3ecc`.
+
+### 6a. Related photos on photo detail pages
+Photo detail page navigation was Prev/Next-only within a collection. Added a grid below the existing Collections section showing other photos from any collection(s) the current photo belongs to (deduped across collections, capped at 8, "More from `<Collection>`" heading for single-collection photos, "Related Photos" when a photo spans several). No section for uncategorized photos. New `getRelatedPhotos()` in `lib/data.ts`, new `components/photo/RelatedPhotos.tsx`.
+
+### 6b. Click-to-reveal search on the public gallery
+Search icon in the gallery header expands into a debounced (300ms) text input, reusing the `search` param the backend already had from feature 2 (works for any scope, not just admin — no backend change needed). Reverts to normal infinite-scroll browsing when cleared/closed; shows a "no results" state instead of an empty grid. `getGalleryPage()` in `lib/data.ts` now takes an optional `search` param; `GalleryView.tsx` manages the toggle/debounce/refetch state.
+
+### 6c. About page revamp + structured contact form
+Redesigned with a two-column hero (the photographer's own portrait — photo `fb96d8e1-e8b1-40cd-b2c0-8f301b8cbb8e`, "Me and Snow Doll" — alongside a display-serif opening line and the existing bio copy) and a staggered entrance animation, matching the public site's existing minimal/monochrome/edge-to-edge identity rather than introducing a new look. New `components/about/AboutHero.tsx` (client, for the motion).
+
+Contact form (name, email, project type, message) replaces the old plain `mailto:` CTA, styled with underline inputs (not the admin panel's boxed/blue-accented `Input`/`Button` — that kit is `/admin`-only, using it on the public site would've been the first color accent anywhere on it). New `components/about/ContactForm.tsx`.
+
+**Chosen without asking first, flagged here instead:** submissions are stored in a new `Inquiry` table and read via a simple admin inbox (`/admin/inquiries`, with an unread-count badge in the sidebar) rather than emailed — this backend has no email/SMTP service configured, and setting one up needs an account + API key only you can create. Easy to add email notifications later once that exists; swap is backend-only, doesn't touch the form itself.
+
+Backend: new `Inquiry` Prisma model, `POST /inquiries` (public, rate-limited 5/IP/hour, zero-size honeypot field as a second spam layer), `GET/PATCH/DELETE /inquiries` (admin). Needed a manual `prisma db push` against prod after deploy (same gap as always — `migrate deploy` is a no-op, no tracked migration files in this repo). New `adminFetchWithMeta` in `lib/fetch.ts` since the existing `adminFetch` drops `pagination`/extra fields the inbox needs (`unreadCount`).
+
+### Bugs found and fixed along the way
+- **Silent 100-photo cap in admin, again.** Same class of bug already fixed on the homepage (commit `381be13`) was still present in `/admin/photos` and the collection detail page's "Add Photos" picker — neither passed a `limit` override, so both silently capped at the backend's default 100. Library is at 338 photos (confirmed via direct DB query: 328 PUBLIC + 9 COLLECTION_ONLY + 1 PRIVATE), so the admin list was hiding ~70% of the library, and photos past the first 100 couldn't be added to any collection at all. Fixed by passing `limit: 1000`, matching the existing `getAllPhotos()` precedent.
+- **Cormorant Garamond was never actually loaded.** `Logo.tsx` referenced `fontFamily: "'Cormorant Garamond', serif"` for the "frame by airu" wordmark, but nothing in the app ever loaded that font — no `next/font`, no Google Fonts `<link>` anywhere. It's been silently falling back to the browser's default serif since whenever the logo was built. Fixed via `next/font/google` in `app/layout.tsx` (self-hosted, `--font-cormorant` CSS variable), `Logo.tsx` and the new About page styling both reference the variable now.
