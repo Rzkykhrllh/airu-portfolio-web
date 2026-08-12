@@ -304,8 +304,6 @@ export default async function PhotoPage({ params, searchParams }: PhotoPageProps
           </div>
         )}
 
-        {/* Related Photos */}
-        <RelatedPhotos photos={relatedPhotos} heading={relatedHeading} />
       </div>
 
       {/* Bottom Navigation */}
@@ -348,6 +346,10 @@ export default async function PhotoPage({ params, searchParams }: PhotoPageProps
           </div>
         </div>
       </div>
+
+      {/* Related Photos — full-width masonry, breaks out of the max-w-4xl
+          metadata column (matches Unsplash's related-images treatment) */}
+      <RelatedPhotos photos={relatedPhotos} heading={relatedHeading} />
     </div>
   );
 }
