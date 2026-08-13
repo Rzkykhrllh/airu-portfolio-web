@@ -246,3 +246,75 @@ Raised in discussion, not started. Re-derive current state before picking any of
   - **GSC follow-up (2026-08-12):** domain property `sc-domain:byairu.com` verified successfully (covers all subdomains/protocols automatically — no separate property needed for e.g. a future `api.byairu.com`). Sitemap submission (`sitemap.xml`, then retried as the full `https://byairu.com/sitemap.xml` after a "invalid path" error on the relative form) currently shows **"Tidak dapat mengambil peta situs"** (couldn't fetch) — the sitemap itself checks out fine from here (200, correct `Content-Type`, valid SSL cert, `robots.txt` doesn't block it, no User-Agent-based blocking found testing as Googlebot's UA directly). Leading suspect if this doesn't self-resolve: the domain has an **AAAA (IPv6) record** (`2400:d320:2300:199::1`) pointing at the Contabo VPS, and Googlebot prefers IPv6 when available — budget VPS IPv6 routing is a known flaky spot. Plan: wait 24-48h for Google's automatic retry (owner explicitly asked to pause on this, not urgent); if it's still failing after that, next step is removing the AAAA record (owner's DNS provider, needs their approval first since it's a live prod DNS change) to force IPv4-only.
 
 - **Photo share/watermark feature** (raised 2026-08-12, casually — owner explicitly said not committed to this yet, exploring alongside other ideas, so keeping this loose rather than a full spec). Idea: a "Share" affordance on the public photo detail page that lets a visitor download/share a version of the photo with a border carrying just Airu's signature/watermark (not a full EXIF metadata card — that option was raised and declined). Open questions for whenever this gets picked up: exact visual treatment of the signature mark, client-side canvas composition vs. server-side (backend already has `sharp` as a dependency, could reuse it) vs. simple download vs. Web Share API integration for mobile share sheets.
+
+---
+
+## 7. Mobile UX Polish (feedback-driven) — plan, not yet built
+
+Status: **plan only** — owner is gathering additional feedback via Claude's browser extension before greenlighting implementation. Investigated and root-caused via code + direct DB queries; nothing coded yet.
+
+Context: owner shared feedback from other people who tried the site, mostly on mobile, relayed 2026-08-13 (WhatsApp screenshots, "Zul CS 19").
+
+### 7a. Empty "Camera Settings" box shows even with no data
+**Root cause (confirmed via DB query):** `Photo.metadata` defaults to `{}` in the schema (not `null`), so `photo.exif` (`= backendPhoto.metadata || undefined`) is truthy for essentially every photo — `{}` is a truthy value in JS. The photo detail page's EXIF section gates on `{photo.exif && (<details>...)}`, which is always true, then individually hides each *field* that's empty (`{photo.exif.camera && (...)}` etc.) — but never hides the *whole box* when every field inside is empty. Confirmed live: **31 photos** have `metadata = {}` entirely; several more (e.g. "Mask group", "Quack Quack Quack") have only `camera` populated with `iso`/`lens`/`shutter`/`aperture` all empty strings — both cases currently render a "Camera Settings" accordion that's empty or near-empty once expanded.
+
+**Proposed fix:** change the outer gate from "does `photo.exif` exist" to "does `photo.exif` have at least one non-empty field" — a small `hasExifData(photo.exif)` check (`Boolean(exif.camera || exif.lens || exif.aperture || exif.shutter || exif.iso)`) in `app/photo/[id]/page.tsx`. Small, self-contained, no backend change, no data migration.
+
+### 7b. Photos "popping" in in during load
+**Root cause (confirmed via code read across every image-rendering component):**
+- `components/photo/PhotoDetailClient.tsx` (the hero image on every photo detail page — the largest, heaviest image on the site, `photo.src.full`) has **no blur placeholder at all**. Likely the most visible offender, since it's both the biggest asset and the one with zero progressive-loading treatment.
+- `components/gallery/PhotoCard.tsx` (homepage gallery, collection pages, related-photos grid) already has `placeholder="blur"`, but with one **generic static gray `blurDataURL`** shared by every photo regardless of its actual colors — better than nothing, but the swap from generic-gray to the real image is still visually abrupt since the placeholder doesn't resemble the incoming photo.
+- `components/collections/CollectionCard.tsx` (the `/collections` listing page thumbnails) has **no blur placeholder at all** either.
+
+**Three tiers of fix, increasing cost/quality — pick one:**
+1. **Cheap:** add the same generic gray `placeholder="blur"` (copy the existing `blurDataURL` constant from `PhotoCard.tsx`) to the hero image and `CollectionCard`. ~15 minutes. Helps some, doesn't fix the "placeholder doesn't look like the photo" issue.
+2. **Recommended — medium:** for the hero image specifically (the worst offender), paint `photo.src.medium` first (much lighter, loads fast) and swap to `photo.src.full` once it's finished loading in the background, instead of going straight for the full-res file with nothing to show in the meantime. Needs a small bit of client state in `PhotoDetailClient.tsx` (two-image swap or an `onLoad` handler), no backend change. Meaningfully smooths out the single worst spot without touching the database or the upload pipeline.
+3. **Most correct, most work:** generate a real per-photo LQIP (a tiny, actually-representative blurred thumbnail) at upload time using `sharp` (already a backend dependency), store it, and use it everywhere instead of the generic gray placeholder. Needs a schema change (new column or reuse `metadata`), upload-pipeline changes, and — critically — **won't retroactively cover the 300+ already-uploaded photos** unless separately backfilled. Best long-term fix, biggest lift.
+
+Recommendation: do **Tier 2** now (best value for the effort, fixes the worst offender), leave Tier 3 as a future upgrade once there's appetite for a backend change + backfill job.
+
+### 7c. "Blinking" on back/forward navigation, especially mobile
+**Root cause (confirmed via code read):** `Header` (root layout, doesn't remount on navigation — confirmed safe) is not the issue. `components/gallery/MasonryGrid.tsx` and `components/collections/CollectionGrid.tsx` are page-level content, not layout — Next.js App Router fully remounts them on every navigation to `/` or `/collections`, **including clicking back to a page you already saw seconds ago**. Their Framer Motion entrance animation (`initial="hidden" animate="visible"`, staggered fade-in) replays from scratch every single time, even though the underlying photos are already browser-cached and would otherwise paint instantly — this is very likely what reads as "blinking," especially on back/forward where the user expects the page to just *be there*, not replay an intro animation.
+
+Separately, confirmed **not a bandwidth/billing concern**: images are served from Cloudflare R2, which has zero egress fees (R2's core pitch) — repeat image loads cost nothing regardless of caching behavior. The JSON data itself does refetch on every navigation (all pages are `force-dynamic`), but that payload is small and isn't the source of the visual issue.
+
+**Proposed fix:** a module-level (not React state) "has this animated once already this session" flag, checked by `MasonryGrid` and `CollectionGrid` (and possibly `AboutHero`) to skip the entrance animation on repeat mounts. Module-level state persists across client-side navigations within the same session (SPA behavior) and only resets on a true hard reload — exactly matching "only animate on true initial load, not on every back/forward."
+
+### Execution plan (once greenlit)
+1. Build all three against **local dev** (`npm run dev`, pointed at the production backend via the `airu-server-be` SSH tunnel on `:8201` — already configured via `.env.local`, no local DB needed) rather than pushing straight to production, so changes are visible immediately via hot reload for review/feedback (including via Claude's browser extension) before any deploy.
+2. 7a first (trivial, zero risk), then 7c (moderate, clear win), then 7b at whatever tier gets picked.
+3. Only commit/push/deploy after the owner has reviewed locally.
+
+---
+
+## 8. SEO/Metadata Audit Follow-up (via Claude browser extension) — plan, not yet built
+
+Status: **plan only**, findings cross-checked against actual source + live DB on 2026-08-13 (the audit tool only had DOM/meta access, not code, and explicitly asked for re-verification — done below). Owner hasn't picked priority order yet.
+
+### Already done, audit was stale on these — no action needed
+- `/photo/[id]`: `og:image`, `twitter:image`/`twitter:card`, `<link rel="canonical">`, `ImageObject` JSON-LD — all confirmed live (feature 4 + §6/§7 work).
+- `/about`: `ProfilePage`/`Person` JSON-LD — confirmed live.
+- `sitemap.xml`/`robots.txt` — confirmed correct, audit said don't touch, agreed.
+
+### Confirmed real gaps (verified against actual `app/*/page.tsx` files + live curl)
+- **Homepage (`/`) and `/collections`**: static `metadata` exports with **no `openGraph.images`, no `twitter` card, no `alternates.canonical`, no JSON-LD** at all. Confirmed via `curl` — literally zero `og:image`/canonical tags in the served HTML.
+- **`/collections/[slug]` (individual collection pages)**: **no metadata export whatsoever** — not even a title override, let alone OG/canonical/JSON-LD. Worse than the audit itself flagged (it assumed *some* metadata existed and just needed an image; there's actually none).
+- **Title/description quality**: homepage title/description is generic ("Gallery — Airu Photography"), doesn't reflect the actual travel/location breadth in the catalog (Japan, Indonesia, festivals, landscapes). Valid, low-risk copy improvement.
+- **10 public photos missing `location`**, plus one confirmed typo: photo `949a7a5e-73e7-420b-9480-95c150cb003c`, title `"a gilmpse of kamikochi"` → should be `"A Glimpse of Kamikochi"`. Per the audit's own (correct) caution: this is a content fix, not something to auto-edit in bulk — flag the list to the owner, let them decide, possibly fix the one typo while touching that record if they confirm.
+- **Thin collections**: confirmed "Naka Meguro Summer Festival" at 2 photos — but also found **two thinner ones the audit missed**: "Yogyakarta" and "Kawaguchiko Trip" at **1 photo each**. Content decision (add more photos to the collection, or leave as-is) — not something to silently merge/hide.
+
+### Misidentified by the audit — do NOT act on this one
+- **"Company" field on the contact form is not a stray B2B template leftover — it's the honeypot spam field** built in §6c (`components/about/ContactForm.tsx`), deliberately zero-size + `aria-hidden` + `tabIndex={-1}` so real visitors never see or reach it, only bots that blindly fill every input. The audit's own DOM inspection found it in the markup (correctly, it does exist there) but couldn't tell it was intentionally invisible. Removing or relabeling it would break the spam-prevention mechanism. Audit's own caveat ("check the submission handler before touching this") turned out to be exactly the right call — leave it alone.
+
+### Unverified — needs a real fresh-mobile-load test, not a resize
+- **Priority 7 (grid glitch on viewport resize)**: audit itself flagged this might be a DevTools-resize-only artifact rather than a real bug on a fresh mobile load, and asked for re-verification before treating it as real. No browser tool available in this session to test that distinction directly. Structural note: `PhotoCard.tsx`'s `<Image>` already sets explicit `width`/`height` (`aspectRatio`-derived), which should reserve correct space before the image loads and is the usual fix for exactly this class of bug — suggesting it's more likely the resize-artifact the audit suspected than a real first-load issue, but this is inference, not confirmation. Needs an actual phone or fresh DevTools device-emulation load (set before navigating, not resized after) to confirm either way.
+
+### Proposed fix scope (once prioritized against §7)
+1. Add `og:image` + `twitter:image`/`card` + `alternates.canonical` to homepage and `/collections` metadata (reuse a strong existing photo as the site-wide default OG image).
+2. Add a full `generateMetadata()` to `/collections/[slug]` — title, description from the collection, OG image from its cover photo, canonical, plus `CollectionPage`/`ImageGallery` JSON-LD (natural extension of the `lib/structuredData.ts` pattern already established).
+3. Add `WebSite` (+ maybe `SearchAction`, since public search now exists) JSON-LD to the homepage, reusing `PHOTOGRAPHER` from `lib/structuredData.ts`.
+4. Rewrite homepage/collections title+description copy to be more specific (still accurate, no invented claims).
+5. Report the 10 missing-location photos + the typo back to the owner as a punch list — no auto-editing content.
+6. Report the two newly-found thin collections (Yogyakarta, Kawaguchiko Trip) alongside Naka Meguro — owner's call.
+7. Leave the contact form's honeypot exactly as-is.
+8. Re-test the mobile grid resize issue with a genuine fresh-load device emulation before deciding whether it needs a fix at all.
