@@ -3,8 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { gridIcons } from './grid-icons';
 import { ColumnPrefs, DEFAULT_COLUMN_PREFS } from './MasonryGrid';
-
-type Tier = 'xs' | 'sm' | 'md' | 'lg';
+import { useViewportTier } from '@/hooks/useViewportTier';
 
 const STORAGE_KEY = 'gallery-column-prefs';
 
@@ -22,7 +21,7 @@ interface ZoomControlsProps {
 // gallery/collection pages. Renders nothing below 425px or before tier is
 // known client-side (avoids hydration mismatch).
 export default function ZoomControls({ onChange }: ZoomControlsProps) {
-  const [tier, setTier] = useState<Tier | null>(null);
+  const tier = useViewportTier();
   const [prefs, setPrefs] = useState<ColumnPrefs>(DEFAULT_COLUMN_PREFS);
   const onChangeRef = useRef(onChange);
 
@@ -44,28 +43,6 @@ export default function ZoomControls({ onChange }: ZoomControlsProps) {
     } catch (error) {
       console.error('Failed to read gallery column preferences:', error);
     }
-
-    const mqSm = window.matchMedia('(min-width: 425px)');
-    const mqMd = window.matchMedia('(min-width: 768px)');
-    const mqLg = window.matchMedia('(min-width: 1024px)');
-
-    const updateTier = () => {
-      if (mqLg.matches) setTier('lg');
-      else if (mqMd.matches) setTier('md');
-      else if (mqSm.matches) setTier('sm');
-      else setTier('xs');
-    };
-
-    updateTier();
-    mqSm.addEventListener('change', updateTier);
-    mqMd.addEventListener('change', updateTier);
-    mqLg.addEventListener('change', updateTier);
-
-    return () => {
-      mqSm.removeEventListener('change', updateTier);
-      mqMd.removeEventListener('change', updateTier);
-      mqLg.removeEventListener('change', updateTier);
-    };
   }, []);
 
   if (tier === null || tier === 'xs') return null;

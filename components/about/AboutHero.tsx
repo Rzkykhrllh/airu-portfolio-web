@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Photo } from '@/types';
@@ -15,7 +15,8 @@ interface AboutHeroProps {
 
 export default function AboutHero({ photo }: AboutHeroProps) {
   const shouldReduce = useReducedMotion();
-  const skipEntrance = hasAnimatedOnce;
+  // Ref, not a live read — see MasonryGrid.tsx for why.
+  const skipEntrance = useRef(hasAnimatedOnce).current;
 
   useEffect(() => {
     hasAnimatedOnce = true;
