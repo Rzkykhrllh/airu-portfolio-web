@@ -119,6 +119,8 @@ Not implemented (deferred, wasn't in scope): mid-day photo uploads append to the
 
 **Added after initial build (commit `369097d`):** `GET /photos?scope=public` accepts `order=chronological` as an explicit escape hatch back to the pre-feature-3 behavior (`sort`/`createdAt desc`), no redeploy needed to roll back — just a different query param. Defaults to `order=daily-random`, so the homepage's behavior is unchanged; this is purely an operational off-switch. Not wired into the frontend (no UI toggle) since it wasn't asked for — only the API-level switch was requested.
 
+**Verified live (2026-08-13), via direct `api.byairu.com/photos` calls:** rotation is genuinely active — served order doesn't match `createdAt`, and is stable across repeated requests (correctly cached for the day, not reshuffling per-request). Round-robin diversity works well for roughly the first 185 of 328 photos (page 1 alone spans 14 distinct collection buckets). Past that point, the tail is a single 143-photo unbroken run of one collection (`kamakura-trip`) — round-robin naturally exhausts the smaller buckets first (most collections are 1–39 photos) and falls through to whichever bucket is left, which happens to be `kamakura-trip` at 181 photos (55% of the whole public catalog). **Owner reviewed and confirmed this is fine as-is** — the collection is genuinely that much bigger than the others, so a long same-collection stretch deep in the scroll is an accurate reflection of the catalog, not treated as a bug to fix.
+
 ---
 
 ## 4. Per-Photo SEO + Visibility Leak Fix ✅ Done
