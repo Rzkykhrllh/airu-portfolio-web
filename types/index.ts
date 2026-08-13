@@ -19,6 +19,7 @@ export type Photo = {
   }>;
   featured: boolean;
   visibility: PhotoVisibility;
+  viewCount: number; // real (unauthenticated) detail-page reads only
   capturedAt?: string; // ISO date
   exif?: {
     camera?: string;
@@ -75,7 +76,7 @@ export type AuthState = {
 
 export type PhotoScope = 'public' | 'collection' | 'admin';
 
-export type PhotoSort = 'newest' | 'oldest' | 'title';
+export type PhotoSort = 'newest' | 'oldest' | 'title' | 'views';
 
 export type PhotoFilters = {
   collection?: string;

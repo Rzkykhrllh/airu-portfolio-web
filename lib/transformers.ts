@@ -9,6 +9,7 @@ export interface BackendPhoto {
   visibility: string; // 'PUBLIC' | 'COLLECTION_ONLY' | 'PRIVATE'
   sortOrder: number;
   metadata: Record<string, any>;
+  viewCount?: number;
   urlSmall: string;
   urlMedium: string;
   urlLarge: string;
@@ -63,6 +64,7 @@ export function transformPhoto(backendPhoto: BackendPhoto): Photo {
     collections,
     featured: backendPhoto.featured,
     visibility: backendPhoto.visibility as 'PUBLIC' | 'COLLECTION_ONLY' | 'PRIVATE',
+    viewCount: backendPhoto.viewCount ?? 0,
     createdAt: backendPhoto.createdAt,
     capturedAt: backendPhoto.capturedAt || undefined,
     exif: backendPhoto.metadata || undefined,

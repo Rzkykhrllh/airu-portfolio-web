@@ -155,6 +155,7 @@ export default function AdminPhotosPage() {
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
               <option value="title">Title A–Z</option>
+              <option value="views">Most Viewed</option>
             </select>
 
             <select
