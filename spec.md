@@ -353,14 +353,23 @@ Status: **plan only**, findings cross-checked against actual source + live DB on
 - **Priority 7 (grid glitch on viewport resize)**: audit itself flagged this might be a DevTools-resize-only artifact rather than a real bug on a fresh mobile load, and asked for re-verification before treating it as real. No browser tool available in this session to test that distinction directly. Structural note: `PhotoCard.tsx`'s `<Image>` already sets explicit `width`/`height` (`aspectRatio`-derived), which should reserve correct space before the image loads and is the usual fix for exactly this class of bug — suggesting it's more likely the resize-artifact the audit suspected than a real first-load issue, but this is inference, not confirmation. Needs an actual phone or fresh DevTools device-emulation load (set before navigating, not resized after) to confirm either way.
 
 ### Proposed fix scope (once prioritized against §7)
-1. ~~Add `og:image` + `twitter:image`/`card` + `alternates.canonical` to homepage and `/collections` metadata~~ — done for `/collections` (§9). Homepage still open, wasn't in scope of the collections-page pass.
+1. ~~Add `og:image` + `twitter:image`/`card` + `alternates.canonical` to homepage and `/collections` metadata~~ — done for both now (§9 for collections, homepage below).
 2. ~~Add a full `generateMetadata()` to `/collections/[slug]`~~ — done, see §9.
-3. Add `WebSite` (+ maybe `SearchAction`, since public search now exists) JSON-LD to the homepage, reusing `PHOTOGRAPHER` from `lib/structuredData.ts`. Still open.
-4. ~~Rewrite homepage/collections title+description copy~~ — done for `/collections` (commit `d88eb0c`): description is now "Trip-by-trip photo collections — from Sanja Matsuri to quiet mountain towns across Japan and Indonesia." instead of the generic "grouped by place, mood, and moment." Title left as-is (`Collections — Airu Photography`, matches the site's existing title pattern). Homepage copy still open.
+3. ~~Add `WebSite` JSON-LD to the homepage~~ — done below, without `SearchAction` (see note).
+4. ~~Rewrite homepage/collections title+description copy~~ — done for `/collections` (commit `d88eb0c`) and now homepage (below).
 5. Report the 10 missing-location photos + the typo back to the owner as a punch list — no auto-editing content.
 6. Report the two newly-found thin collections (Yogyakarta, Kawaguchiko Trip) alongside Naka Meguro — owner's call. **Update:** a third was found during §9 — Jakarta is also down to 1 public photo (2 total, 1 not PUBLIC). Same owner's-call bucket.
 7. Leave the contact form's honeypot exactly as-is.
 8. Re-test the mobile grid resize issue with a genuine fresh-load device emulation before deciding whether it needs a fix at all.
+
+### Homepage SEO metadata — done (2026-08-13)
+`app/page.tsx` converted from a static `metadata` export (no `og:image`, no `twitter` card, no canonical, and an inconsistent description — the top-level `description` didn't match the `openGraph.description`) to `generateMetadata()`, pulling a cover image from the first featured photo (`getFeaturedPhotos()`), plus `alternates.canonical`. Added `WebSite` JSON-LD (`lib/structuredData.ts`: `buildWebSiteObject`) — deliberately **without** `SearchAction`: the gallery's search box (`GalleryView.tsx`) is client-state only, never reads a `?search=` URL param on load, so advertising a search deep-link in structured data would be inaccurate (Google could offer a sitelinks search box that doesn't actually work). Title/description unified into one shared copy reflecting the real catalog breadth: "A growing collection of photographs — Tokyo streets, Japanese festivals, and landscapes across Japan and Indonesia." `airu-porto-fe` commit `46f3db3`. `tsc --noEmit` clean. Not yet verified live.
+
+### Photo detail page — small polish bundled with the above (2026-08-13)
+Three minor items found during the earlier `/photo/[id]` investigation (§7b), not part of the blur-up/sizes/caching work, shipped together with the homepage pass:
+- **Dead code removed:** `components/photo/PhotoDetailClientWrapper.tsx` wrapped `PhotoDetailClient` in a `<Suspense>` with a skeleton fallback that could never actually render — `PhotoDetailClient` is a plain client component with no async/`use()` data read, so it never suspends. `app/photo/[id]/page.tsx` now renders `PhotoDetailClient` directly; the wrapper file is deleted.
+- **Mobile fullscreen affordance:** the "Click for fullscreen" hint on the hero image was `group-hover`-only, so touch devices had zero visual indication the image was tappable for the lightbox. Now always visible (subdued, bottom-anchored) below the `md` breakpoint, hover-revealed (centered) at `md` and up — same responsive pattern `PhotoCard.tsx` already uses for its own overlay. Copy changed from "Click for fullscreen" to "View fullscreen" since it now applies to both tap and click.
+- **Alt text:** hero image fell back to the generic `"Photo"` when a photo had no title. Now falls back to `photo.location` (e.g. "Photograph from Kamakura") before the final generic `"Photograph by Airu"`.
 
 ---
 
