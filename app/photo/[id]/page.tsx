@@ -10,7 +10,7 @@ import {
 } from '@/lib/data';
 import { SITE_URL } from '@/lib/config';
 import { buildPhotoImageObject, toJsonLdScript } from '@/lib/structuredData';
-import PhotoDetailClientWrapper from '@/components/photo/PhotoDetailClientWrapper';
+import PhotoDetailClient from '@/components/photo/PhotoDetailClient';
 import RelatedPhotos from '@/components/photo/RelatedPhotos';
 
 // Force dynamic rendering (don't pre-generate at build time)
@@ -147,7 +147,7 @@ export default async function PhotoPage({ params, searchParams }: PhotoPageProps
         </div>
 
         {/* Hero Image with Lightbox */}
-        <PhotoDetailClientWrapper
+        <PhotoDetailClient
           photo={photo}
           nextPhotoId={nextPhoto?.id}
           prevPhotoId={prevPhoto?.id}

@@ -67,6 +67,21 @@ export function buildCollectionPageObject(
   };
 }
 
+export function buildWebSiteObject() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Airu Photography',
+    url: SITE_URL,
+    description:
+      'A growing collection of photographs — Tokyo streets, Japanese festivals, and landscapes across Japan and Indonesia.',
+    author: PHOTOGRAPHER,
+    // No SearchAction: the gallery's search box is client-state only, not
+    // URL-addressable (no ?search= param read on load), so a SearchAction
+    // here would advertise a deep-link that doesn't actually work.
+  };
+}
+
 export function buildPhotographerProfilePage(portraitUrl?: string) {
   return {
     '@context': 'https://schema.org',

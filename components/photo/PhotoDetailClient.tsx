@@ -31,7 +31,7 @@ function HeroImage({ photo, onOpen }: { photo: Photo; onOpen: () => void }) {
       />
       <Image
         src={photo.src.full}
-        alt={photo.title || 'Photo'}
+        alt={photo.title || (photo.location ? `Photograph from ${photo.location}` : 'Photograph by Airu')}
         width={1600}
         height={1600 * photo.aspectRatio}
         sizes="(min-width: 1152px) 1152px, 100vw"
@@ -42,14 +42,15 @@ function HeroImage({ photo, onOpen }: { photo: Photo; onOpen: () => void }) {
         priority
       />
 
-      {/* Fullscreen Hint Overlay */}
-      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 dark:bg-black/90 backdrop-blur-sm px-4 py-2 rounded-full flex items-center gap-2">
+      {/* Fullscreen Hint Overlay — always visible on touch (no hover to reveal it on
+          mobile), hover-revealed on desktop like the rest of the site's card overlays */}
+      <div className="absolute inset-0 bg-black/0 md:group-hover:bg-black/20 transition-colors flex items-end md:items-center justify-center p-3 md:p-0">
+        <div className="opacity-90 md:opacity-0 md:group-hover:opacity-100 transition-opacity bg-white/90 dark:bg-black/90 backdrop-blur-sm px-4 py-2 rounded-full flex items-center gap-2">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
           </svg>
           <span className="text-sm font-medium text-gray-900 dark:text-white">
-            Click for fullscreen
+            View fullscreen
           </span>
         </div>
       </div>
