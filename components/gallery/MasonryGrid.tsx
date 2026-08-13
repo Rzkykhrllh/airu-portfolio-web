@@ -1,8 +1,19 @@
 'use client';
 
+import { useEffect } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Photo } from '@/types';
 import PhotoCard from './PhotoCard';
+
+// §7c fix: module-level (not React state) "has this grid already animated in
+// this session" flag. Next.js App Router fully remounts page-level content
+// like this on every navigation — including navigating back to a page you
+// already saw seconds ago — which replays the staggered fade-in from scratch
+// even though the photos are already browser-cached and would otherwise
+// paint instantly. Module scope persists across client-side navigations
+// within the same session and only resets on a true hard reload, which is
+// exactly "animate once per session, not on every back/forward".
+let hasAnimatedOnce = false;
 
 // Custom breakpoints (not Tailwind's sm/md/lg defaults): <425px = 1 column
 // always (no choice). Each tier from there has its own independent column
@@ -44,10 +55,15 @@ interface MasonryGridProps {
 export default function MasonryGrid({ photos, collectionSlug, columns = DEFAULT_COLUMN_PREFS }: MasonryGridProps) {
   const shouldReduce = useReducedMotion();
   const columnsClassName = `columns-1 ${smClasses[columns.sm]} ${mdClasses[columns.md]} ${lgClasses[columns.lg]} gap-0`;
+  const skipEntrance = hasAnimatedOnce;
+
+  useEffect(() => {
+    hasAnimatedOnce = true;
+  }, []);
 
   return (
     <motion.div
-      initial="hidden"
+      initial={skipEntrance ? false : 'hidden'}
       animate="visible"
       variants={{
         hidden: {},

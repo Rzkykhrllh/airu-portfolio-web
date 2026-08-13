@@ -86,6 +86,19 @@ export default async function PhotoPage({ params, searchParams }: PhotoPageProps
   const relatedHeading =
     photo.collections.length === 1 ? `More from ${photo.collections[0].name}` : 'Related Photos';
 
+  // §7a fix: `photo.exif` defaults to `{}` in the backend (not `null`), so it's
+  // truthy for nearly every photo even when every field inside is empty — gate
+  // on "has at least one populated field" instead of "exif object exists" so
+  // the Camera Settings accordion doesn't render as an empty/near-empty shell.
+  const hasExifData = Boolean(
+    photo.exif &&
+      (photo.exif.camera ||
+        photo.exif.lens ||
+        photo.exif.aperture ||
+        photo.exif.shutter ||
+        photo.exif.iso)
+  );
+
   // Build URLs with collection context preserved
   const buildPhotoUrl = (photoId: string) =>
     collectionSlug ? `/photo/${photoId}?collection=${collectionSlug}` : `/photo/${photoId}`;
@@ -212,7 +225,7 @@ export default async function PhotoPage({ params, searchParams }: PhotoPageProps
         )}
 
         {/* EXIF Data - Collapsible */}
-        {photo.exif && (
+        {hasExifData && (
           <details className="group border border-gray-200 dark:border-gray-800 rounded-lg p-6">
             <summary className="cursor-pointer font-semibold text-gray-900 dark:text-white flex items-center justify-between">
               <span className="flex items-center gap-2">
@@ -226,31 +239,31 @@ export default async function PhotoPage({ params, searchParams }: PhotoPageProps
               </svg>
             </summary>
             <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              {photo.exif.camera && (
+              {photo.exif?.camera && (
                 <div>
                   <div className="text-gray-500 dark:text-gray-400 mb-1">Camera</div>
                   <div className="font-medium text-gray-900 dark:text-white">{photo.exif.camera}</div>
                 </div>
               )}
-              {photo.exif.lens && (
+              {photo.exif?.lens && (
                 <div>
                   <div className="text-gray-500 dark:text-gray-400 mb-1">Lens</div>
                   <div className="font-medium text-gray-900 dark:text-white">{photo.exif.lens}</div>
                 </div>
               )}
-              {photo.exif.aperture && (
+              {photo.exif?.aperture && (
                 <div>
                   <div className="text-gray-500 dark:text-gray-400 mb-1">Aperture</div>
                   <div className="font-medium text-gray-900 dark:text-white">{photo.exif.aperture}</div>
                 </div>
               )}
-              {photo.exif.shutter && (
+              {photo.exif?.shutter && (
                 <div>
                   <div className="text-gray-500 dark:text-gray-400 mb-1">Shutter</div>
                   <div className="font-medium text-gray-900 dark:text-white">{photo.exif.shutter}</div>
                 </div>
               )}
-              {photo.exif.iso && (
+              {photo.exif?.iso && (
                 <div>
                   <div className="text-gray-500 dark:text-gray-400 mb-1">ISO</div>
                   <div className="font-medium text-gray-900 dark:text-white">{photo.exif.iso}</div>

@@ -1,8 +1,14 @@
 'use client';
 
+import { useEffect } from 'react';
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Photo } from '@/types';
+
+// §7c fix: see the matching comment in components/gallery/MasonryGrid.tsx —
+// same module-level "already animated this session" flag, so navigating back
+// to /about doesn't replay the entrance stagger from scratch.
+let hasAnimatedOnce = false;
 
 interface AboutHeroProps {
   photo?: Photo;
@@ -10,6 +16,11 @@ interface AboutHeroProps {
 
 export default function AboutHero({ photo }: AboutHeroProps) {
   const shouldReduce = useReducedMotion();
+  const skipEntrance = hasAnimatedOnce;
+
+  useEffect(() => {
+    hasAnimatedOnce = true;
+  }, []);
 
   const container = {
     hidden: {},
@@ -27,7 +38,7 @@ export default function AboutHero({ photo }: AboutHeroProps) {
 
   return (
     <motion.div
-      initial="hidden"
+      initial={skipEntrance ? false : 'hidden'}
       animate="visible"
       variants={container}
       className="grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-16 items-center py-12 lg:py-16"
