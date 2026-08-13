@@ -350,7 +350,7 @@ Status: **plan only**, findings cross-checked against actual source + live DB on
 1. ~~Add `og:image` + `twitter:image`/`card` + `alternates.canonical` to homepage and `/collections` metadata~~ — done for `/collections` (§9). Homepage still open, wasn't in scope of the collections-page pass.
 2. ~~Add a full `generateMetadata()` to `/collections/[slug]`~~ — done, see §9.
 3. Add `WebSite` (+ maybe `SearchAction`, since public search now exists) JSON-LD to the homepage, reusing `PHOTOGRAPHER` from `lib/structuredData.ts`. Still open.
-4. Rewrite homepage/collections title+description copy to be more specific (still accurate, no invented claims). Still open (collections copy left as-is in §9 — only the missing OG/canonical/JSON-LD plumbing was in scope, not a copy rewrite).
+4. ~~Rewrite homepage/collections title+description copy~~ — done for `/collections` (commit `d88eb0c`): description is now "Trip-by-trip photo collections — from Sanja Matsuri to quiet mountain towns across Japan and Indonesia." instead of the generic "grouped by place, mood, and moment." Title left as-is (`Collections — Airu Photography`, matches the site's existing title pattern). Homepage copy still open.
 5. Report the 10 missing-location photos + the typo back to the owner as a punch list — no auto-editing content.
 6. Report the two newly-found thin collections (Yogyakarta, Kawaguchiko Trip) alongside Naka Meguro — owner's call. **Update:** a third was found during §9 — Jakarta is also down to 1 public photo (2 total, 1 not PUBLIC). Same owner's-call bucket.
 7. Leave the contact form's honeypot exactly as-is.
