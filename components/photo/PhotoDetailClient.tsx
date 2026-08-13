@@ -13,6 +13,50 @@ interface PhotoDetailClientProps {
   prevPhotoId?: string;
 }
 
+// Blur-up hero — same thumbnail-probe + cross-fade pattern as PhotoCard/CollectionCard.
+// Keyed by photo.id where it's rendered below, so `loaded` resets cleanly on every
+// Next/Prev navigation instead of showing a blank box while the new photo loads.
+function HeroImage({ photo, onOpen }: { photo: Photo; onOpen: () => void }) {
+  const [loaded, setLoaded] = useState(false);
+
+  return (
+    <button onClick={onOpen} className="relative w-full overflow-hidden rounded-lg cursor-zoom-in">
+      <img
+        src={photo.src.thumbnail}
+        alt=""
+        aria-hidden="true"
+        className={`absolute inset-0 w-full h-full object-contain scale-105 blur-xl transition-opacity duration-500 ${
+          loaded ? 'opacity-0' : 'opacity-100'
+        }`}
+      />
+      <Image
+        src={photo.src.full}
+        alt={photo.title || 'Photo'}
+        width={1600}
+        height={1600 * photo.aspectRatio}
+        sizes="(min-width: 1152px) 1152px, 100vw"
+        className={`relative w-full h-auto max-h-[85vh] object-contain shadow-2xl transition-[opacity,transform] duration-500 ease-out group-hover:scale-[1.02] motion-reduce:transition-none ${
+          loaded ? 'opacity-100' : 'opacity-0'
+        }`}
+        onLoad={() => setLoaded(true)}
+        priority
+      />
+
+      {/* Fullscreen Hint Overlay */}
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 dark:bg-black/90 backdrop-blur-sm px-4 py-2 rounded-full flex items-center gap-2">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+          </svg>
+          <span className="text-sm font-medium text-gray-900 dark:text-white">
+            Click for fullscreen
+          </span>
+        </div>
+      </div>
+    </button>
+  );
+}
+
 export default function PhotoDetailClient({ photo, nextPhotoId, prevPhotoId }: PhotoDetailClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -138,31 +182,7 @@ export default function PhotoDetailClient({ photo, nextPhotoId, prevPhotoId }: P
       {/* Hero Image with Click to Fullscreen */}
       <div className="flex items-center justify-center px-4 sm:px-6 lg:px-8 pt-24 pb-12">
         <div className="relative w-full max-w-6xl group">
-          <button
-            onClick={handleOpenLightbox}
-            className="relative w-full cursor-zoom-in"
-          >
-            <Image
-              src={currentPhoto.src.full}
-              alt={currentPhoto.title || 'Photo'}
-              width={1600}
-              height={1600 * currentPhoto.aspectRatio}
-              className="w-full h-auto max-h-[85vh] object-contain rounded-lg shadow-2xl transition-transform duration-300 group-hover:scale-[1.02]"
-              priority
-            />
-
-            {/* Fullscreen Hint Overlay */}
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded-lg flex items-center justify-center">
-              <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 dark:bg-black/90 backdrop-blur-sm px-4 py-2 rounded-full flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                </svg>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">
-                  Click for fullscreen
-                </span>
-              </div>
-            </div>
-          </button>
+          <HeroImage key={currentPhoto.id} photo={currentPhoto} onOpen={handleOpenLightbox} />
         </div>
       </div>
 
