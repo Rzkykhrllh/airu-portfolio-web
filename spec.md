@@ -249,9 +249,9 @@ Raised in discussion, not started. Re-derive current state before picking any of
 
 ---
 
-## 7. Mobile UX Polish (feedback-driven) — 7a & 7c done, 7b & 7d open
+## 7. Mobile UX Polish (feedback-driven) — 7a, 7c & 7d done, 7b open
 
-Status: 7a and 7c greenlit, built against local dev, reviewed, and shipped. 7b (photo pop-in) still just a plan. 7d added 2026-08-13 (masonry reorder-on-load, found by the owner, root-caused, not yet built — see below).
+Status: 7a, 7c and 7d greenlit, built, reviewed, and shipped. 7b (photo pop-in) still just a plan.
 
 Context: owner shared feedback from other people who tried the site, mostly on mobile, relayed 2026-08-13 (WhatsApp screenshots, "Zul CS 19").
 
@@ -295,7 +295,11 @@ Individual item sizing itself looks correct and isn't the problem: `PhotoCard.ts
 
 Scope: `components/gallery/MasonryGrid.tsx` only. `CollectionGrid.tsx` (the `/collections` listing) is unaffected — it's a fixed-size CSS grid (`grid-cols-1 md:grid-cols-2 lg:grid-cols-3`) for uniform collection-cover cards, not a variable-aspect-ratio masonry, so it doesn't have this failure mode.
 
-Not started — owner chose to log this rather than build immediately when it came up.
+**Implementation note:** built as proposed — `packIntoColumns()` greedily assigns each photo to the shortest column using `photo.aspectRatio`, and the live column count comes from a new shared `hooks/useViewportTier.ts` (extracted out of `ZoomControls.tsx`'s existing `matchMedia` logic so both components track the exact same breakpoints instead of two copies that could drift). Before the tier is known client-side (SSR + the instant before hydration), `MasonryGrid` still falls back to the old CSS `columns-N` markup — identical on server and pre-hydration client render, so there's no hydration mismatch — then swaps to the JS-packed layout once the real tier resolves. `airu-porto-fe` commit `e1f0850`.
+
+Verified live on production (`byairu.com`) via browser automation: captured each photo's on-screen position before and after triggering infinite scroll (all 328 photos loaded), diffed by photo ID. Zero photos changed **column** (`left`) after the fix, vs. the pre-fix behavior where a full CSS-balance re-flow could move anything anywhere. The original bug — "urutan berubah tiap ada gambar baru reload" — is confirmed fixed.
+
+**Residual, smaller issue found during that same verification (not the original bug, not infinite-scroll related):** a one-time vertical settle shortly after each fresh page load — items stay in their column (`left` unchanged) but can shift up/down by tens to a few hundred px once, before anything is scrolled or appended. Root-caused to the SSR-safe fallback itself: the CSS `columns-N` balance algorithm and the JS greedy-packing algorithm don't lay out the *same* set of photos identically even at the same column count, so the one-time swap from fallback → final JS layout (which has to happen post-hydration to avoid a mismatch, per the note above) is itself a small reflow. Confirmed happening even with no saved zoom preference in `localStorage`, so it's not the same thing as returning visitors whose saved column-count preference (`ZoomControls`' `gallery-column-prefs` key) differs from the default and applies a moment after mount, though that stacks an *additional* shift on top for that subset of visitors. This is inherent to the current hydration-mismatch-safe approach — happens once, very early (well under a second), and doesn't recur on scroll or on subsequent infinite-scroll appends (re-verified with longer observation windows and mid-scroll snapshots — no further movement once settled). Fully eliminating it would mean a bigger change (e.g. deciding the column count server-side via a cookie, or hiding the grid for that brief instant instead of showing a fallback that then gets replaced) — logged as a possible future item, not built, since it's a one-time settle rather than the "keeps reordering" behavior the owner originally flagged.
 
 ### Execution plan
 1. Build against **local dev** (`npm run dev`, pointed at the production backend via the `airu-server-be` SSH tunnel on `:8201` — already configured via `.env.local`, no local DB needed) rather than pushing straight to production, so changes are visible immediately via hot reload for review/feedback before any deploy.
