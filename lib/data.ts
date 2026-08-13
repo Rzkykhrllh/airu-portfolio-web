@@ -3,11 +3,24 @@ import { getPhotos, getPhotosPage, getPhoto, getCollections, getCollection } fro
 
 const GALLERY_PAGE_SIZE = 30;
 
+// Prev/next navigation (below) re-fetches whichever of these two lists it
+// needs on every single arrow click, so both are cached for a short window
+// instead of hitting the backend each time.
+const NAV_CACHE_TTL_MS = 60_000;
+let allPhotosCache: { data: Photo[]; expiresAt: number } | null = null;
+const collectionPhotosCache = new Map<string, { data: Photo[]; expiresAt: number }>();
+
 export async function getAllPhotos(): Promise<Photo[]> {
   // Used for prev/next photo navigation, which needs the full ordered list.
   // Bumped well above the old 100-photo default so navigation doesn't
   // silently break once the library grows past that.
-  return await getPhotos({ scope: 'public', limit: 1000 });
+  const now = Date.now();
+  if (allPhotosCache && allPhotosCache.expiresAt > now) {
+    return allPhotosCache.data;
+  }
+  const photos = await getPhotos({ scope: 'public', limit: 1000 });
+  allPhotosCache = { data: photos, expiresAt: now + NAV_CACHE_TTL_MS };
+  return photos;
 }
 
 export type GalleryFilters = {
@@ -39,9 +52,15 @@ export async function getFeaturedPhotos(): Promise<Photo[]> {
 
 export async function getPhotosForCollection(collectionSlug?: string): Promise<Photo[]> {
   if (!collectionSlug) return [];
+  const now = Date.now();
+  const cached = collectionPhotosCache.get(collectionSlug);
+  if (cached && cached.expiresAt > now) return cached.data;
+
   // Use collection API to get photos - same source as collection page display
   const collection = await getCollection(collectionSlug);
-  return collection?.photos || [];
+  const photos = collection?.photos || [];
+  collectionPhotosCache.set(collectionSlug, { data: photos, expiresAt: now + NAV_CACHE_TTL_MS });
+  return photos;
 }
 
 export async function getPhotoById(id: string): Promise<Photo | undefined> {
