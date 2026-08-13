@@ -7,7 +7,8 @@ import type { Metadata } from 'next';
 export const dynamic = 'force-dynamic';
 
 const TITLE = 'Collections — Airu Photography';
-const DESCRIPTION = 'Photographs grouped by place, mood, and moment.';
+const DESCRIPTION =
+  'Trip-by-trip photo collections — from Sanja Matsuri to quiet mountain towns across Japan and Indonesia.';
 
 export async function generateMetadata(): Promise<Metadata> {
   const collections = await getAllCollections();
