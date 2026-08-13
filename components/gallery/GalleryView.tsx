@@ -5,6 +5,7 @@ import { useInView } from 'react-intersection-observer';
 import MasonryGrid, { ColumnPrefs, DEFAULT_COLUMN_PREFS } from './MasonryGrid';
 import ZoomControls from './ZoomControls';
 import { getGalleryPage, getAllCollections } from '@/lib/data';
+import { resolveAspectRatios } from '@/lib/resolveAspectRatio';
 import { Photo, Collection } from '@/types';
 
 interface GalleryViewProps {
@@ -22,6 +23,30 @@ export default function GalleryView({ initialPhotos, totalCount: initialTotalCou
   const [totalCount, setTotalCount] = useState(initialTotalCount);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const isFetchingRef = useRef(false);
+
+  // Whether `photos` currently holds real (not placeholder) aspect ratios —
+  // see lib/resolveAspectRatio.ts. Starts false: `initialPhotos` arrives
+  // from SSR with every photo's aspectRatio still the transformPhoto
+  // placeholder, and MasonryGrid stays on its pre-hydration fallback layout
+  // until this flips to true (below), so the very first JS-packed render
+  // uses real data instead of packing once, then again moments later.
+  const [ratiosResolved, setRatiosResolved] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    resolveAspectRatios(initialPhotos).then((resolved) => {
+      if (cancelled) return;
+      setPhotos(resolved);
+      setRatiosResolved(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // Intentionally empty deps — this resolves the *initial* SSR batch
+    // exactly once on mount. Later batches (loadMore, filters) resolve
+    // their own ratios before ever reaching setPhotos, see below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [showFilters, setShowFilters] = useState(false);
   const [searchInput, setSearchInput] = useState('');
@@ -54,7 +79,12 @@ export default function GalleryView({ initialPhotos, totalCount: initialTotalCou
         collection: selectedCollection || undefined,
         featured: featuredOnly || undefined,
       });
-      setPhotos((prev) => [...prev, ...result.photos]);
+      // Resolve this batch's real aspect ratios before it ever reaches
+      // MasonryGrid — already-placed photos never get re-packed (see
+      // packIntoColumns), only newly-appended ones, so this is the only
+      // point that matters for keeping every batch correctly balanced.
+      const resolvedPhotos = await resolveAspectRatios(result.photos);
+      setPhotos((prev) => [...prev, ...resolvedPhotos]);
       setPage(nextPage);
       setHasMore(result.hasMore);
     } catch (error) {
@@ -94,7 +124,8 @@ export default function GalleryView({ initialPhotos, totalCount: initialTotalCou
           collection: selectedCollection || undefined,
           featured: featuredOnly || undefined,
         });
-        setPhotos(result.photos);
+        const resolvedPhotos = await resolveAspectRatios(result.photos);
+        setPhotos(resolvedPhotos);
         setPage(1);
         setHasMore(result.hasMore);
         setTotalCount(result.total);
@@ -209,7 +240,7 @@ export default function GalleryView({ initialPhotos, totalCount: initialTotalCou
           No photographs match your filters.
         </div>
       ) : (
-        <MasonryGrid photos={photos} columns={columnPrefs} />
+        <MasonryGrid photos={photos} columns={columnPrefs} ratiosResolved={ratiosResolved} />
       )}
 
       {hasMore && !isSearching && (

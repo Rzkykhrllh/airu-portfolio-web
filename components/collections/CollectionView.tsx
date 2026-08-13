@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import MasonryGrid, { ColumnPrefs, DEFAULT_COLUMN_PREFS } from '@/components/gallery/MasonryGrid';
 import ZoomControls from '@/components/gallery/ZoomControls';
+import { resolveAspectRatios } from '@/lib/resolveAspectRatio';
 import { Photo, Collection } from '@/types';
 
 interface CollectionViewProps {
@@ -14,6 +15,26 @@ interface CollectionViewProps {
 
 export default function CollectionView({ collection, photos, slug }: CollectionViewProps) {
   const [columnPrefs, setColumnPrefs] = useState<ColumnPrefs>(DEFAULT_COLUMN_PREFS);
+
+  // Same fix as GalleryView — see lib/resolveAspectRatio.ts. `photos` here
+  // is a fixed list (no infinite scroll), so this only ever runs once per
+  // collection page; large collections (e.g. one with 181 photos) hit the
+  // exact same placeholder-ratio column-imbalance bug otherwise.
+  const [resolvedPhotos, setResolvedPhotos] = useState<Photo[]>(photos);
+  const [ratiosResolved, setRatiosResolved] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setRatiosResolved(false);
+    resolveAspectRatios(photos).then((resolved) => {
+      if (cancelled) return;
+      setResolvedPhotos(resolved);
+      setRatiosResolved(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [photos]);
 
   return (
     <>
@@ -44,7 +65,12 @@ export default function CollectionView({ collection, photos, slug }: CollectionV
         )}
       </div>
 
-      <MasonryGrid photos={photos} columns={columnPrefs} collectionSlug={slug} />
+      <MasonryGrid
+        photos={resolvedPhotos}
+        columns={columnPrefs}
+        collectionSlug={slug}
+        ratiosResolved={ratiosResolved}
+      />
     </>
   );
 }

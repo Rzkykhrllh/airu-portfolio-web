@@ -53,6 +53,15 @@ interface MasonryGridProps {
   photos: Photo[];
   collectionSlug?: string;
   columns?: ColumnPrefs;
+  // Whether every photo currently in `photos` has had its *real* aspect
+  // ratio resolved yet (see lib/resolveAspectRatio.ts) — packIntoColumns
+  // reads `photo.aspectRatio`, so packing before this is true would place
+  // photos using the placeholder ratio, then need to re-place them once
+  // real data arrives (a second, avoidable shift). Defaults to `true` so
+  // callers that don't wire this up (RelatedPhotos, currently — a small
+  // fixed list where the placeholder-ratio imbalance is negligible) keep
+  // today's behavior rather than getting stuck on the fallback forever.
+  ratiosResolved?: boolean;
 }
 
 // §7d fix: native CSS `columns-N` (multi-column layout) defaults to
@@ -64,14 +73,18 @@ interface MasonryGridProps {
 //
 // Fixed by computing placement in JS instead of leaving it to the browser:
 // greedily assign each photo (in array order) to whichever column currently
-// has the smallest estimated cumulative height, using the already-known
-// `photo.aspectRatio` (height/width) as a stand-in for its rendered height —
-// no need to wait for the real <img> to load or measure anything in the DOM.
-// This is stable for any *prefix* of `photos`: since a photo's column only
-// depends on photos before it in the array, recomputing from scratch as
-// `photos` grows via infinite scroll never changes where already-placed
-// photos land. New photos only ever append to whichever column is shortest
-// at that point.
+// has the smallest estimated cumulative height, using `photo.aspectRatio`
+// (height/width) as a stand-in for its rendered height — no need to wait
+// for the real <img> to load or measure anything in the DOM. This is stable
+// for any *prefix* of `photos`: since a photo's column only depends on
+// photos before it in the array, recomputing from scratch as `photos` grows
+// via infinite scroll never changes where already-placed photos land. New
+// photos only ever append to whichever column is shortest at that point.
+//
+// This estimate is only as good as `photo.aspectRatio` — see
+// lib/resolveAspectRatio.ts for why that used to be a hardcoded placeholder
+// (same value for every photo) and how it's resolved to the real ratio
+// before a batch ever reaches this function.
 function packIntoColumns(photos: Photo[], numColumns: number): Photo[][] {
   const heights = new Array(numColumns).fill(0);
   const cols: Photo[][] = Array.from({ length: numColumns }, () => []);
@@ -116,7 +129,12 @@ function itemVariants(shouldReduce: boolean): Variants {
   };
 }
 
-export default function MasonryGrid({ photos, collectionSlug, columns = DEFAULT_COLUMN_PREFS }: MasonryGridProps) {
+export default function MasonryGrid({
+  photos,
+  collectionSlug,
+  columns = DEFAULT_COLUMN_PREFS,
+  ratiosResolved = true,
+}: MasonryGridProps) {
   const shouldReduce = useReducedMotion();
   const tier = useViewportTier();
 
@@ -144,7 +162,13 @@ export default function MasonryGrid({ photos, collectionSlug, columns = DEFAULT_
   // first paint without waiting on JS. This window is too short for the
   // infinite-scroll reflow bug to ever surface (nothing can have been
   // appended yet), so the fallback's balance-reflow behavior is harmless.
-  if (tier === null) {
+  //
+  // Also stay on this fallback until `ratiosResolved` — tier usually
+  // resolves (a synchronous matchMedia check) well before the first
+  // batch's thumbnails have actually loaded over the network, and packing
+  // with still-placeholder ratios would just mean doing it again, visibly,
+  // moments later once the real ones arrive.
+  if (tier === null || !ratiosResolved) {
     const columnsClassName = `columns-1 ${smClasses[columns.sm]} ${mdClasses[columns.md]} ${lgClasses[columns.lg]} gap-0`;
     return (
       <motion.div
