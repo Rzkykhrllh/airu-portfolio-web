@@ -152,9 +152,6 @@ export default function Lightbox({
                 alt={imageAlt}
                 width={isZoomed ? 3000 : 1600}
                 height={isZoomed ? 3000 * aspectRatio : 1600 * aspectRatio}
-                // Unzoomed view is capped to the viewport, so cap the fetched size to
-                // match. Zoomed mode intentionally wants full resolution for pixel-peeking.
-                sizes={isZoomed ? undefined : '100vw'}
                 className={`${
                   isZoomed ? 'w-auto h-auto max-w-none' : 'w-full h-full object-contain'
                 }`}
