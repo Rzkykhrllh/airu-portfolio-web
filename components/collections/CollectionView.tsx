@@ -16,10 +16,7 @@ interface CollectionViewProps {
 export default function CollectionView({ collection, photos, slug }: CollectionViewProps) {
   const [columnPrefs, setColumnPrefs] = useState<ColumnPrefs>(DEFAULT_COLUMN_PREFS);
 
-  // Same fix as GalleryView — see lib/resolveAspectRatio.ts. `photos` here
-  // is a fixed list (no infinite scroll), so this only ever runs once per
-  // collection page; large collections (e.g. one with 181 photos) hit the
-  // exact same placeholder-ratio column-imbalance bug otherwise.
+  // Same fix as GalleryView — see lib/resolveAspectRatio.ts.
   const [resolvedPhotos, setResolvedPhotos] = useState<Photo[]>(photos);
   const [ratiosResolved, setRatiosResolved] = useState(false);
 

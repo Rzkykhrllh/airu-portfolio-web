@@ -4,17 +4,9 @@ import { useEffect, useState } from 'react';
 
 export type ViewportTier = 'xs' | 'sm' | 'md' | 'lg';
 
-/**
- * Shared viewport-tier tracking against the gallery's custom breakpoints
- * (<425px, 425–767px, 768–1023px, 1024px+ — not Tailwind's sm/md/lg
- * defaults). Returns null until the tier is known client-side, so callers
- * can render a hydration-safe fallback until then (matchMedia doesn't exist
- * during SSR).
- *
- * Extracted out of ZoomControls so MasonryGrid can compute its live column
- * count against the exact same breakpoint boundaries, instead of carrying a
- * second copy of this matchMedia setup that could quietly drift out of sync.
- */
+// Shared viewport-tier tracking (custom breakpoints, not Tailwind's
+// defaults). Null until known client-side (no matchMedia during SSR).
+// Extracted from ZoomControls so MasonryGrid uses the same boundaries.
 export function useViewportTier(): ViewportTier | null {
   const [tier, setTier] = useState<ViewportTier | null>(null);
 

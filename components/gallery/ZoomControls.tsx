@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { gridIcons } from './grid-icons';
 import { ColumnPrefs, DEFAULT_COLUMN_PREFS } from './MasonryGrid';
-import { useViewportTier } from '@/hooks/useViewportTier';
+
+type Tier = 'xs' | 'sm' | 'md' | 'lg';
 
 const STORAGE_KEY = 'gallery-column-prefs';
 
@@ -17,15 +18,11 @@ interface ZoomControlsProps {
   onChange: (prefs: ColumnPrefs) => void;
 }
 
-// Owns localStorage persistence; viewport-tier tracking (matchMedia
-// listeners, per-tier option sets) comes from the shared `useViewportTier`
-// hook — also used by MasonryGrid (§7d) so both stay pinned to the exact
-// same breakpoint boundaries instead of carrying two copies that could
-// drift. Renders nothing below 425px (xs) — no column choice is possible
-// there — and nothing until the viewport tier is known client-side,
-// avoiding any hydration mismatch from a server-guessed tier.
+// Owns localStorage persistence + viewport-tier tracking, shared across
+// gallery/collection pages. Renders nothing below 425px or before tier is
+// known client-side (avoids hydration mismatch).
 export default function ZoomControls({ onChange }: ZoomControlsProps) {
-  const tier = useViewportTier();
+  const [tier, setTier] = useState<Tier | null>(null);
   const [prefs, setPrefs] = useState<ColumnPrefs>(DEFAULT_COLUMN_PREFS);
   const onChangeRef = useRef(onChange);
 
@@ -47,6 +44,28 @@ export default function ZoomControls({ onChange }: ZoomControlsProps) {
     } catch (error) {
       console.error('Failed to read gallery column preferences:', error);
     }
+
+    const mqSm = window.matchMedia('(min-width: 425px)');
+    const mqMd = window.matchMedia('(min-width: 768px)');
+    const mqLg = window.matchMedia('(min-width: 1024px)');
+
+    const updateTier = () => {
+      if (mqLg.matches) setTier('lg');
+      else if (mqMd.matches) setTier('md');
+      else if (mqSm.matches) setTier('sm');
+      else setTier('xs');
+    };
+
+    updateTier();
+    mqSm.addEventListener('change', updateTier);
+    mqMd.addEventListener('change', updateTier);
+    mqLg.addEventListener('change', updateTier);
+
+    return () => {
+      mqSm.removeEventListener('change', updateTier);
+      mqMd.removeEventListener('change', updateTier);
+      mqLg.removeEventListener('change', updateTier);
+    };
   }, []);
 
   if (tier === null || tier === 'xs') return null;

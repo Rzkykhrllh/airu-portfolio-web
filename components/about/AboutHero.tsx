@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Photo } from '@/types';
 
-// §7c fix: see the matching comment in components/gallery/MasonryGrid.tsx —
-// same module-level "already animated this session" flag, so navigating back
-// to /about doesn't replay the entrance stagger from scratch.
+// §7c: same module-level flag pattern as MasonryGrid.tsx — skips replaying
+// the entrance animation on back/forward navigation.
 let hasAnimatedOnce = false;
 
 interface AboutHeroProps {
@@ -16,9 +15,7 @@ interface AboutHeroProps {
 
 export default function AboutHero({ photo }: AboutHeroProps) {
   const shouldReduce = useReducedMotion();
-  // Captured once per mount (see MasonryGrid.tsx for why a ref instead of
-  // reading the module flag fresh every render).
-  const skipEntrance = useRef(hasAnimatedOnce).current;
+  const skipEntrance = hasAnimatedOnce;
 
   useEffect(() => {
     hasAnimatedOnce = true;

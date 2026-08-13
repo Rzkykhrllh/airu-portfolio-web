@@ -24,12 +24,8 @@ export default function GalleryView({ initialPhotos, totalCount: initialTotalCou
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const isFetchingRef = useRef(false);
 
-  // Whether `photos` currently holds real (not placeholder) aspect ratios —
-  // see lib/resolveAspectRatio.ts. Starts false: `initialPhotos` arrives
-  // from SSR with every photo's aspectRatio still the transformPhoto
-  // placeholder, and MasonryGrid stays on its pre-hydration fallback layout
-  // until this flips to true (below), so the very first JS-packed render
-  // uses real data instead of packing once, then again moments later.
+  // Real ratios ready? See lib/resolveAspectRatio.ts. Starts false since
+  // SSR's initialPhotos still carry the transformPhoto placeholder.
   const [ratiosResolved, setRatiosResolved] = useState(false);
 
   useEffect(() => {
@@ -42,9 +38,7 @@ export default function GalleryView({ initialPhotos, totalCount: initialTotalCou
     return () => {
       cancelled = true;
     };
-    // Intentionally empty deps — this resolves the *initial* SSR batch
-    // exactly once on mount. Later batches (loadMore, filters) resolve
-    // their own ratios before ever reaching setPhotos, see below.
+    // Empty deps intentional — resolves the initial SSR batch once on mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -79,10 +73,8 @@ export default function GalleryView({ initialPhotos, totalCount: initialTotalCou
         collection: selectedCollection || undefined,
         featured: featuredOnly || undefined,
       });
-      // Resolve this batch's real aspect ratios before it ever reaches
-      // MasonryGrid — already-placed photos never get re-packed (see
-      // packIntoColumns), only newly-appended ones, so this is the only
-      // point that matters for keeping every batch correctly balanced.
+      // Resolve real ratios before this batch reaches MasonryGrid — only
+      // newly-appended photos get packed, so this is the point that matters.
       const resolvedPhotos = await resolveAspectRatios(result.photos);
       setPhotos((prev) => [...prev, ...resolvedPhotos]);
       setPage(nextPage);

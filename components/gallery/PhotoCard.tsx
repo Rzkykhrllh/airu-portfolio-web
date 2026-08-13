@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Photo } from '@/types';
@@ -9,24 +12,34 @@ interface PhotoCardProps {
 }
 
 export default function PhotoCard({ photo, priority = false, collectionSlug }: PhotoCardProps) {
+  const [loaded, setLoaded] = useState(false);
   const photoUrl = collectionSlug
     ? `/photo/${photo.id}?collection=${collectionSlug}`
     : `/photo/${photo.id}`;
 
   return (
     <Link href={photoUrl} className="block relative group w-full">
-      {/* bg-gray-100/dark:bg-gray-900 shows while image loads */}
-      <div className="relative overflow-hidden bg-gray-100 dark:bg-gray-900 w-full">
+      <div
+        className="relative overflow-hidden bg-gray-100 dark:bg-gray-900 w-full"
+        style={{ aspectRatio: `1 / ${photo.aspectRatio}` }}
+      >
+        {/* Blurred preview — reuses the thumbnail already fetched for aspect-ratio probing, so it's free */}
+        <img
+          src={photo.src.thumbnail}
+          alt=""
+          aria-hidden="true"
+          className={`absolute inset-0 w-full h-full object-cover scale-110 blur-xl transition-opacity duration-500 ${
+            loaded ? 'opacity-0' : 'opacity-100'
+          }`}
+        />
         <Image
           src={photo.src.medium}
           alt={photo.title || 'Photograph by Airu'}
-          width={1600}
-          height={Math.round(1600 * photo.aspectRatio)}
+          fill
           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          className="w-full h-auto block"
+          className={`object-cover transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}
           priority={priority}
-          placeholder="blur"
-          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCwABmQAAAA"
+          onLoad={() => setLoaded(true)}
         />
 
         {/* Desktop: hover-revealed overlay — CSS only, no JS */}
