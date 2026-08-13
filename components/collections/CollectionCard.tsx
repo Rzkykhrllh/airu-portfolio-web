@@ -1,6 +1,38 @@
+'use client';
+
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Collection, Photo } from '@/types';
+import { pluralize } from '@/lib/format';
+
+// Blur-up cover tile — same thumbnail-probe + cross-fade pattern as PhotoCard,
+// just also animating the existing hover-scale transform.
+function CoverPhoto({ photo, alt, sizes }: { photo: Photo; alt: string; sizes: string }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <>
+      <img
+        src={photo.src.thumbnail}
+        alt=""
+        aria-hidden="true"
+        className={`absolute inset-0 w-full h-full object-cover scale-110 blur-xl transition-opacity duration-500 ${
+          loaded ? 'opacity-0' : 'opacity-100'
+        }`}
+      />
+      <Image
+        src={photo.src.medium}
+        alt={alt}
+        fill
+        sizes={sizes}
+        className={`object-cover transition-[opacity,transform] duration-500 ease-out group-hover:scale-[1.03] motion-reduce:transition-none ${
+          loaded ? 'opacity-100' : 'opacity-0'
+        }`}
+        onLoad={() => setLoaded(true)}
+      />
+    </>
+  );
+}
 
 interface CollectionCardProps {
   collection: Collection;
@@ -19,12 +51,10 @@ export default function CollectionCard({ collection, photos }: CollectionCardPro
           {/* Main photo — 2/3 width */}
           <div className="relative flex-[2] h-full overflow-hidden">
             {mainPhoto ? (
-              <Image
-                src={mainPhoto.src.medium}
+              <CoverPhoto
+                photo={mainPhoto}
                 alt={mainPhoto.title || collection.title}
-                fill
                 sizes="(max-width: 768px) 66vw, (max-width: 1024px) 33vw, 22vw"
-                className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03] motion-reduce:transition-none"
               />
             ) : (
               <div className="w-full h-full bg-gray-200 dark:bg-gray-800" />
@@ -36,12 +66,10 @@ export default function CollectionCard({ collection, photos }: CollectionCardPro
             <div className="flex flex-col flex-1 h-full">
               {sidePhotos.map((photo) => (
                 <div key={photo.id} className="relative flex-1 overflow-hidden">
-                  <Image
-                    src={photo.src.medium}
+                  <CoverPhoto
+                    photo={photo}
                     alt={photo.title || collection.title}
-                    fill
                     sizes="(max-width: 768px) 33vw, (max-width: 1024px) 16vw, 11vw"
-                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03] motion-reduce:transition-none"
                   />
                 </div>
               ))}
@@ -56,7 +84,7 @@ export default function CollectionCard({ collection, photos }: CollectionCardPro
           {collection.title}
         </h3>
         <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 tabular-nums">
-          {collection.photoCount} photographs
+          {pluralize(collection.photoCount, 'photograph')}
         </p>
         {collection.description && (
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1.5 leading-relaxed line-clamp-2">

@@ -6,6 +6,7 @@ import MasonryGrid, { ColumnPrefs, DEFAULT_COLUMN_PREFS } from './MasonryGrid';
 import ZoomControls from './ZoomControls';
 import { getGalleryPage, getAllCollections } from '@/lib/data';
 import { resolveAspectRatios } from '@/lib/resolveAspectRatio';
+import { pluralize } from '@/lib/format';
 import { Photo, Collection } from '@/types';
 
 interface GalleryViewProps {
@@ -214,7 +215,9 @@ export default function GalleryView({ initialPhotos, totalCount: initialTotalCou
           <ZoomControls onChange={setColumnPrefs} />
           {totalCount > 0 && (
             <span className="text-sm text-gray-400 dark:text-gray-500 tabular-nums">
-              {photos.length < totalCount ? `${photos.length} of ${totalCount}` : totalCount} photographs
+              {photos.length < totalCount
+                ? `${photos.length} of ${pluralize(totalCount, 'photograph')}`
+                : pluralize(totalCount, 'photograph')}
             </span>
           )}
         </div>

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import MasonryGrid, { ColumnPrefs, DEFAULT_COLUMN_PREFS } from '@/components/gallery/MasonryGrid';
 import ZoomControls from '@/components/gallery/ZoomControls';
 import { resolveAspectRatios } from '@/lib/resolveAspectRatio';
+import { pluralize } from '@/lib/format';
 import { Photo, Collection } from '@/types';
 
 interface CollectionViewProps {
@@ -50,7 +51,7 @@ export default function CollectionView({ collection, photos, slug }: CollectionV
             <ZoomControls onChange={setColumnPrefs} />
             {photos.length > 0 && (
               <span className="text-sm text-gray-400 dark:text-gray-500 tabular-nums">
-                {photos.length} photographs
+                {pluralize(photos.length, 'photograph')}
               </span>
             )}
           </div>

@@ -1,5 +1,5 @@
 import { SITE_URL } from './config';
-import { Photo } from '@/types';
+import { Photo, Collection } from '@/types';
 
 // Shared photographer identity for JSON-LD — keeps author/creator schema
 // consistent between the photo detail pages and the About page instead of
@@ -41,6 +41,29 @@ export function buildPhotoImageObject(photo: Photo, pageUrl: string) {
     ...(photo.capturedAt ? { dateCreated: photo.capturedAt } : {}),
     datePublished: photo.createdAt,
     ...(photo.tags.length ? { keywords: photo.tags.join(', ') } : {}),
+  };
+}
+
+export function buildCollectionPageObject(
+  collection: Collection,
+  pageUrl: string,
+  coverImageUrl?: string
+) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: collection.title,
+    url: pageUrl,
+    ...(collection.description ? { description: collection.description } : {}),
+    ...(coverImageUrl ? { image: coverImageUrl } : {}),
+    author: PHOTOGRAPHER,
+    creator: PHOTOGRAPHER,
+    isPartOf: { '@type': 'WebSite', name: 'Airu Photography', url: SITE_URL },
+    mainEntity: {
+      '@type': 'ImageGallery',
+      name: collection.title,
+      numberOfItems: collection.photos?.length ?? collection.photoCount,
+    },
   };
 }
 
