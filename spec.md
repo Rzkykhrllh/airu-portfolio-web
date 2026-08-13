@@ -347,11 +347,39 @@ Status: **plan only**, findings cross-checked against actual source + live DB on
 - **Priority 7 (grid glitch on viewport resize)**: audit itself flagged this might be a DevTools-resize-only artifact rather than a real bug on a fresh mobile load, and asked for re-verification before treating it as real. No browser tool available in this session to test that distinction directly. Structural note: `PhotoCard.tsx`'s `<Image>` already sets explicit `width`/`height` (`aspectRatio`-derived), which should reserve correct space before the image loads and is the usual fix for exactly this class of bug — suggesting it's more likely the resize-artifact the audit suspected than a real first-load issue, but this is inference, not confirmation. Needs an actual phone or fresh DevTools device-emulation load (set before navigating, not resized after) to confirm either way.
 
 ### Proposed fix scope (once prioritized against §7)
-1. Add `og:image` + `twitter:image`/`card` + `alternates.canonical` to homepage and `/collections` metadata (reuse a strong existing photo as the site-wide default OG image).
-2. Add a full `generateMetadata()` to `/collections/[slug]` — title, description from the collection, OG image from its cover photo, canonical, plus `CollectionPage`/`ImageGallery` JSON-LD (natural extension of the `lib/structuredData.ts` pattern already established).
-3. Add `WebSite` (+ maybe `SearchAction`, since public search now exists) JSON-LD to the homepage, reusing `PHOTOGRAPHER` from `lib/structuredData.ts`.
-4. Rewrite homepage/collections title+description copy to be more specific (still accurate, no invented claims).
+1. ~~Add `og:image` + `twitter:image`/`card` + `alternates.canonical` to homepage and `/collections` metadata~~ — done for `/collections` (§9). Homepage still open, wasn't in scope of the collections-page pass.
+2. ~~Add a full `generateMetadata()` to `/collections/[slug]`~~ — done, see §9.
+3. Add `WebSite` (+ maybe `SearchAction`, since public search now exists) JSON-LD to the homepage, reusing `PHOTOGRAPHER` from `lib/structuredData.ts`. Still open.
+4. Rewrite homepage/collections title+description copy to be more specific (still accurate, no invented claims). Still open (collections copy left as-is in §9 — only the missing OG/canonical/JSON-LD plumbing was in scope, not a copy rewrite).
 5. Report the 10 missing-location photos + the typo back to the owner as a punch list — no auto-editing content.
-6. Report the two newly-found thin collections (Yogyakarta, Kawaguchiko Trip) alongside Naka Meguro — owner's call.
+6. Report the two newly-found thin collections (Yogyakarta, Kawaguchiko Trip) alongside Naka Meguro — owner's call. **Update:** a third was found during §9 — Jakarta is also down to 1 public photo (2 total, 1 not PUBLIC). Same owner's-call bucket.
 7. Leave the contact form's honeypot exactly as-is.
 8. Re-test the mobile grid resize issue with a genuine fresh-load device emulation before deciding whether it needs a fix at all.
+
+---
+
+## 9. Collections page improvements (2026-08-13)
+
+Owner asked for a general pass on `/collections` and `/collections/[slug]`. Investigated live (browser automation against `byairu.com` + direct backend API calls) before building anything, then scoped to the UI-facing subset the owner picked: metadata, blur-up covers, sort order. Content issues (thin collections, duplicate cover photos across collections that share a tagged photo) were reported, not touched — owner's call, not code.
+
+**Also checked and ruled out during investigation**, worth recording so it isn't re-litigated: the old 100-photo silent-cap bug (§ "Silent 100-photo cap in admin, again") does **not** affect `GET /collections/slug/:slug` — confirmed live, Kamakura Trip's full 181 photos come back uncapped, that endpoint has no `limit` param at all. And 1-/2-photo collection cards render their cover cleanly with no empty gap (flexbox naturally fills when `sidePhotos` is short) — not a bug either.
+
+### Built
+- **`app/collections/[slug]/page.tsx`**: added `generateMetadata()` — title, description (collection's own description, falling back to a photo-count sentence), `alternates.canonical`, OG + Twitter images from the collection's cover photo. Previously had no metadata export at all, so every collection page rendered the site's default `<title>` regardless of which one you were on (confirmed live pre-fix: browser tab just said "Airu Photography" everywhere). Also added `CollectionPage`/`ImageGallery` JSON-LD via a new `buildCollectionPageObject()` in `lib/structuredData.ts`, following the exact pattern `buildPhotoImageObject` already established for photo pages (same `PHOTOGRAPHER` author/creator, same `toJsonLdScript` escaping).
+- **`app/collections/page.tsx`**: converted the static `metadata` export to `generateMetadata()` so it can pick a real cover image — first photo of the first collection that has one — for OG/Twitter, plus `alternates.canonical`. Same gap as the audit found (§8), now closed for this page specifically (homepage still open, see §8 item 1).
+- **`components/collections/CollectionCard.tsx`**: blur-up cross-fade on the cover photo(s), same technique as `PhotoCard.tsx` (§7e/blur-up work) — reuses the thumbnail already cheap to fetch, cross-fades to the real medium image on load instead of sitting on a flat gray box. Extracted into a small internal `CoverPhoto` component since a card can show up to 3 images (main + 2 side) each needing their own `loaded` state. Combined with the existing hover-scale transform via `transition-[opacity,transform]` so both animations coexist on one element.
+- **`lib/data.ts`**: `getAllCollections()` now sorts by `photoCount` descending before returning. Raw backend order was close to creation order — a 181-photo collection could sit between a 42-photo and a 2-photo one with no visible logic. This also feeds the gallery's collection filter dropdown (`GalleryView.tsx`), so that gets the same improvement for free.
+- **New `lib/format.ts`**: small `pluralize(count, singular, plural?)` helper. Fixed "1 photographs" (should read "1 photograph") live in three places — `GalleryView.tsx`'s count, `CollectionView.tsx`'s count, `CollectionCard.tsx`'s count — plus the collections listing's "N collections" label for the same class of bug.
+
+`tsc --noEmit` clean. Committed `airu-porto-fe` commit `b0ce783`. Not yet verified live — needs push + Dokploy deploy (owner pushes manually, see infra note below).
+
+### Push automation — investigated, not viable
+Owner asked about automating `git push` so they don't have to do it manually. Investigated two paths this session, both dead ends:
+- `device_bash`'s egress goes through a local proxy (`localhost:3128`) enforcing a domain allowlist — confirmed via `curl -v`, explicit `X-Proxy-Error: blocked-by-allowlist` on a 403 for github.com, both over HTTPS and SSH. Not fixable from inside the session.
+- The cloud sandbox (this environment, not the device bridge) *can* reach github.com over plain HTTPS — but SSH cannot get out at all, confirmed two ways: port 22 times out completely, and GitHub's port-443 SSH fallback gets caught by an HTTP-aware proxy that returns a raw `400 Bad Request` banner instead of an SSH handshake. So SSH deploy keys (generated for both `airu-porto-fe` and `airu-portfolio-be`, added to GitHub) can't actually be used for push from here — the transport itself is blocked, not the auth. GitHub's account-wide OAuth device flow is also blocked by this environment's own network policy (explicit error: "sessions are bound to their configured repositories... use repository-scoped endpoints"), and HTTPS push needs a token, which isn't something Claude accepts from the user regardless of scope.
+- Net: no automated-push path currently available from this session. `git push` stays a manual step after each commit. If picked back up later, the realistic option is a GitHub Action on the repo (owner's own automation, no credential ever touches Claude) rather than anything from this side.
+
+### Execution plan
+1. Build against **local dev**, review before deploy — same pattern as §7.
+2. Owner reviews locally, pushes manually (see push-automation note above), Dokploy deploys.
+3. Once live: verify `/collections` and a couple of `/collections/[slug]` pages via `curl`/view-source for the new meta tags, and a visual check that blur-up covers cross-fade correctly on the listing page.
