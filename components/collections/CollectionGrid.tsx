@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Collection } from '@/types';
 import CollectionCard from './CollectionCard';
@@ -16,7 +16,9 @@ interface CollectionGridProps {
 
 export default function CollectionGrid({ collections }: CollectionGridProps) {
   const shouldReduce = useReducedMotion();
-  const skipEntrance = hasAnimatedOnce;
+  // Captured once per mount (see MasonryGrid.tsx for why a ref instead of
+  // reading the module flag fresh every render).
+  const skipEntrance = useRef(hasAnimatedOnce).current;
 
   useEffect(() => {
     hasAnimatedOnce = true;

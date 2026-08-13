@@ -249,16 +249,18 @@ Raised in discussion, not started. Re-derive current state before picking any of
 
 ---
 
-## 7. Mobile UX Polish (feedback-driven) — plan, not yet built
+## 7. Mobile UX Polish (feedback-driven) — 7a & 7c done, 7b & 7d open
 
-Status: **plan only** — owner is gathering additional feedback via Claude's browser extension before greenlighting implementation. Investigated and root-caused via code + direct DB queries; nothing coded yet.
+Status: 7a and 7c greenlit, built against local dev, reviewed, and shipped. 7b (photo pop-in) still just a plan. 7d added 2026-08-13 (masonry reorder-on-load, found by the owner, root-caused, not yet built — see below).
 
 Context: owner shared feedback from other people who tried the site, mostly on mobile, relayed 2026-08-13 (WhatsApp screenshots, "Zul CS 19").
 
-### 7a. Empty "Camera Settings" box shows even with no data
+### 7a. Empty "Camera Settings" box shows even with no data ✅ Done
 **Root cause (confirmed via DB query):** `Photo.metadata` defaults to `{}` in the schema (not `null`), so `photo.exif` (`= backendPhoto.metadata || undefined`) is truthy for essentially every photo — `{}` is a truthy value in JS. The photo detail page's EXIF section gates on `{photo.exif && (<details>...)}`, which is always true, then individually hides each *field* that's empty (`{photo.exif.camera && (...)}` etc.) — but never hides the *whole box* when every field inside is empty. Confirmed live: **31 photos** have `metadata = {}` entirely; several more (e.g. "Mask group", "Quack Quack Quack") have only `camera` populated with `iso`/`lens`/`shutter`/`aperture` all empty strings — both cases currently render a "Camera Settings" accordion that's empty or near-empty once expanded.
 
 **Proposed fix:** change the outer gate from "does `photo.exif` exist" to "does `photo.exif` have at least one non-empty field" — a small `hasExifData(photo.exif)` check (`Boolean(exif.camera || exif.lens || exif.aperture || exif.shutter || exif.iso)`) in `app/photo/[id]/page.tsx`. Small, self-contained, no backend change, no data migration.
+
+**Implementation note:** built exactly as proposed — `hasExifData` computed once per page and used to gate the accordion; the four inner field checks changed from `photo.exif.field` to `photo.exif?.field` (needed for TS narrowing once the gate no longer directly references `photo.exif`, caught by `tsc --noEmit`, zero errors after the fix). `airu-porto-fe` commit `dafc3ca`. Verified live on `byairu.com` via browser automation post-deploy (Dokploy).
 
 ### 7b. Photos "popping" in in during load
 **Root cause (confirmed via code read across every image-rendering component):**
@@ -273,16 +275,31 @@ Context: owner shared feedback from other people who tried the site, mostly on m
 
 Recommendation: do **Tier 2** now (best value for the effort, fixes the worst offender), leave Tier 3 as a future upgrade once there's appetite for a backend change + backfill job.
 
-### 7c. "Blinking" on back/forward navigation, especially mobile
+### 7c. "Blinking" on back/forward navigation, especially mobile ✅ Done
 **Root cause (confirmed via code read):** `Header` (root layout, doesn't remount on navigation — confirmed safe) is not the issue. `components/gallery/MasonryGrid.tsx` and `components/collections/CollectionGrid.tsx` are page-level content, not layout — Next.js App Router fully remounts them on every navigation to `/` or `/collections`, **including clicking back to a page you already saw seconds ago**. Their Framer Motion entrance animation (`initial="hidden" animate="visible"`, staggered fade-in) replays from scratch every single time, even though the underlying photos are already browser-cached and would otherwise paint instantly — this is very likely what reads as "blinking," especially on back/forward where the user expects the page to just *be there*, not replay an intro animation.
 
 Separately, confirmed **not a bandwidth/billing concern**: images are served from Cloudflare R2, which has zero egress fees (R2's core pitch) — repeat image loads cost nothing regardless of caching behavior. The JSON data itself does refetch on every navigation (all pages are `force-dynamic`), but that payload is small and isn't the source of the visual issue.
 
 **Proposed fix:** a module-level (not React state) "has this animated once already this session" flag, checked by `MasonryGrid` and `CollectionGrid` (and possibly `AboutHero`) to skip the entrance animation on repeat mounts. Module-level state persists across client-side navigations within the same session (SPA behavior) and only resets on a true hard reload — exactly matching "only animate on true initial load, not on every back/forward."
 
-### Execution plan (once greenlit)
-1. Build all three against **local dev** (`npm run dev`, pointed at the production backend via the `airu-server-be` SSH tunnel on `:8201` — already configured via `.env.local`, no local DB needed) rather than pushing straight to production, so changes are visible immediately via hot reload for review/feedback (including via Claude's browser extension) before any deploy.
-2. 7a first (trivial, zero risk), then 7c (moderate, clear win), then 7b at whatever tier gets picked.
+**Implementation note:** built as proposed in all three places — `MasonryGrid.tsx`, `CollectionGrid.tsx`, and `AboutHero.tsx` each got their own module-level `hasAnimatedOnce` flag (not shared between components, so each grid gets its own "first time" independent of whether another grid elsewhere already animated this session) and render `initial={skipEntrance ? false : 'hidden'}` — Framer Motion propagates `initial={false}` down to child `motion.div`s that don't set their own explicit `initial`, so the whole stagger tree is skipped on repeat mounts without touching the children. `airu-porto-fe` commit `dafc3ca` (same commit as 7a). Verified live: back-navigating to `/` after visiting a photo now renders the full 30-photo grid instantly, vs. the pre-fix screenshot showing only 2/30 photos rendered ~1s after landing back on the page.
+
+### 7d. Masonry grid re-orders photos as more load in (found 2026-08-13, plan only)
+Raised by the owner directly (not the WhatsApp feedback round): "urutan di masonry grid-nya ngaco, karena tiap ada gambar yang baru reload, urutannya berubah lagi" — photos visibly jump to a different position/column as more content loads in, not just on initial paint.
+
+**Root cause (confirmed via code read, `components/gallery/MasonryGrid.tsx`):** the grid isn't a real masonry implementation — it's native CSS multi-column (`columns-1 md:columns-3 lg:columns-3`, Tailwind `columns-N` utilities). Browsers default multi-column layout to `column-fill: balance`, which does **not** behave like Pinterest-style masonry (append each new item to the currently-shortest column, never touching earlier items). Instead, `balance` re-flows and redistributes the *entire* set of items across columns from scratch any time total content height changes — which happens on every infinite-scroll page append (`GalleryView.tsx`'s `loadMore`, appending to the `photos` array on `IntersectionObserver` trigger). That full re-flow is what moves already-visible photos to a different column/position; it isn't actually about individual images "reloading."
+
+Individual item sizing itself looks correct and isn't the problem: `PhotoCard.tsx`'s `<Image>` already sets explicit `width={1600}` / `height={Math.round(1600 * photo.aspectRatio)}`, which Next.js turns into a reserved aspect-ratio box before the image request even starts — so a single photo's box shouldn't itself resize when its image finishes loading. The reflow is a property of the CSS column-balance algorithm reacting to the *set* changing size, not of any one image.
+
+**Proposed fix:** replace CSS `columns-N` with a JS-computed masonry — walk the `photos` array in order and greedily assign each one to whichever column currently has the smallest estimated cumulative height (estimated from the already-known `photo.aspectRatio`, no need to wait for the real `<img>` to load). This is deterministic and stable for any *stable prefix* of the array: since each item's placement only depends on items before it, recomputing from scratch as `photos` grows via infinite scroll never changes where already-placed photos land — new items only ever append to whatever column is shortest at that point. Needs the *actual* live column count as a plain number (not just CSS breakpoint classes) to run the packing — `ZoomControls.tsx` already does exactly this kind of viewport-tier tracking via `matchMedia` for the zoom-level picker, so the same pattern can supply the column count here rather than introducing a second mechanism.
+
+Scope: `components/gallery/MasonryGrid.tsx` only. `CollectionGrid.tsx` (the `/collections` listing) is unaffected — it's a fixed-size CSS grid (`grid-cols-1 md:grid-cols-2 lg:grid-cols-3`) for uniform collection-cover cards, not a variable-aspect-ratio masonry, so it doesn't have this failure mode.
+
+Not started — owner chose to log this rather than build immediately when it came up.
+
+### Execution plan
+1. Build against **local dev** (`npm run dev`, pointed at the production backend via the `airu-server-be` SSH tunnel on `:8201` — already configured via `.env.local`, no local DB needed) rather than pushing straight to production, so changes are visible immediately via hot reload for review/feedback before any deploy.
+2. ~~7a first (trivial, zero risk), then 7c (moderate, clear win)~~ — both done (commit `dafc3ca`). Remaining: 7b at whatever tier gets picked, then 7d whenever picked back up.
 3. Only commit/push/deploy after the owner has reviewed locally.
 
 ---
