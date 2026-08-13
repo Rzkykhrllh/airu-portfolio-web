@@ -251,9 +251,9 @@ Raised in discussion, not started. Re-derive current state before picking any of
 
 ---
 
-## 7. Mobile UX Polish (feedback-driven) — 7a, 7c & 7d done, 7b open
+## 7. Mobile UX Polish (feedback-driven) — 7a, 7b, 7c, 7d, 7e done
 
-Status: 7a, 7c and 7d greenlit, built, reviewed, and shipped. 7b (photo pop-in) still just a plan.
+Status: all sub-items greenlit, built, reviewed, and shipped.
 
 Context: owner shared feedback from other people who tried the site, mostly on mobile, relayed 2026-08-13 (WhatsApp screenshots, "Zul CS 19").
 
@@ -264,11 +264,11 @@ Context: owner shared feedback from other people who tried the site, mostly on m
 
 **Implementation note:** built exactly as proposed — `hasExifData` computed once per page and used to gate the accordion; the four inner field checks changed from `photo.exif.field` to `photo.exif?.field` (needed for TS narrowing once the gate no longer directly references `photo.exif`, caught by `tsc --noEmit`, zero errors after the fix). `airu-porto-fe` commit `dafc3ca`. Verified live on `byairu.com` via browser automation post-deploy (Dokploy).
 
-### 7b. Photos "popping" in in during load
+### 7b. Photos "popping" in in during load ✅ Done (hero image; `CollectionCard` also done under §9)
 **Root cause (confirmed via code read across every image-rendering component):**
 - `components/photo/PhotoDetailClient.tsx` (the hero image on every photo detail page — the largest, heaviest image on the site, `photo.src.full`) has **no blur placeholder at all**. Likely the most visible offender, since it's both the biggest asset and the one with zero progressive-loading treatment.
 - `components/gallery/PhotoCard.tsx` (homepage gallery, collection pages, related-photos grid) already has `placeholder="blur"`, but with one **generic static gray `blurDataURL`** shared by every photo regardless of its actual colors — better than nothing, but the swap from generic-gray to the real image is still visually abrupt since the placeholder doesn't resemble the incoming photo.
-- `components/collections/CollectionCard.tsx` (the `/collections` listing page thumbnails) has **no blur placeholder at all** either.
+- `components/collections/CollectionCard.tsx` (the `/collections` listing page thumbnails) has **no blur placeholder at all** either — fixed under §9.
 
 **Three tiers of fix, increasing cost/quality — pick one:**
 1. **Cheap:** add the same generic gray `placeholder="blur"` (copy the existing `blurDataURL` constant from `PhotoCard.tsx`) to the hero image and `CollectionCard`. ~15 minutes. Helps some, doesn't fix the "placeholder doesn't look like the photo" issue.
@@ -276,6 +276,8 @@ Context: owner shared feedback from other people who tried the site, mostly on m
 3. **Most correct, most work:** generate a real per-photo LQIP (a tiny, actually-representative blurred thumbnail) at upload time using `sharp` (already a backend dependency), store it, and use it everywhere instead of the generic gray placeholder. Needs a schema change (new column or reuse `metadata`), upload-pipeline changes, and — critically — **won't retroactively cover the 300+ already-uploaded photos** unless separately backfilled. Best long-term fix, biggest lift.
 
 Recommendation: do **Tier 2** now (best value for the effort, fixes the worst offender), leave Tier 3 as a future upgrade once there's appetite for a backend change + backfill job.
+
+**Implementation note (2026-08-13):** went with the tier-2-style pattern already proven on `PhotoCard`/`CollectionCard` rather than the medium→full swap originally proposed above — `photo.src.thumbnail` blurred underneath, cross-fading to `photo.src.full` on `onLoad`, same technique across the whole site now. Extracted into a `HeroImage` subcomponent inside `PhotoDetailClient.tsx`, keyed by `photo.id` so `loaded` resets cleanly on every client-side Next/Prev click — this incidentally fixed a second, undocumented instance of the same bug: clicking Next/Prev swapped `currentPhoto` with no loading state at all, showing a bare gray box mid-transition (confirmed live via screenshot before the fix). Bundled with two related fixes found during the same pass: (1) neither the hero nor the `Lightbox` image had a `sizes` prop, so Next.js defaulted to the largest device bucket — confirmed live via network tab, the hero was requesting `w=3840` for a box rendered at ~1150px max-width; both now set `sizes` (Lightbox's zoomed mode intentionally left uncapped, since it's a pixel-peek feature). (2) `getNextPhoto`/`getPreviousPhoto` (`lib/data.ts`) were re-fetching the entire photo list (up to 1000 photos) or the full collection detail on **every single** Next/Prev click — now cached in-memory for 60s. `airu-porto-fe` commit `54290d0`. `tsc --noEmit` clean. Not yet verified live (pending push + deploy).
 
 ### 7c. "Blinking" on back/forward navigation, especially mobile ✅ Done
 **Root cause (confirmed via code read):** `Header` (root layout, doesn't remount on navigation — confirmed safe) is not the issue. `components/gallery/MasonryGrid.tsx` and `components/collections/CollectionGrid.tsx` are page-level content, not layout — Next.js App Router fully remounts them on every navigation to `/` or `/collections`, **including clicking back to a page you already saw seconds ago**. Their Framer Motion entrance animation (`initial="hidden" animate="visible"`, staggered fade-in) replays from scratch every single time, even though the underlying photos are already browser-cached and would otherwise paint instantly — this is very likely what reads as "blinking," especially on back/forward where the user expects the page to just *be there*, not replay an intro animation.
