@@ -5,6 +5,10 @@ import Image from 'next/image';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import TagInput from '@/components/admin/TagInput';
+import VisibilitySelect from '@/components/admin/VisibilitySelect';
+import CollectionsChecklist from '@/components/admin/CollectionsChecklist';
+import FeaturedCheckbox from '@/components/admin/FeaturedCheckbox';
+import ExifFields from '@/components/admin/ExifFields';
 import { uploadPhoto, getCollections } from '@/lib/api';
 import { ApiError } from '@/lib/fetch';
 import { PhotoFormData, Collection, Photo } from '@/types';
@@ -210,15 +214,6 @@ export default function PhotoAddModal({ onClose, onUploaded }: PhotoAddModalProp
     }));
   };
 
-  const toggleCollection = (collectionId: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      collections: prev.collections.includes(collectionId)
-        ? prev.collections.filter((c) => c !== collectionId)
-        : [...prev.collections, collectionId],
-    }));
-  };
-
   const handleUpload = async (e: FormEvent) => {
     e.preventDefault();
 
@@ -389,109 +384,24 @@ export default function PhotoAddModal({ onClose, onUploaded }: PhotoAddModalProp
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Collections
-                  </label>
-                  {isLoadingCollections ? (
-                    <div className="text-sm text-gray-500 dark:text-gray-400">Loading collections...</div>
-                  ) : availableCollections.length === 0 ? (
-                    <div className="text-sm text-gray-500 dark:text-gray-400">No collections available</div>
-                  ) : (
-                    <div className="space-y-2">
-                      {availableCollections.map((col) => (
-                        <label key={col.id} className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={formData.collections.includes(col.id)}
-                            onChange={() => toggleCollection(col.id)}
-                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                          />
-                          <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{col.title}</span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <CollectionsChecklist
+                  collections={availableCollections}
+                  isLoading={isLoadingCollections}
+                  selectedIds={formData.collections}
+                  onChange={(ids) => handleInputChange('collections', ids)}
+                />
 
-                <div>
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={formData.featured}
-                      onChange={(e) => handleInputChange('featured', e.target.checked)}
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                    />
-                    <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Featured (Photographer&apos;s Pick)
-                    </span>
-                  </label>
-                </div>
+                <FeaturedCheckbox
+                  checked={formData.featured}
+                  onChange={(checked) => handleInputChange('featured', checked)}
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Visibility
-                  </label>
-                  <select
-                    value={formData.visibility}
-                    onChange={(e) =>
-                      handleInputChange('visibility', e.target.value as 'PUBLIC' | 'COLLECTION_ONLY' | 'PRIVATE')
-                    }
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="PUBLIC">Public (Show everywhere)</option>
-                    <option value="COLLECTION_ONLY">Collection Only (Not in gallery)</option>
-                    <option value="PRIVATE">Private (Admin only)</option>
-                  </select>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {formData.visibility === 'PUBLIC' && 'Visible in gallery, collections, and admin'}
-                    {formData.visibility === 'COLLECTION_ONLY' && 'Visible in collections and admin only, not in main gallery'}
-                    {formData.visibility === 'PRIVATE' && 'Only visible to admins, hidden from public'}
-                  </p>
-                </div>
+                <VisibilitySelect
+                  value={formData.visibility}
+                  onChange={(visibility) => handleInputChange('visibility', visibility)}
+                />
 
-                {/* EXIF Data */}
-                <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">EXIF Data</h3>
-                  <div className="space-y-4">
-                    <Input
-                      label="Camera"
-                      value={formData.exif.camera}
-                      onChange={(e) => handleExifChange('camera', e.target.value)}
-                      placeholder="e.g. Sony A7IV"
-                    />
-
-                    <Input
-                      label="Lens"
-                      value={formData.exif.lens}
-                      onChange={(e) => handleExifChange('lens', e.target.value)}
-                      placeholder="e.g. 24-70mm f/2.8"
-                    />
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                      <Input
-                        label="Aperture"
-                        value={formData.exif.aperture}
-                        onChange={(e) => handleExifChange('aperture', e.target.value)}
-                        placeholder="f/2.8"
-                      />
-
-                      <Input
-                        label="Shutter"
-                        value={formData.exif.shutter}
-                        onChange={(e) => handleExifChange('shutter', e.target.value)}
-                        placeholder="1/250s"
-                      />
-
-                      <Input
-                        label="ISO"
-                        value={formData.exif.iso}
-                        onChange={(e) => handleExifChange('iso', e.target.value)}
-                        placeholder="400"
-                      />
-                    </div>
-                  </div>
-                </div>
+                <ExifFields value={formData.exif} onChange={handleExifChange} />
               </div>
             </div>
           )}
