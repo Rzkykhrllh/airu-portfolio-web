@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import { use } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -44,7 +43,6 @@ export default function EditCollectionPage({
   params,
 }: EditCollectionPageProps) {
   const toast = useToast();
-  const router = useRouter();
   const { slug } = use(params);
 
   const [collection, setCollection] = useState<Collection | null>(null);
@@ -68,6 +66,10 @@ export default function EditCollectionPage({
 
   useEffect(() => {
     loadData();
+    // `loadData` is a new function reference every render (it's a plain
+    // const, not memoized) — including it here would just re-run this on
+    // every render. `slug` is the only real trigger.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
   const loadData = async () => {

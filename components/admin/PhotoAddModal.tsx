@@ -66,6 +66,11 @@ export default function PhotoAddModal({ onClose, onUploaded }: PhotoAddModalProp
     return () => {
       cancelled = true;
     };
+    // `toast` (from context) is intentionally omitted — it's a new object
+    // reference on every ToastProvider render (e.g. any toast elsewhere in
+    // the app appearing/disappearing), so including it would refetch
+    // collections far more often than intended.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -418,7 +423,7 @@ export default function PhotoAddModal({ onClose, onUploaded }: PhotoAddModalProp
                       className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                     />
                     <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Featured (Photographer's Pick)
+                      Featured (Photographer&apos;s Pick)
                     </span>
                   </label>
                 </div>

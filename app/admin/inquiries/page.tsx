@@ -20,6 +20,9 @@ export default function AdminInquiriesPage() {
 
   useEffect(() => {
     loadInquiries();
+    // `loadInquiries` is a new function reference every render — `filter`
+    // is the only real trigger. See the same note in admin/collections/[slug].
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
   const loadInquiries = async () => {

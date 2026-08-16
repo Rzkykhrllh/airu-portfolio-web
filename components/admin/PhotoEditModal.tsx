@@ -91,6 +91,9 @@ export default function PhotoEditModal({ photoId, onClose, onUpdated, onDeleted 
     return () => {
       cancelled = true;
     };
+    // `toast` (from context) is intentionally omitted — see the same note
+    // in PhotoAddModal.tsx.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [photoId]);
 
   const handleSubmit = async (e: FormEvent) => {
@@ -303,7 +306,7 @@ export default function PhotoEditModal({ photoId, onClose, onUpdated, onDeleted 
                       className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                     />
                     <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Featured (Photographer's Pick)
+                      Featured (Photographer&apos;s Pick)
                     </span>
                   </label>
                 </div>
