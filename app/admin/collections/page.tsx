@@ -6,14 +6,17 @@ import Image from "next/image";
 import AdminLayout from "@/components/admin/AdminLayout";
 import Button from "@/components/ui/Button";
 import { deleteCollection } from "@/lib/api";
+import { ApiError } from "@/lib/fetch";
 import { Collection } from "@/types";
 import { getAllCollectionsAdmin } from "@/lib/data";
 import { useToast } from "@/components/providers/ToastProvider";
+import { useConfirmDialog } from "@/components/providers/ConfirmDialogProvider";
 
 export default function AdminCollectionsPage() {
   // Hooks must be called before any early returns
   const router = useRouter();
   const toast = useToast();
+  const confirmDialog = useConfirmDialog();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,13 +41,12 @@ export default function AdminCollectionsPage() {
   };
 
   const handleDelete = async (slug: string) => {
-    if (
-      !confirm(
-        "Are you sure you want to delete this collection? Photos will not be deleted."
-      )
-    ) {
-      return;
-    }
+    const ok = await confirmDialog({
+      title: "Delete collection?",
+      message: "Are you sure you want to delete this collection? Photos will not be deleted.",
+      confirmLabel: "Delete",
+    });
+    if (!ok) return;
 
     try {
       await deleteCollection(slug);
@@ -52,7 +54,7 @@ export default function AdminCollectionsPage() {
       loadCollections();
     } catch (error) {
       console.error("Failed to delete collection:", error);
-      toast.error("Failed to delete collection. Please try again.");
+      toast.error(error instanceof ApiError ? error.message : "Failed to delete collection. Please try again.");
     }
   };
 

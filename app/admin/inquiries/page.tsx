@@ -4,11 +4,14 @@ import { useState, useEffect } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import Button from '@/components/ui/Button';
 import { getInquiries, markInquiryRead, deleteInquiry } from '@/lib/api';
+import { ApiError } from '@/lib/fetch';
 import { Inquiry } from '@/types';
 import { useToast } from '@/components/providers/ToastProvider';
+import { useConfirmDialog } from '@/components/providers/ConfirmDialogProvider';
 
 export default function AdminInquiriesPage() {
   const toast = useToast();
+  const confirmDialog = useConfirmDialog();
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,14 +51,19 @@ export default function AdminInquiriesPage() {
       );
     } catch (err) {
       console.error('Failed to update inquiry:', err);
-      toast.error('Failed to update inquiry.');
+      toast.error(err instanceof ApiError ? err.message : 'Failed to update inquiry.');
     } finally {
       setBusyId(null);
     }
   };
 
   const handleDelete = async (inquiry: Inquiry) => {
-    if (!confirm(`Delete the message from "${inquiry.name}"? This cannot be undone.`)) return;
+    const ok = await confirmDialog({
+      title: 'Delete inquiry?',
+      message: `Delete the message from "${inquiry.name}"? This cannot be undone.`,
+      confirmLabel: 'Delete',
+    });
+    if (!ok) return;
 
     setBusyId(inquiry.id);
     try {
@@ -64,7 +72,7 @@ export default function AdminInquiriesPage() {
       toast.success('Inquiry deleted.');
     } catch (err) {
       console.error('Failed to delete inquiry:', err);
-      toast.error('Failed to delete inquiry.');
+      toast.error(err instanceof ApiError ? err.message : 'Failed to delete inquiry.');
     } finally {
       setBusyId(null);
     }

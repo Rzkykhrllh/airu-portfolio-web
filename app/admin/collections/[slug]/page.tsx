@@ -26,8 +26,15 @@ import {
   getCollection,
   reorderCollectionPhotos,
 } from "@/lib/api";
+import { ApiError } from "@/lib/fetch";
 import { Collection, Photo } from "@/types";
 import { useToast } from "@/components/providers/ToastProvider";
+
+// The "Add Photos" picker filters client-side against the full admin photo
+// list (already fetched for the page), but rendering every match at once
+// got slow once the library passed a few hundred photos — cap what's
+// rendered and let the admin ask for more instead.
+const ADD_PHOTOS_PAGE_SIZE = 60;
 
 interface EditCollectionPageProps {
   params: Promise<{ slug: string }>;
@@ -47,6 +54,7 @@ export default function EditCollectionPage({
   const [isSaving, setIsSaving] = useState(false);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [modalSearch, setModalSearch] = useState("");
+  const [modalVisibleCount, setModalVisibleCount] = useState(ADD_PHOTOS_PAGE_SIZE);
   const [addingPhotoId, setAddingPhotoId] = useState<string | null>(null);
   const [isSavingOrder, setIsSavingOrder] = useState(false);
   const [editingPhotoId, setEditingPhotoId] = useState<string | null>(null);
@@ -86,6 +94,7 @@ export default function EditCollectionPage({
       setAllPhotos(allPhotosData);
     } catch (error) {
       console.error("Failed to load collection:", error);
+      toast.error(error instanceof ApiError ? error.message : "Failed to load collection.");
     } finally {
       setIsLoading(false);
     }
@@ -101,7 +110,7 @@ export default function EditCollectionPage({
       toast.success("Collection details saved.");
     } catch (error) {
       console.error("Failed to update collection:", error);
-      toast.error("Failed to update collection. Please try again.");
+      toast.error(error instanceof ApiError ? error.message : "Failed to update collection. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -125,7 +134,7 @@ export default function EditCollectionPage({
     } catch (error) {
       console.error("Failed to save photo order:", error);
       setPhotos(previousOrder);
-      toast.error("Failed to save photo order.");
+      toast.error(error instanceof ApiError ? error.message : "Failed to save photo order.");
     } finally {
       setIsSavingOrder(false);
     }
@@ -162,7 +171,7 @@ export default function EditCollectionPage({
       toast.success("Photo added to collection.");
     } catch (error) {
       console.error("Failed to add photo to collection:", error);
-      toast.error("Failed to add photo to collection.");
+      toast.error(error instanceof ApiError ? error.message : "Failed to add photo to collection.");
     } finally {
       setAddingPhotoId(null);
     }
@@ -174,6 +183,8 @@ export default function EditCollectionPage({
       (modalSearch.trim() === "" ||
         (p.title || "").toLowerCase().includes(modalSearch.trim().toLowerCase()))
   );
+  const visibleAvailablePhotos = availablePhotos.slice(0, modalVisibleCount);
+  const hasMoreAvailablePhotos = availablePhotos.length > modalVisibleCount;
 
   if (isLoading) {
     return (
@@ -238,7 +249,15 @@ export default function EditCollectionPage({
                   Saving order...
                 </span>
               )}
-              <Button type="button" variant="primary" onClick={() => setShowPhotoModal(true)}>
+              <Button
+                type="button"
+                variant="primary"
+                onClick={() => {
+                  setModalSearch("");
+                  setModalVisibleCount(ADD_PHOTOS_PAGE_SIZE);
+                  setShowPhotoModal(true);
+                }}
+              >
                 + Add Photos
               </Button>
             </div>
@@ -366,7 +385,10 @@ export default function EditCollectionPage({
               type="text"
               placeholder="Search photos..."
               value={modalSearch}
-              onChange={(e) => setModalSearch(e.target.value)}
+              onChange={(e) => {
+                setModalSearch(e.target.value);
+                setModalVisibleCount(ADD_PHOTOS_PAGE_SIZE);
+              }}
               className="w-full mb-4 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
 
@@ -375,8 +397,12 @@ export default function EditCollectionPage({
                 No photos to add
               </p>
             ) : (
+              <>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                Showing {visibleAvailablePhotos.length} of {availablePhotos.length}
+              </p>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                {availablePhotos.map((photo) => (
+                {visibleAvailablePhotos.map((photo) => (
                   <button
                     key={photo.id}
                     type="button"
@@ -417,6 +443,18 @@ export default function EditCollectionPage({
                   </button>
                 ))}
               </div>
+              {hasMoreAvailablePhotos && (
+                <div className="flex justify-center mt-4">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setModalVisibleCount((prev) => prev + ADD_PHOTOS_PAGE_SIZE)}
+                  >
+                    Load more
+                  </Button>
+                </div>
+              )}
+              </>
             )}
           </div>
         </div>

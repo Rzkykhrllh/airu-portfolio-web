@@ -8,6 +8,26 @@ export class ApiError extends Error {
   }
 }
 
+// Admin JWTs expire after 1 week with no refresh flow (see backend
+// jwt.ts). Without this, an admin page left open past expiry (or hitting
+// a 401 for any other reason) just shows a generic "Failed to load"
+// error from whichever component happened to make the call, instead of
+// sending the admin back to log in again. Both 401 ("Access token
+// required") and 403 ("Invalid or expired token") come from this app's
+// own auth middleware and always mean "not authenticated" here — there's
+// no other use of 403 in this backend.
+function handleAdminAuthError(status: number): void {
+  if (status !== 401 && status !== 403) return;
+  if (typeof window === "undefined") return;
+
+  localStorage.removeItem(STORAGE_KEYS.authToken);
+  localStorage.removeItem(STORAGE_KEYS.user);
+
+  if (!window.location.pathname.startsWith("/admin/login")) {
+    window.location.href = "/admin/login";
+  }
+}
+
 interface ApiResponse<T> {
   success: boolean;
   data?: T;
@@ -119,6 +139,7 @@ export async function adminFetch<T>(
   const jsonResponse: ApiResponse<T> = await response.json();
 
   if (!response.ok || !jsonResponse.success) {
+    handleAdminAuthError(response.status);
     const errorMessage = jsonResponse.message || "An error occurred";
     throw new ApiError(errorMessage, response.status);
   }
@@ -156,6 +177,7 @@ export async function adminFetchWithMeta<T>(
   const jsonResponse: ApiResponse<T> = await response.json();
 
   if (!response.ok || !jsonResponse.success) {
+    handleAdminAuthError(response.status);
     const errorMessage = jsonResponse.message || "An error occurred";
     throw new ApiError(errorMessage, response.status);
   }
@@ -215,6 +237,7 @@ export async function uploadFetch<T>(
 
   // Error Handling
   if (!response.ok || !jsonResponse.success) {
+    handleAdminAuthError(response.status);
     const errorMessage = jsonResponse.message || "Upload failed";
     throw new ApiError(errorMessage, response.status);
   }

@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import TagInput from '@/components/admin/TagInput';
 import { uploadPhoto, getCollections } from '@/lib/api';
+import { ApiError } from '@/lib/fetch';
 import { PhotoFormData, Collection, Photo } from '@/types';
 import { useToast } from '@/components/providers/ToastProvider';
 import exifr from 'exifr';
@@ -15,12 +16,17 @@ interface PhotoAddModalProps {
   onUploaded: (photo: Photo) => void;
 }
 
+// Matches the backend's multer limit (upload.middleware.ts: fileSize: 50 * 1024 * 1024).
+const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
+const MAX_FILE_SIZE_LABEL = '50MB';
+
 export default function PhotoAddModal({ onClose, onUploaded }: PhotoAddModalProps) {
   const toast = useToast();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [availableCollections, setAvailableCollections] = useState<Collection[]>([]);
   const [isLoadingCollections, setIsLoadingCollections] = useState(true);
 
@@ -51,7 +57,7 @@ export default function PhotoAddModal({ onClose, onUploaded }: PhotoAddModalProp
         if (!cancelled) setAvailableCollections(data);
       } catch (error) {
         console.error('Failed to load collections:', error);
-        if (!cancelled) toast.error('Failed to load collections');
+        if (!cancelled) toast.error(error instanceof ApiError ? error.message : 'Failed to load collections');
       } finally {
         if (!cancelled) setIsLoadingCollections(false);
       }
@@ -71,6 +77,44 @@ export default function PhotoAddModal({ onClose, onUploaded }: PhotoAddModalProp
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    await handleFile(file);
+    // Allow re-selecting the same file after "Change Photo".
+    e.target.value = '';
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDraggingOver) setIsDraggingOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please drop an image file.');
+      return;
+    }
+
+    await handleFile(file);
+  };
+
+  const handleFile = async (file: File) => {
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      toast.error(`"${file.name}" is ${(file.size / 1024 / 1024).toFixed(1)}MB, which is over the ${MAX_FILE_SIZE_LABEL} limit.`);
+      return;
+    }
 
     setSelectedFile(file);
     const previewUrl = URL.createObjectURL(file);
@@ -191,7 +235,7 @@ export default function PhotoAddModal({ onClose, onUploaded }: PhotoAddModalProp
       onUploaded(photo);
     } catch (error) {
       console.error('Upload failed:', error);
-      toast.error('Upload failed. Please try again.');
+      toast.error(error instanceof ApiError ? error.message : 'Upload failed. Please try again.');
     } finally {
       setIsUploading(false);
     }
@@ -221,8 +265,18 @@ export default function PhotoAddModal({ onClose, onUploaded }: PhotoAddModalProp
 
         <form id="photo-add-form" onSubmit={handleUpload} className="p-6">
           {!selectedFile ? (
-            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-12">
-              <div className="text-center">
+            <div
+              onDragOver={handleDragOver}
+              onDragEnter={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`border-2 border-dashed rounded-lg p-12 transition-colors ${
+                isDraggingOver
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                  : 'border-gray-300 dark:border-gray-600'
+              }`}
+            >
+              <div className="text-center pointer-events-none">
                 <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
@@ -234,7 +288,7 @@ export default function PhotoAddModal({ onClose, onUploaded }: PhotoAddModalProp
                 <div className="mt-4">
                   <label
                     htmlFor="add-modal-file-upload"
-                    className="cursor-pointer text-blue-600 hover:text-blue-700 font-medium"
+                    className="cursor-pointer text-blue-600 hover:text-blue-700 font-medium pointer-events-auto"
                   >
                     Click to browse
                   </label>
@@ -243,13 +297,13 @@ export default function PhotoAddModal({ onClose, onUploaded }: PhotoAddModalProp
                     type="file"
                     accept="image/*"
                     onChange={handleFileSelect}
-                    className="hidden"
+                    className="hidden pointer-events-auto"
                   />
                   <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
-                    or drag and drop a photo here
+                    {isDraggingOver ? 'Drop to upload' : 'or drag and drop a photo here'}
                   </p>
                 </div>
-                <p className="text-xs text-gray-400 mt-2">PNG, JPG, GIF up to 10MB</p>
+                <p className="text-xs text-gray-400 mt-2">PNG, JPG, GIF up to {MAX_FILE_SIZE_LABEL}</p>
               </div>
             </div>
           ) : (

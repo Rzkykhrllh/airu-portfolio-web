@@ -92,15 +92,31 @@ export async function getPhotos(filters?: PhotoFilters): Promise<Photo[]> {
   }
 }
 
-// Paginated photo fetch that also exposes total/hasMore, for infinite-scroll UIs.
-// Public scope only (no admin use case for infinite scroll today).
+// Paginated photo fetch that also exposes total/hasMore, for infinite-scroll /
+// paginated UIs. Admin scope goes through adminFetchWithMeta (auth + 401
+// handling); everything else stays on the public path.
 export async function getPhotosPage(
   filters?: PhotoFilters
 ): Promise<{ photos: Photo[]; total: number; page: number; totalPages: number }> {
   const queryString = `?${buildPhotoQueryParams(filters).toString()}`;
+  const fetchWithMeta = filters?.scope === 'admin' ? adminFetchWithMeta : publicFetchWithMeta;
+
+  // Admin callers handle their own errors (consistent with getPhotos above);
+  // public callers get an empty-page fallback instead of a thrown error.
+  if (filters?.scope === 'admin') {
+    const { data, pagination } = await fetchWithMeta<BackendPhoto[]>(
+      `${API_ENDPOINTS.photos.list}${queryString}`
+    );
+    return {
+      photos: transformPhotos(data),
+      total: pagination?.total ?? data.length,
+      page: pagination?.page ?? filters?.page ?? 1,
+      totalPages: pagination?.totalPages ?? 1,
+    };
+  }
 
   try {
-    const { data, pagination } = await publicFetchWithMeta<BackendPhoto[]>(
+    const { data, pagination } = await fetchWithMeta<BackendPhoto[]>(
       `${API_ENDPOINTS.photos.list}${queryString}`
     );
 

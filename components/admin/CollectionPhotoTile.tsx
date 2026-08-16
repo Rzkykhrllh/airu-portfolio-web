@@ -1,12 +1,15 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Photo, PhotoVisibility } from '@/types';
+import { Photo } from '@/types';
 import { updatePhoto } from '@/lib/api';
+import { ApiError } from '@/lib/fetch';
 import { useToast } from '@/components/providers/ToastProvider';
+import { useConfirmDialog } from '@/components/providers/ConfirmDialogProvider';
+import { usePhotoQuickEdit } from '@/hooks/usePhotoQuickEdit';
 import VisibilityMenu from './VisibilityMenu';
 import FeaturedToggle from './FeaturedToggle';
 
@@ -20,15 +23,11 @@ interface CollectionPhotoTileProps {
 
 export default function CollectionPhotoTile({ photo, collectionId, isCover, onRemoved, onEdit }: CollectionPhotoTileProps) {
   const toast = useToast();
+  const confirmDialog = useConfirmDialog();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: photo.id });
 
-  const [featured, setFeatured] = useState(photo.featured);
-  const [visibility, setVisibility] = useState(photo.visibility);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const { featured, visibility, isUpdating, toggleFeatured, changeVisibility } = usePhotoQuickEdit(photo);
   const [isRemoving, setIsRemoving] = useState(false);
-
-  useEffect(() => setFeatured(photo.featured), [photo.featured]);
-  useEffect(() => setVisibility(photo.visibility), [photo.visibility]);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -36,40 +35,13 @@ export default function CollectionPhotoTile({ photo, collectionId, isCover, onRe
     opacity: isDragging ? 0.4 : 1,
   };
 
-  const handleToggleFeatured = async () => {
-    const next = !featured;
-    setFeatured(next);
-    setIsUpdating(true);
-
-    try {
-      await updatePhoto(photo.id, { featured: next });
-    } catch (error) {
-      console.error('Failed to update featured status:', error);
-      setFeatured(!next);
-      toast.error('Failed to update featured status.');
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const handleVisibilityChange = async (nextVisibility: PhotoVisibility) => {
-    const prev = visibility;
-    setVisibility(nextVisibility);
-    setIsUpdating(true);
-
-    try {
-      await updatePhoto(photo.id, { visibility: nextVisibility });
-    } catch (error) {
-      console.error('Failed to update visibility:', error);
-      setVisibility(prev);
-      toast.error('Failed to update visibility.');
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
   const handleRemove = async () => {
-    if (!confirm(`Remove "${photo.title || 'Untitled'}" from this collection?`)) return;
+    const ok = await confirmDialog({
+      title: 'Remove from collection?',
+      message: `Remove "${photo.title || 'Untitled'}" from this collection?`,
+      confirmLabel: 'Remove',
+    });
+    if (!ok) return;
 
     setIsRemoving(true);
     const remainingCollectionIds = photo.collections
@@ -82,7 +54,7 @@ export default function CollectionPhotoTile({ photo, collectionId, isCover, onRe
       onRemoved(photo.id);
     } catch (error) {
       console.error('Failed to remove photo from collection:', error);
-      toast.error('Failed to remove photo from collection.');
+      toast.error(error instanceof ApiError ? error.message : 'Failed to remove photo from collection.');
       setIsRemoving(false);
     }
   };
@@ -151,10 +123,10 @@ export default function CollectionPhotoTile({ photo, collectionId, isCover, onRe
 
         {/* Featured + Visibility controls */}
         <div className="absolute bottom-2 right-2 flex items-center gap-1">
-          <VisibilityMenu visibility={visibility} onChange={handleVisibilityChange} disabled={isUpdating} />
+          <VisibilityMenu visibility={visibility} onChange={changeVisibility} disabled={isUpdating} />
           <FeaturedToggle
             featured={featured}
-            onToggle={handleToggleFeatured}
+            onToggle={toggleFeatured}
             disabled={isUpdating}
             className="bg-white/90 dark:bg-gray-900/90 shadow-sm"
           />

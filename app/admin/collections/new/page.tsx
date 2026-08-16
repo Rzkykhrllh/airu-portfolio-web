@@ -7,6 +7,7 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { createCollection } from '@/lib/api';
+import { ApiError } from '@/lib/fetch';
 import { useToast } from '@/components/providers/ToastProvider';
 
 export default function NewCollectionPage() {
@@ -52,7 +53,7 @@ export default function NewCollectionPage() {
       router.push(`/admin/collections/${slug}`);
     } catch (error) {
       console.error('Failed to create collection:', error);
-      toast.error('Failed to create collection. Please try again.');
+      toast.error(error instanceof ApiError ? error.message : 'Failed to create collection. Please try again.');
     } finally {
       setIsCreating(false);
     }

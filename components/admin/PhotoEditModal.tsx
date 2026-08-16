@@ -6,8 +6,10 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import TagInput from '@/components/admin/TagInput';
 import { getPhoto, updatePhoto, deletePhoto, getCollections } from '@/lib/api';
+import { ApiError } from '@/lib/fetch';
 import { Photo, Collection } from '@/types';
 import { useToast } from '@/components/providers/ToastProvider';
+import { useConfirmDialog } from '@/components/providers/ConfirmDialogProvider';
 
 interface PhotoEditModalProps {
   photoId: string;
@@ -18,6 +20,7 @@ interface PhotoEditModalProps {
 
 export default function PhotoEditModal({ photoId, onClose, onUpdated, onDeleted }: PhotoEditModalProps) {
   const toast = useToast();
+  const confirmDialog = useConfirmDialog();
 
   const [photo, setPhoto] = useState<Photo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,6 +69,7 @@ export default function PhotoEditModal({ photoId, onClose, onUpdated, onDeleted 
         }
       } catch (error) {
         console.error('Failed to load photo:', error);
+        if (!cancelled) toast.error(error instanceof ApiError ? error.message : 'Failed to load photo.');
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -77,7 +81,7 @@ export default function PhotoEditModal({ photoId, onClose, onUpdated, onDeleted 
         if (!cancelled) setAvailableCollections(data);
       } catch (error) {
         console.error('Failed to load collections:', error);
-        if (!cancelled) toast.error('Failed to load collections');
+        if (!cancelled) toast.error(error instanceof ApiError ? error.message : 'Failed to load collections');
       } finally {
         if (!cancelled) setIsLoadingCollections(false);
       }
@@ -115,16 +119,19 @@ export default function PhotoEditModal({ photoId, onClose, onUpdated, onDeleted 
       onUpdated(updated);
     } catch (error) {
       console.error('Failed to update photo:', error);
-      toast.error('Failed to update photo. Please try again.');
+      toast.error(error instanceof ApiError ? error.message : 'Failed to update photo. Please try again.');
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this photo? This action cannot be undone.')) {
-      return;
-    }
+    const ok = await confirmDialog({
+      title: 'Delete photo?',
+      message: 'Are you sure you want to delete this photo? This action cannot be undone.',
+      confirmLabel: 'Delete',
+    });
+    if (!ok) return;
 
     setIsDeleting(true);
     try {
@@ -133,7 +140,7 @@ export default function PhotoEditModal({ photoId, onClose, onUpdated, onDeleted 
       onDeleted(photoId);
     } catch (error) {
       console.error('Failed to delete photo:', error);
-      toast.error('Failed to delete photo. Please try again.');
+      toast.error(error instanceof ApiError ? error.message : 'Failed to delete photo. Please try again.');
       setIsDeleting(false);
     }
   };

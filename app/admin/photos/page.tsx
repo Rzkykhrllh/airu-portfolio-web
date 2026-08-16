@@ -9,10 +9,22 @@ import PhotoGrid from '@/components/admin/PhotoGrid';
 import PhotoList from '@/components/admin/PhotoList';
 import PhotoEditModal from '@/components/admin/PhotoEditModal';
 import PhotoAddModal from '@/components/admin/PhotoAddModal';
-import { getPhotos, getCollections } from '@/lib/api';
-import { Photo, PhotoFilters, Collection } from '@/types';
+import BulkActionBar from '@/components/admin/BulkActionBar';
+import { getPhotosPage, getCollections, updatePhoto, deletePhoto } from '@/lib/api';
+import { ApiError } from '@/lib/fetch';
+import { Photo, PhotoFilters, Collection, PhotoVisibility } from '@/types';
+import { useToast } from '@/components/providers/ToastProvider';
+import { useConfirmDialog } from '@/components/providers/ConfirmDialogProvider';
+
+// Grid/list page size — the library is well past 500 photos, so fetching
+// everything in one request (the old `limit: 1000` approach) meant a slow
+// initial load that only grows worse as more photos are added.
+const PAGE_SIZE = 60;
 
 export default function AdminPhotosPage() {
+  const toast = useToast();
+  const confirmDialog = useConfirmDialog();
+
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,15 +35,25 @@ export default function AdminPhotosPage() {
   const [editingPhotoId, setEditingPhotoId] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
 
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+
   useEffect(() => {
     loadPhotos();
-  }, [filters]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, page]);
 
   // Debounce free-text search into `filters` so it goes through the same
   // server-side round-trip as the other filters instead of firing per keystroke.
   useEffect(() => {
     const handle = setTimeout(() => {
       setFilters((prev) => ({ ...prev, search: searchInput.trim() || undefined }));
+      setPage(1);
     }, 300);
     return () => clearTimeout(handle);
   }, [searchInput]);
@@ -48,27 +70,31 @@ export default function AdminPhotosPage() {
     try {
       // Admin: Show ALL photos regardless of visibility (PUBLIC, COLLECTION_ONLY, PRIVATE)
       // scope=admin requires authentication on backend
-      // limit bumped past the 100-photo default — same silent cap already
-      // fixed on the homepage (commit 381be13), just never caught here.
-      // The library is already past 300 photos, so this was hiding ~70% of
-      // it from the admin list entirely.
-      const data = await getPhotos({
+      const result = await getPhotosPage({
         ...filters,
         scope: 'admin',
-        limit: 1000,
+        page,
+        limit: PAGE_SIZE,
       });
-      setPhotos(data);
+      setPhotos(result.photos);
+      setTotal(result.total);
+      setTotalPages(Math.max(1, result.totalPages));
     } catch (error) {
       console.error('Failed to load photos:', error);
-      setError(error instanceof Error ? error.message : 'Failed to load photos');
+      setError(error instanceof ApiError ? error.message : 'Failed to load photos');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handlePhotoUploaded = (photo: Photo) => {
-    setPhotos((prev) => [photo, ...prev]);
+  const updateFilters = (updater: (prev: PhotoFilters) => PhotoFilters) => {
+    setFilters(updater);
+    setPage(1);
+  };
+
+  const handlePhotoUploaded = () => {
     setShowAddModal(false);
+    loadPhotos();
   };
 
   const handlePhotoUpdated = (updated: Photo) => {
@@ -81,6 +107,100 @@ export default function AdminPhotosPage() {
     setEditingPhotoId(null);
   };
 
+  // ---- Selection ----
+
+  const toggleSelectMode = () => {
+    setSelectMode((prev) => !prev);
+    setSelectedIds(new Set());
+  };
+
+  const toggleSelect = (photoId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(photoId)) {
+        next.delete(photoId);
+      } else {
+        next.add(photoId);
+      }
+      return next;
+    });
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const goToPage = (nextPage: number) => {
+    setPage(nextPage);
+    setSelectedIds(new Set());
+  };
+
+  // ---- Bulk actions ----
+  // The backend has no bulk endpoints, so these fan out per-photo requests
+  // and report how many succeeded/failed rather than failing the whole
+  // batch on the first error.
+
+  const runBulk = async (
+    label: string,
+    action: (photoId: string) => Promise<unknown>
+  ) => {
+    setBulkBusy(true);
+    const ids = Array.from(selectedIds);
+    let succeeded = 0;
+    let firstError: unknown = null;
+
+    for (const id of ids) {
+      try {
+        await action(id);
+        succeeded++;
+      } catch (error) {
+        console.error(`Bulk ${label} failed for photo ${id}:`, error);
+        if (!firstError) firstError = error;
+      }
+    }
+
+    setBulkBusy(false);
+    clearSelection();
+    await loadPhotos();
+
+    if (succeeded === ids.length) {
+      toast.success(`${label} applied to ${succeeded} ${succeeded === 1 ? 'photo' : 'photos'}.`);
+    } else if (succeeded === 0) {
+      toast.error(
+        firstError instanceof ApiError
+          ? firstError.message
+          : `Failed to apply ${label.toLowerCase()} to any selected photos.`
+      );
+    } else {
+      toast.error(`${label} applied to ${succeeded} of ${ids.length} photos — some failed. Check console for details.`);
+    }
+  };
+
+  const handleBulkAddToCollection = (collectionId: string) => {
+    // updatePhoto's `collections` payload REPLACES the photo's full
+    // membership list, so each photo's existing collections must be
+    // merged with the target rather than overwritten.
+    runBulk('Add to collection', (photoId) => {
+      const photo = photos.find((p) => p.id === photoId);
+      const existingIds = photo?.collections.map((c) => c.id) ?? [];
+      const nextIds = existingIds.includes(collectionId) ? existingIds : [...existingIds, collectionId];
+      return updatePhoto(photoId, { collections: nextIds });
+    });
+  };
+
+  const handleBulkSetVisibility = (visibility: PhotoVisibility) => {
+    runBulk('Visibility update', (photoId) => updatePhoto(photoId, { visibility }));
+  };
+
+  const handleBulkDelete = async () => {
+    const ok = await confirmDialog({
+      title: 'Delete selected photos?',
+      message: `Delete ${selectedIds.size} selected ${selectedIds.size === 1 ? 'photo' : 'photos'}? This cannot be undone.`,
+      confirmLabel: 'Delete',
+    });
+    if (!ok) return;
+
+    runBulk('Delete', (photoId) => deletePhoto(photoId));
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -89,14 +209,31 @@ export default function AdminPhotosPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Photos</h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
-              {photos.length} {photos.length === 1 ? 'photo' : 'photos'}
+              {total} {total === 1 ? 'photo' : 'photos'}
             </p>
           </div>
 
-          <Button variant="primary" onClick={() => setShowAddModal(true)}>
-            + Upload
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button variant="secondary" onClick={toggleSelectMode}>
+              {selectMode ? 'Cancel Select' : 'Select'}
+            </Button>
+            <Button variant="primary" onClick={() => setShowAddModal(true)}>
+              + Upload
+            </Button>
+          </div>
         </div>
+
+        {selectMode && (
+          <BulkActionBar
+            selectedCount={selectedIds.size}
+            collections={availableCollections}
+            busy={bulkBusy}
+            onAddToCollection={handleBulkAddToCollection}
+            onSetVisibility={handleBulkSetVisibility}
+            onDelete={handleBulkDelete}
+            onClear={clearSelection}
+          />
+        )}
 
         {/* Filters */}
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
@@ -116,7 +253,7 @@ export default function AdminPhotosPage() {
               value={filters.collection ?? ''}
               onChange={(e) => {
                 const value = e.target.value;
-                setFilters((prev) => ({ ...prev, collection: value || undefined }));
+                updateFilters((prev) => ({ ...prev, collection: value || undefined }));
               }}
             >
               <option value="">All Collections</option>
@@ -132,7 +269,7 @@ export default function AdminPhotosPage() {
               value={filters.visibility ?? ''}
               onChange={(e) => {
                 const value = e.target.value;
-                setFilters((prev) => ({
+                updateFilters((prev) => ({
                   ...prev,
                   visibility: value === '' ? undefined : (value as PhotoFilters['visibility']),
                 }));
@@ -149,7 +286,7 @@ export default function AdminPhotosPage() {
               value={filters.sort ?? 'newest'}
               onChange={(e) => {
                 const value = e.target.value as PhotoFilters['sort'];
-                setFilters((prev) => ({ ...prev, sort: value }));
+                updateFilters((prev) => ({ ...prev, sort: value }));
               }}
             >
               <option value="newest">Newest First</option>
@@ -163,7 +300,7 @@ export default function AdminPhotosPage() {
               value={filters.featured === undefined ? '' : String(filters.featured)}
               onChange={(e) => {
                 const value = e.target.value;
-                setFilters((prev) => ({
+                updateFilters((prev) => ({
                   ...prev,
                   featured: value === '' ? undefined : value === 'true',
                 }));
@@ -194,9 +331,46 @@ export default function AdminPhotosPage() {
         ) : (
           <>
             {view === 'grid' ? (
-              <PhotoGrid photos={photos} onPhotoClick={setEditingPhotoId} onPhotoDeleted={loadPhotos} />
+              <PhotoGrid
+                photos={photos}
+                onPhotoClick={setEditingPhotoId}
+                onPhotoDeleted={loadPhotos}
+                selectMode={selectMode}
+                selectedIds={selectedIds}
+                onToggleSelect={toggleSelect}
+              />
             ) : (
-              <PhotoList photos={photos} onPhotoClick={setEditingPhotoId} onPhotoDeleted={loadPhotos} />
+              <PhotoList
+                photos={photos}
+                onPhotoClick={setEditingPhotoId}
+                onPhotoDeleted={loadPhotos}
+                selectMode={selectMode}
+                selectedIds={selectedIds}
+                onToggleSelect={toggleSelect}
+              />
+            )}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-4 pt-2">
+                <Button
+                  variant="secondary"
+                  onClick={() => goToPage(page - 1)}
+                  disabled={page <= 1}
+                >
+                  Previous
+                </Button>
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  Page {page} of {totalPages}
+                </span>
+                <Button
+                  variant="secondary"
+                  onClick={() => goToPage(page + 1)}
+                  disabled={page >= totalPages}
+                >
+                  Next
+                </Button>
+              </div>
             )}
           </>
         )}
