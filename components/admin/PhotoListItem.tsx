@@ -7,6 +7,7 @@ import { deletePhoto } from '@/lib/api';
 import { ApiError } from '@/lib/fetch';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useConfirmDialog } from '@/components/providers/ConfirmDialogProvider';
+import { useUndoDelete } from '@/components/providers/UndoDeleteProvider';
 import { usePhotoQuickEdit } from '@/hooks/usePhotoQuickEdit';
 import VisibilityMenu from './VisibilityMenu';
 import FeaturedToggle from './FeaturedToggle';
@@ -28,9 +29,10 @@ export default function PhotoListItem({
   selected = false,
   onToggleSelect,
 }: PhotoListItemProps) {
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isPendingDelete, setIsPendingDelete] = useState(false);
   const toast = useToast();
   const confirmDialog = useConfirmDialog();
+  const undoDelete = useUndoDelete();
   const { featured, visibility, isUpdating, toggleFeatured, changeVisibility } = usePhotoQuickEdit(photo);
 
   const handleCardClick = () => {
@@ -52,19 +54,27 @@ export default function PhotoListItem({
     });
     if (!ok) return;
 
-    setIsDeleting(true);
-
-    try {
-      await deletePhoto(photo.id);
-      toast.success('Photo deleted successfully!');
-      onPhotoDeleted?.(); // Refresh the list
-    } catch (error) {
-      console.error('Failed to delete photo:', error);
-      toast.error(error instanceof ApiError ? error.message : 'Failed to delete photo. Please try again.');
-    } finally {
-      setIsDeleting(false);
-    }
+    // Hides immediately; the actual delete only fires after the undo grace
+    // period (see UndoDeleteProvider) so a misclick is easy to walk back.
+    setIsPendingDelete(true);
+    undoDelete.requestDelete({
+      key: photo.id,
+      message: `"${photo.title || 'Untitled'}" deleted.`,
+      commit: async () => {
+        try {
+          await deletePhoto(photo.id);
+          onPhotoDeleted?.(); // Refresh the list
+        } catch (error) {
+          console.error('Failed to delete photo:', error);
+          toast.error(error instanceof ApiError ? error.message : 'Failed to delete photo. Please try again.');
+          setIsPendingDelete(false);
+        }
+      },
+      undo: () => setIsPendingDelete(false),
+    });
   };
+
+  if (isPendingDelete) return null;
 
   return (
     <div className="relative">
@@ -154,20 +164,12 @@ export default function PhotoListItem({
               {!selectMode && (
                 <button
                   onClick={handleDelete}
-                  disabled={isDeleting}
-                  className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
+                  className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                   title="Delete photo"
                 >
-                  {isDeleting ? (
-                    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  )}
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
                 </button>
               )}
 

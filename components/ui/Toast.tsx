@@ -2,15 +2,21 @@
 
 import { useEffect } from 'react';
 
+export interface ToastAction {
+  label: string;
+  onClick: () => void;
+}
+
 export interface ToastProps {
   id: string;
   message: string;
   type: 'success' | 'error' | 'info';
   duration?: number;
+  action?: ToastAction;
   onClose: (id: string) => void;
 }
 
-export default function Toast({ id, message, type, duration = 3000, onClose }: ToastProps) {
+export default function Toast({ id, message, type, duration = 3000, action, onClose }: ToastProps) {
   useEffect(() => {
     const timer = setTimeout(() => {
       onClose(id);
@@ -50,6 +56,17 @@ export default function Toast({ id, message, type, duration = 3000, onClose }: T
     >
       <div className="flex-shrink-0">{icon}</div>
       <p className="flex-1 text-sm font-medium">{message}</p>
+      {action && (
+        <button
+          onClick={() => {
+            action.onClick();
+            onClose(id);
+          }}
+          className="flex-shrink-0 text-sm font-semibold underline underline-offset-2 hover:no-underline"
+        >
+          {action.label}
+        </button>
+      )}
       <button
         onClick={() => onClose(id)}
         className="flex-shrink-0 hover:bg-white/20 rounded p-1 transition-colors"

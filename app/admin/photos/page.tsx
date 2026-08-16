@@ -15,6 +15,7 @@ import { ApiError } from '@/lib/fetch';
 import { Photo, PhotoFilters, Collection, PhotoVisibility } from '@/types';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useConfirmDialog } from '@/components/providers/ConfirmDialogProvider';
+import { useUndoDelete } from '@/components/providers/UndoDeleteProvider';
 
 // Grid/list page size — the library is well past 500 photos, so fetching
 // everything in one request (the old `limit: 1000` approach) meant a slow
@@ -24,6 +25,7 @@ const PAGE_SIZE = 60;
 export default function AdminPhotosPage() {
   const toast = useToast();
   const confirmDialog = useConfirmDialog();
+  const undoDelete = useUndoDelete();
 
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -42,6 +44,9 @@ export default function AdminPhotosPage() {
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
+  // Photos hidden immediately on bulk delete but not yet actually deleted —
+  // see handleBulkDelete / UndoDeleteProvider.
+  const [pendingDeleteIds, setPendingDeleteIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadPhotos();
@@ -191,14 +196,61 @@ export default function AdminPhotosPage() {
   };
 
   const handleBulkDelete = async () => {
+    const ids = Array.from(selectedIds);
     const ok = await confirmDialog({
       title: 'Delete selected photos?',
-      message: `Delete ${selectedIds.size} selected ${selectedIds.size === 1 ? 'photo' : 'photos'}? This cannot be undone.`,
+      message: `Delete ${ids.length} selected ${ids.length === 1 ? 'photo' : 'photos'}? This cannot be undone.`,
       confirmLabel: 'Delete',
     });
     if (!ok) return;
 
-    runBulk('Delete', (photoId) => deletePhoto(photoId));
+    // Hides immediately; the actual deletes only fire after the undo grace
+    // period, same pattern as the single-photo delete buttons.
+    setPendingDeleteIds((prev) => new Set([...prev, ...ids]));
+    clearSelection();
+
+    undoDelete.requestDelete({
+      key: `bulk-${ids.join(',')}`,
+      message: `${ids.length} ${ids.length === 1 ? 'photo' : 'photos'} deleted.`,
+      commit: async () => {
+        let succeeded = 0;
+        let firstError: unknown = null;
+
+        for (const id of ids) {
+          try {
+            await deletePhoto(id);
+            succeeded++;
+          } catch (error) {
+            console.error(`Bulk delete failed for photo ${id}:`, error);
+            if (!firstError) firstError = error;
+          }
+        }
+
+        setPendingDeleteIds((prev) => {
+          const next = new Set(prev);
+          ids.forEach((id) => next.delete(id));
+          return next;
+        });
+        await loadPhotos();
+
+        if (succeeded < ids.length) {
+          toast.error(
+            succeeded === 0
+              ? firstError instanceof ApiError
+                ? firstError.message
+                : 'Failed to delete selected photos.'
+              : `Deleted ${succeeded} of ${ids.length} photos — some failed. Check console for details.`
+          );
+        }
+      },
+      undo: () => {
+        setPendingDeleteIds((prev) => {
+          const next = new Set(prev);
+          ids.forEach((id) => next.delete(id));
+          return next;
+        });
+      },
+    });
   };
 
   return (
@@ -332,7 +384,7 @@ export default function AdminPhotosPage() {
           <>
             {view === 'grid' ? (
               <PhotoGrid
-                photos={photos}
+                photos={photos.filter((p) => !pendingDeleteIds.has(p.id))}
                 onPhotoClick={setEditingPhotoId}
                 onPhotoDeleted={loadPhotos}
                 selectMode={selectMode}
@@ -341,7 +393,7 @@ export default function AdminPhotosPage() {
               />
             ) : (
               <PhotoList
-                photos={photos}
+                photos={photos.filter((p) => !pendingDeleteIds.has(p.id))}
                 onPhotoClick={setEditingPhotoId}
                 onPhotoDeleted={loadPhotos}
                 selectMode={selectMode}

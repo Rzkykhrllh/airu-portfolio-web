@@ -10,6 +10,7 @@ import { ApiError } from '@/lib/fetch';
 import { Photo, Collection } from '@/types';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useConfirmDialog } from '@/components/providers/ConfirmDialogProvider';
+import { useUndoDelete } from '@/components/providers/UndoDeleteProvider';
 
 interface PhotoEditModalProps {
   photoId: string;
@@ -21,11 +22,11 @@ interface PhotoEditModalProps {
 export default function PhotoEditModal({ photoId, onClose, onUpdated, onDeleted }: PhotoEditModalProps) {
   const toast = useToast();
   const confirmDialog = useConfirmDialog();
+  const undoDelete = useUndoDelete();
 
   const [photo, setPhoto] = useState<Photo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [availableCollections, setAvailableCollections] = useState<Collection[]>([]);
   const [isLoadingCollections, setIsLoadingCollections] = useState(true);
 
@@ -133,16 +134,24 @@ export default function PhotoEditModal({ photoId, onClose, onUpdated, onDeleted 
     });
     if (!ok) return;
 
-    setIsDeleting(true);
-    try {
-      await deletePhoto(photoId);
-      toast.success('Photo deleted successfully!');
-      onDeleted(photoId);
-    } catch (error) {
-      console.error('Failed to delete photo:', error);
-      toast.error(error instanceof ApiError ? error.message : 'Failed to delete photo. Please try again.');
-      setIsDeleting(false);
-    }
+    // Close right away — the modal doesn't need to stay open for the grace
+    // period, the Undo toast (from UndoDeleteProvider, mounted above this
+    // modal in the admin layout) survives the unmount just fine.
+    onClose();
+    undoDelete.requestDelete({
+      key: photoId,
+      message: `"${photo?.title || 'Untitled'}" deleted.`,
+      commit: async () => {
+        try {
+          await deletePhoto(photoId);
+          onDeleted(photoId);
+        } catch (error) {
+          console.error('Failed to delete photo:', error);
+          toast.error(error instanceof ApiError ? error.message : 'Failed to delete photo. Please try again.');
+        }
+      },
+      undo: () => toast.info('Delete cancelled.'),
+    });
   };
 
   return (
@@ -345,8 +354,8 @@ export default function PhotoEditModal({ photoId, onClose, onUpdated, onDeleted 
             </form>
 
             <div className="sticky bottom-0 flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-              <Button type="button" variant="danger" onClick={handleDelete} disabled={isDeleting}>
-                {isDeleting ? 'Deleting...' : 'Delete'}
+              <Button type="button" variant="danger" onClick={handleDelete}>
+                Delete
               </Button>
               <div className="flex items-center gap-3">
                 <Button type="button" variant="secondary" onClick={onClose}>
