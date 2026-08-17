@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Cormorant_Garamond } from 'next/font/google';
 import ConditionalLayout from '@/components/layout/ConditionalLayout';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
+import AnalyticsConsent from '@/components/analytics/AnalyticsConsent';
 import '@/styles/globals.css';
 
 // Was referenced by name ("'Cormorant Garamond', serif") in the logo and
@@ -35,6 +36,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <ConditionalLayout>{children}</ConditionalLayout>
         </ThemeProvider>
+        <AnalyticsConsent />
       </body>
     </html>
   );

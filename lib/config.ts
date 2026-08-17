@@ -17,6 +17,11 @@ export const API_BASE_URL = getApiBaseUrl();
 // Graph, sitemap, robots), which need a full URL regardless of request host.
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://byairu.com";
 
+// GA4 Measurement ID (format G-XXXXXXXXXX). Analytics stays fully off — no
+// banner, no script, no cookies — until this is set. See .env.example for
+// where to get one.
+export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "";
+
 export const API_ENDPOINTS = {
   photos: {
     list: "/photos",
@@ -57,5 +62,6 @@ export const API_ENDPOINTS = {
 // Local Storage Keys
 export const STORAGE_KEYS = {
   authToken: "auth_token",
-  user: "user_data"
+  user: "user_data",
+  analyticsConsent: "analytics_consent", // "granted" | "denied"
 } as const;
