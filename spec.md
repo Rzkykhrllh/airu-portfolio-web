@@ -360,8 +360,20 @@ Status: **plan only**, findings cross-checked against actual source + live DB on
 2. ~~Add a full `generateMetadata()` to `/collections/[slug]`~~ — done, see §9.
 3. ~~Add `WebSite` JSON-LD to the homepage~~ — done below, without `SearchAction` (see note).
 4. ~~Rewrite homepage/collections title+description copy~~ — done for `/collections` (commit `d88eb0c`) and now homepage (below).
-5. Report the 10 missing-location photos + the typo back to the owner as a punch list — no auto-editing content.
-6. Report the two newly-found thin collections (Yogyakarta, Kawaguchiko Trip) alongside Naka Meguro — owner's call. **Update:** a third was found during §9 — Jakarta is also down to 1 public photo (2 total, 1 not PUBLIC). Same owner's-call bucket.
+5. ✅ **Reported (2026-08-18).** Full 10-photo list pulled live from `api.byairu.com/photos?limit=1000` (528 photos total as of this date — was 538 at the original audit, so the library shrank slightly since):
+   - `5b2792c0-75f8-415d-8261-936197116dc8` — "A Gentle Afternoon at the pond"
+   - `99618ff5-f651-475a-94fe-e94b63ba8356` — "Fuji-san at Evening"
+   - `ba8d5dbf-d675-4c43-9420-272ea750ba3d` — "Deer at Road"
+   - `25cc3f41-6cab-4535-9c73-952ca2dbbcb3` — "Male Performer during Naka Meguro Summer Festival"
+   - `e60d1193-27db-411a-b1a8-3a224d592466` — "People at Takayama"
+   - `949a7a5e-73e7-420b-9480-95c150cb003c` — "a gilmpse of kamikochi" (also the confirmed title typo → should be "A Glimpse of Kamikochi")
+   - `983cb435-1072-417a-838d-f950981fd63b` — "Blue"
+   - `4dccdab7-9e1b-4c26-b5e0-f858898af4b4` — "Instagram post - 149"
+   - `bb1476be-11b1-4ea2-8603-5abcddcb067a` — "Woman Praying"
+   - `f267e303-af66-4028-a767-73bbb03b8ec7` — "Snowman"
+   
+   All still content decisions for the owner (fill in `location` via the admin edit modal, fix the typo) — not auto-edited.
+6. ✅ **Reported (2026-08-18), re-confirmed live via `api.byairu.com/collections`.** Thin collections as of now: Yogyakarta (1 photo), Kawaguchiko Trip (1 photo), Naka Meguro Summer Festival (2 photos), Jakarta (2 total, per §9's note only 1 is PUBLIC). No new ones beyond what was already found. Owner's call whether to add more photos or leave as-is.
 7. Leave the contact form's honeypot exactly as-is.
 8. Re-test the mobile grid resize issue with a genuine fresh-load device emulation before deciding whether it needs a fix at all.
 
