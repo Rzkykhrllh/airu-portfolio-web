@@ -27,6 +27,7 @@ export type GalleryFilters = {
   search?: string;
   collection?: string;
   featured?: boolean;
+  tag?: string;
 };
 
 export async function getGalleryPage(page: number, filters?: GalleryFilters): Promise<{
@@ -41,6 +42,7 @@ export async function getGalleryPage(page: number, filters?: GalleryFilters): Pr
     search: filters?.search || undefined,
     collection: filters?.collection || undefined,
     featured: filters?.featured || undefined,
+    tags: filters?.tag ? [filters.tag] : undefined,
   });
 
   return { photos, total, hasMore: page < totalPages };

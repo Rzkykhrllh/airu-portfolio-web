@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useInView } from 'react-intersection-observer';
+import Link from 'next/link';
 import MasonryGrid, { ColumnPrefs, DEFAULT_COLUMN_PREFS } from './MasonryGrid';
 import ZoomControls from './ZoomControls';
 import { getGalleryPage, getAllCollections } from '@/lib/data';
@@ -13,9 +14,15 @@ interface GalleryViewProps {
   initialPhotos: Photo[];
   totalCount: number;
   initialHasMore: boolean;
+  // Set when this view is rendered at /tags/[tag] — pins every fetch
+  // (initial load, filter changes, infinite scroll) to this tag on top of
+  // whatever search/collection/featured filters the visitor also picks.
+  // Unlike those, it's not user-clearable here — "Clear" on this page just
+  // means "back to the unfiltered gallery" via the link in the header.
+  lockedTag?: string;
 }
 
-export default function GalleryView({ initialPhotos, totalCount: initialTotalCount, initialHasMore }: GalleryViewProps) {
+export default function GalleryView({ initialPhotos, totalCount: initialTotalCount, initialHasMore, lockedTag }: GalleryViewProps) {
   const [columnPrefs, setColumnPrefs] = useState<ColumnPrefs>(DEFAULT_COLUMN_PREFS);
 
   const [photos, setPhotos] = useState<Photo[]>(initialPhotos);
@@ -73,6 +80,7 @@ export default function GalleryView({ initialPhotos, totalCount: initialTotalCou
         search: appliedSearch,
         collection: selectedCollection || undefined,
         featured: featuredOnly || undefined,
+        tag: lockedTag,
       });
       // Resolve real ratios before this batch reaches MasonryGrid — only
       // newly-appended photos get packed, so this is the point that matters.
@@ -86,7 +94,7 @@ export default function GalleryView({ initialPhotos, totalCount: initialTotalCou
       isFetchingRef.current = false;
       setIsLoadingMore(false);
     }
-  }, [page, hasMore, appliedSearch, selectedCollection, featuredOnly]);
+  }, [page, hasMore, appliedSearch, selectedCollection, featuredOnly, lockedTag]);
 
   useEffect(() => {
     if (inView && hasMore) {
@@ -116,6 +124,7 @@ export default function GalleryView({ initialPhotos, totalCount: initialTotalCou
           search: appliedSearch,
           collection: selectedCollection || undefined,
           featured: featuredOnly || undefined,
+          tag: lockedTag,
         });
         const resolvedPhotos = await resolveAspectRatios(result.photos);
         setPhotos(resolvedPhotos);
@@ -128,7 +137,7 @@ export default function GalleryView({ initialPhotos, totalCount: initialTotalCou
         setIsSearching(false);
       }
     })();
-  }, [appliedSearch, selectedCollection, featuredOnly]);
+  }, [appliedSearch, selectedCollection, featuredOnly, lockedTag]);
 
   const clearFilters = () => {
     setSearchInput('');
@@ -145,9 +154,23 @@ export default function GalleryView({ initialPhotos, totalCount: initialTotalCou
     <>
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 pt-10 pb-7 border-b border-gray-200 dark:border-white/10 mb-0">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 min-w-0 flex-1">
-          <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white shrink-0">
-            Gallery
-          </h1>
+          {lockedTag ? (
+            <div className="flex items-center gap-x-3 gap-y-1 flex-wrap shrink-0">
+              <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
+                Tagged: {lockedTag}
+              </h1>
+              <Link
+                href="/"
+                className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white underline"
+              >
+                All photographs
+              </Link>
+            </div>
+          ) : (
+            <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white shrink-0">
+              Gallery
+            </h1>
+          )}
           {showFilters && (
             <>
               <input
@@ -230,9 +253,11 @@ export default function GalleryView({ initialPhotos, totalCount: initialTotalCou
             aria-label="Searching"
           />
         </div>
-      ) : hasActiveFilter && photos.length === 0 ? (
+      ) : (hasActiveFilter || lockedTag) && photos.length === 0 ? (
         <div className="py-24 text-center text-gray-400 dark:text-gray-500">
-          No photographs match your filters.
+          {lockedTag && !hasActiveFilter
+            ? `No photographs tagged "${lockedTag}".`
+            : 'No photographs match your filters.'}
         </div>
       ) : (
         <MasonryGrid photos={photos} columns={columnPrefs} ratiosResolved={ratiosResolved} />
