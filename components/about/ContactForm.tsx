@@ -7,7 +7,9 @@ import { ApiError } from '@/lib/fetch';
 const PROJECT_TYPES = ['Commercial', 'Editorial', 'Collaboration', 'Other'];
 
 const fieldClass =
-  'w-full bg-transparent border-0 border-b border-gray-300 dark:border-gray-700 focus:border-gray-900 dark:focus:border-white outline-none py-2 text-base text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-colors';
+  'w-full bg-transparent border-0 border-b border-neutral-300 dark:border-neutral-700 focus:border-neutral-900 dark:focus:border-neutral-100 outline-none py-2.5 text-base md:text-lg text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 transition-colors';
+
+const labelClass = 'block text-[0.6875rem] uppercase tracking-[0.22em] text-neutral-500 dark:text-neutral-400 mb-2';
 
 export default function ContactForm() {
   const [name, setName] = useState('');
@@ -39,21 +41,18 @@ export default function ContactForm() {
   if (status === 'sent') {
     return (
       <div className="py-8">
-        <p
-          className="text-2xl italic text-gray-900 dark:text-white mb-2"
-          style={{ fontFamily: 'var(--font-cormorant), serif' }}
-        >
+        <p className="font-display text-4xl md:text-5xl leading-none text-neutral-900 dark:text-neutral-100 mb-4">
           Thank you.
         </p>
-        <p className="text-gray-600 dark:text-gray-400">
-          Your message is in — I'll get back to you soon.
+        <p className="text-base md:text-lg text-neutral-600 dark:text-neutral-400">
+          Your message is in — I&apos;ll get back to you soon.
         </p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+    <form onSubmit={handleSubmit} className="space-y-8" noValidate>
       {/* Honeypot — hidden from real visitors, bots fill every field blindly.
           Zero-size + overflow-hidden instead of an off-screen offset, so it
           can't ever introduce a stray horizontal scrollbar. */}
@@ -70,9 +69,9 @@ export default function ContactForm() {
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
         <div>
-          <label htmlFor="name" className="block text-xs text-gray-500 dark:text-gray-400 mb-1.5">
+          <label htmlFor="name" className={labelClass}>
             Name
           </label>
           <input
@@ -85,7 +84,7 @@ export default function ContactForm() {
           />
         </div>
         <div>
-          <label htmlFor="email" className="block text-xs text-gray-500 dark:text-gray-400 mb-1.5">
+          <label htmlFor="email" className={labelClass}>
             Email
           </label>
           <input
@@ -100,8 +99,8 @@ export default function ContactForm() {
       </div>
 
       <div>
-        <label htmlFor="projectType" className="block text-xs text-gray-500 dark:text-gray-400 mb-1.5">
-          Project type <span className="text-gray-400 dark:text-gray-600">(optional)</span>
+        <label htmlFor="projectType" className={labelClass}>
+          Project type <span className="normal-case tracking-normal text-neutral-400 dark:text-neutral-600">(optional)</span>
         </label>
         <select
           id="projectType"
@@ -119,7 +118,7 @@ export default function ContactForm() {
       </div>
 
       <div>
-        <label htmlFor="message" className="block text-xs text-gray-500 dark:text-gray-400 mb-1.5">
+        <label htmlFor="message" className={labelClass}>
           Message
         </label>
         <textarea
@@ -134,15 +133,21 @@ export default function ContactForm() {
       </div>
 
       {status === 'error' && (
-        <p className="text-sm text-red-600 dark:text-red-400">{errorMessage}</p>
+        <p className="text-sm text-red-700 dark:text-red-400">{errorMessage}</p>
       )}
 
       <button
         type="submit"
         disabled={status === 'submitting'}
-        className="inline-flex items-center px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium hover:opacity-85 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+        className="group inline-flex items-baseline gap-3 pb-1 border-b border-neutral-900 dark:border-neutral-100 font-display text-2xl md:text-3xl leading-none text-neutral-900 dark:text-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {status === 'submitting' ? 'Sending...' : 'Send Message'}
+        {status === 'submitting' ? 'Sending…' : 'Send message'}
+        <span
+          aria-hidden="true"
+          className="text-lg transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1 motion-reduce:transition-none"
+        >
+          →
+        </span>
       </button>
     </form>
   );

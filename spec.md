@@ -547,3 +547,16 @@ Steps "1" (collection detail header) and "4" (photo detail) of the redesign; don
 - **Photo detail (`app/photo/[id]/page.tsx`)** rebuilt inside the standard container: text-only top bar ("← Gallery"/"← {collection name}", "← Prev · Next →"); hero photo shrink-wrapped (`w-fit`, `max-h-[calc(100svh-12rem)]`) with no radius/shadow/pill overlay and a "View fullscreen ↗" label; then a 12-col section — eyebrow (location — date), display title, description on the left; a `<dl>` spec sheet (Camera, Lens, Settings, Collection(s), Tags) on the right. Featured badge, rounded tag chips, EXIF accordion, grey collection cards all removed. Bottom prev/next shows serif titles. ←/→ keys navigate when the lightbox is closed.
 - **EXIF bug found + fixed:** `transformPhoto` passes backend `metadata` through as `exif` untouched, and uploaded photos carry raw exifr keys (`Make`, `Model`, `LensModel`, `FocalLength`, `FNumber`, `ExposureTime`, `ISO`) — not the `camera/lens/aperture/shutter/iso` the page read. So camera info silently never rendered for those photos. New `normalizeExif()` in `lib/format.ts` reads both shapes (e.g. "Fujifilm X-S20", "22.1mm · f/4.2 · 1/75s · ISO 160"). The `Photo.exif` type still describes only the form shape — worth correcting if anything else starts reading it.
 - **`RelatedPhotos`** renders inside the page container: "Keep looking" eyebrow + display heading, no border.
+
+---
+
+## 17. About page redesign (2026-11-03, branch `design/b`)
+
+- **`AboutHero`**: page header in the shared pattern (eyebrow "About — Tokyo", upright display "Hi, I'm Airu.", "Photographer · Fujifilm X-S20"), large 4:5 portrait + bigger bio, live stats row ("728 photographs · 19 collections · 2024–2026"; each dropped if its fetch fails).
+- **"What I shoot"**: rows linking to real tags (Street Photography / Portrait / Landscape / Festival) with live counts via `getGalleryPage(1, { tag })`; 0-result rows hidden.
+- **"Work with me"** (`#contact`): the page's single contact block — display heading, short copy, email, restyled `ContactForm` (tracked labels, larger fields, serif underlined "Send message →"). Duplicate links list removed; `Footer` takes `showCta={false}` on /about.
+- Also commits the missed `stone-*` → `neutral-*` swap in `CollectionCard.tsx` from §14.
+
+**Bug found: tag pages 404 in production.** `GET /photos?tag=X` fails backend validation (`getPhotoSchema.tag` was `z.array(z.string())`; Express parses `?tag=X` as a string → "expected array, received string"), so `/tags/[tag]` always `notFound()`. Verified live: `byairu.com/tags/Festival` and `/tags/Japan` → 404. Fix lives in `airu-portfolio-be` (`tag: z.string().min(1).optional()`); until it ships, "What I shoot" hides itself (counts all 0).
+
+**Dev note:** `localhost:8201` in `.env.local` is an SSH tunnel (likely to prod), not a local backend — browsing photo/About pages in dev increments real `viewCount`s.

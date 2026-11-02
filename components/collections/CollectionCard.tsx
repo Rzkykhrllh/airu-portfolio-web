@@ -60,16 +60,16 @@ export default function CollectionCard({ collection, index, priority = false }: 
 
   return (
     <Link href={`/collections/${collection.slug}`} className="group block outline-none">
-      <div className="relative w-full aspect-[3/2] overflow-hidden bg-stone-200 dark:bg-stone-900 group-focus-visible:outline group-focus-visible:outline-1 group-focus-visible:outline-offset-4 group-focus-visible:outline-stone-900 dark:group-focus-visible:outline-stone-100">
+      <div className="relative w-full aspect-[3/2] overflow-hidden bg-neutral-200 dark:bg-neutral-900 group-focus-visible:outline group-focus-visible:outline-1 group-focus-visible:outline-offset-4 group-focus-visible:outline-neutral-900 dark:group-focus-visible:outline-neutral-100">
         {cover && <CoverPhoto photo={cover} alt={cover.title || collection.title} priority={priority} />}
       </div>
 
       <div className="mt-4 flex items-start justify-between gap-6">
         <div className="min-w-0">
-          <h2 className="font-display text-2xl leading-[1.15] font-normal text-stone-900 dark:text-stone-100">
+          <h2 className="font-display text-2xl leading-[1.15] font-normal text-neutral-900 dark:text-neutral-100">
             {collection.title}
           </h2>
-          <p className="mt-2 text-[0.6875rem] uppercase tracking-[0.22em] text-stone-500 dark:text-stone-400 tabular-nums">
+          <p className="mt-2 text-[0.6875rem] uppercase tracking-[0.22em] text-neutral-500 dark:text-neutral-400 tabular-nums">
             {number}
             <span className="mx-2.5" aria-hidden="true">—</span>
             {count} {count === 1 ? 'photograph' : 'photographs'}
@@ -82,7 +82,7 @@ export default function CollectionCard({ collection, index, priority = false }: 
           </p>
         </div>
         <svg
-          className="mt-2 w-4 h-4 shrink-0 text-stone-700 dark:text-stone-300 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-0.5 group-hover:translate-x-0.5 motion-reduce:transition-none"
+          className="mt-2 w-4 h-4 shrink-0 text-neutral-700 dark:text-neutral-300 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-0.5 group-hover:translate-x-0.5 motion-reduce:transition-none"
           viewBox="0 0 16 16"
           fill="none"
           stroke="currentColor"

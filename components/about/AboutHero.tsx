@@ -9,11 +9,14 @@ import { Photo } from '@/types';
 // the entrance animation on back/forward navigation.
 let hasAnimatedOnce = false;
 
+const label = 'text-[0.6875rem] uppercase tracking-[0.22em] tabular-nums text-neutral-500 dark:text-neutral-400';
+
 interface AboutHeroProps {
   photo?: Photo;
+  stats: string[];
 }
 
-export default function AboutHero({ photo }: AboutHeroProps) {
+export default function AboutHero({ photo, stats }: AboutHeroProps) {
   const shouldReduce = useReducedMotion();
   // Ref, not a live read — see MasonryGrid.tsx for why.
   const skipEntrance = useRef(hasAnimatedOnce).current;
@@ -24,7 +27,7 @@ export default function AboutHero({ photo }: AboutHeroProps) {
 
   const container = {
     hidden: {},
-    visible: { transition: { staggerChildren: shouldReduce ? 0 : 0.12 } },
+    visible: { transition: { staggerChildren: shouldReduce ? 0 : 0.1 } },
   };
 
   const item = {
@@ -32,51 +35,66 @@ export default function AboutHero({ photo }: AboutHeroProps) {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: shouldReduce ? 0 : 0.6, ease: [0.22, 1, 0.36, 1] },
+      transition: { duration: shouldReduce ? 0 : 0.8, ease: [0.22, 1, 0.36, 1] },
     },
   };
 
   return (
-    <motion.div
-      initial={skipEntrance ? false : 'hidden'}
-      animate="visible"
-      variants={container}
-      className="grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-16 items-center py-12 lg:py-16"
-    >
-      {photo && (
-        <motion.div variants={item} className="md:col-span-5">
-          <div className="relative aspect-[4/5] w-full max-w-sm mx-auto md:mx-0 overflow-hidden bg-gray-100 dark:bg-gray-900">
-            <Image
-              src={photo.src.medium}
-              alt={photo.title || 'Airu'}
-              fill
-              priority
-              sizes="(max-width: 768px) 60vw, 25vw"
-              className="object-cover"
-            />
-          </div>
+    <motion.div initial={skipEntrance ? false : 'hidden'} animate="visible" variants={container}>
+      {/* Page header — same pattern as Gallery / Collections */}
+      <header className="pt-16 pb-12 md:pt-24 md:pb-20">
+        <motion.p variants={item} className={label}>
+          About<span className="mx-3" aria-hidden="true">—</span>Tokyo
+        </motion.p>
+        <motion.div variants={item} className="mt-6 flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
+          <h1 className="font-display font-normal text-[3.5rem] sm:text-7xl lg:text-[5.5rem] leading-[0.95] tracking-[-0.01em] text-neutral-900 dark:text-neutral-100">
+            Hi, I&apos;m Airu.
+          </h1>
+          <span className={`${label} pb-2`}>Photographer · Fujifilm X-S20</span>
         </motion.div>
-      )}
+      </header>
 
-      <div className="md:col-span-7 max-w-xl">
-        <motion.p
+      {/* Portrait + bio */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-x-10 gap-y-12">
+        {photo && (
+          <motion.div variants={item} className="md:col-span-6 lg:col-span-5">
+            <div className="relative aspect-[4/5] w-full overflow-hidden bg-neutral-200 dark:bg-neutral-900">
+              <Image
+                src={photo.src.medium}
+                alt={photo.title || 'Portrait of Airu'}
+                fill
+                priority
+                sizes="(max-width: 768px) 100vw, 40vw"
+                className="object-cover"
+              />
+            </div>
+          </motion.div>
+        )}
+
+        <motion.div
           variants={item}
-          className="text-4xl sm:text-5xl italic text-gray-900 dark:text-white mb-2"
-          style={{ fontFamily: 'var(--font-cormorant), serif', fontWeight: 500 }}
+          className={`md:col-span-6 ${photo ? 'lg:col-span-6 lg:col-start-7' : 'lg:col-span-8'} md:pt-1`}
         >
-          Hi, I'm Airu.
-        </motion.p>
-        <motion.p variants={item} className="text-xs text-gray-400 dark:text-gray-500 mb-6">
-          Tokyo-based photographer · Fujifilm X-S20
-        </motion.p>
+          <div className="space-y-6 text-xl md:text-2xl leading-[1.5] text-neutral-800 dark:text-neutral-200">
+            <p>
+              Through my camera, I try to preserve simple scenes, quiet details, and moments that feel
+              meaningful in everyday life.
+            </p>
+            <p className="text-neutral-500 dark:text-neutral-400">
+              I explore streets, landscapes, travel scenes, and portraits across Japan and beyond — open for
+              commercial work, editorial projects, and collaborations.
+            </p>
+          </div>
 
-        <motion.div variants={item} className="space-y-4 text-gray-700 dark:text-gray-300 leading-relaxed">
-          <p>
-            Through my camera, I try to preserve simple scenes, quiet details, and moments
-            that feel meaningful in everyday life. I explore streets, landscapes, travel
-            scenes, and portraits across Japan and beyond.
-          </p>
-          <p>Open for commercial work, editorial projects, and collaborations.</p>
+          {stats.length > 0 && (
+            <ul className="mt-12 flex flex-wrap gap-x-8 gap-y-2">
+              {stats.map((s) => (
+                <li key={s} className={label}>
+                  {s}
+                </li>
+              ))}
+            </ul>
+          )}
         </motion.div>
       </div>
     </motion.div>

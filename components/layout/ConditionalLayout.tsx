@@ -22,7 +22,7 @@ export default function ConditionalLayout({
     <>
       <Header />
       <main className="min-h-screen">{children}</main>
-      <Footer />
+      <Footer showCta={pathname !== '/about'} />
     </>
   );
 }
