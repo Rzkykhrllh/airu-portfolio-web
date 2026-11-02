@@ -536,3 +536,14 @@ Step 3 of the redesign plan. Owner's verdict: likes it because it feels "lebih l
 - Spinners replaced with "Loading —" / "Searching —" labels; "— End of archive —" once `hasMore` is false.
 
 Not yet done: `/collections/[slug]` header still uses the old small-heading style (it inherits the new gutters/toolbar via shared components). Step 4 (photo detail page) not started.
+
+---
+
+## 16. Collection detail header + photo detail page redesign (2026-11-03, branch `redesign/foundation-header-footer`)
+
+Steps "1" (collection detail header) and "4" (photo detail) of the redesign; done while owner was away, reviewed via screenshots.
+
+- **`CollectionView` header** matches the other pages: "← Collections" label link, display title with period, "N photographs · year span" right-aligned, sans description; "View 2 3 4" moved to its own row above the grid.
+- **Photo detail (`app/photo/[id]/page.tsx`)** rebuilt inside the standard container: text-only top bar ("← Gallery"/"← {collection name}", "← Prev · Next →"); hero photo shrink-wrapped (`w-fit`, `max-h-[calc(100svh-12rem)]`) with no radius/shadow/pill overlay and a "View fullscreen ↗" label; then a 12-col section — eyebrow (location — date), display title, description on the left; a `<dl>` spec sheet (Camera, Lens, Settings, Collection(s), Tags) on the right. Featured badge, rounded tag chips, EXIF accordion, grey collection cards all removed. Bottom prev/next shows serif titles. ←/→ keys navigate when the lightbox is closed.
+- **EXIF bug found + fixed:** `transformPhoto` passes backend `metadata` through as `exif` untouched, and uploaded photos carry raw exifr keys (`Make`, `Model`, `LensModel`, `FocalLength`, `FNumber`, `ExposureTime`, `ISO`) — not the `camera/lens/aperture/shutter/iso` the page read. So camera info silently never rendered for those photos. New `normalizeExif()` in `lib/format.ts` reads both shapes (e.g. "Fujifilm X-S20", "22.1mm · f/4.2 · 1/75s · ISO 160"). The `Photo.exif` type still describes only the form shape — worth correcting if anything else starts reading it.
+- **`RelatedPhotos`** renders inside the page container: "Keep looking" eyebrow + display heading, no border.

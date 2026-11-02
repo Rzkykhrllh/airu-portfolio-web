@@ -32,13 +32,15 @@ export default function RelatedPhotos({ photos, heading }: RelatedPhotosProps) {
   if (photos.length === 0) return null;
 
   return (
-    <div className="border-t border-gray-200 dark:border-gray-800">
-      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        <h2 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white mb-8">
-          {heading}
-        </h2>
-        <MasonryGrid photos={resolvedPhotos} columns={DEFAULT_COLUMN_PREFS} ratiosResolved={ratiosResolved} />
-      </div>
-    </div>
+    // Rendered inside the photo page's container — no own max-width/padding.
+    <section className="pt-24 md:pt-32">
+      <p className="text-[0.6875rem] uppercase tracking-[0.22em] text-neutral-500 dark:text-neutral-400">
+        Keep looking
+      </p>
+      <h2 className="mt-4 mb-10 md:mb-12 font-display font-normal text-4xl md:text-5xl leading-none text-neutral-900 dark:text-neutral-100">
+        {heading}.
+      </h2>
+      <MasonryGrid photos={resolvedPhotos} columns={DEFAULT_COLUMN_PREFS} ratiosResolved={ratiosResolved} />
+    </section>
   );
 }
