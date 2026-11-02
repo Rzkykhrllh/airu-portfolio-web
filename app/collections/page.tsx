@@ -1,7 +1,7 @@
 import { getAllCollections } from "@/lib/data";
 import CollectionGrid from "@/components/collections/CollectionGrid";
 import { SITE_URL } from "@/lib/config";
-import { pluralize } from "@/lib/format";
+import { photoYear } from "@/lib/format";
 import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
@@ -41,19 +41,53 @@ export default async function CollectionsPage() {
   const allCollections = await getAllCollections();
   const collections = allCollections.filter((c) => c.photoCount > 0);
 
+  // Archive span for the eyebrow, from every visible photo across collections.
+  const years = collections
+    .flatMap((c) => c.photos || [])
+    .map(photoYear)
+    .filter((y): y is number => y !== null);
+  const span =
+    years.length === 0
+      ? null
+      : Math.min(...years) === Math.max(...years)
+        ? `${Math.min(...years)}`
+        : `${Math.min(...years)} / ${Math.max(...years)}`;
+
+  const eyebrow = 'text-[0.6875rem] uppercase tracking-[0.24em] text-stone-500 dark:text-stone-400 tabular-nums';
+
   return (
-    <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="flex items-baseline justify-between pt-10 pb-7 border-b border-gray-200 dark:border-white/10 mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
-          Collections
-        </h1>
-        {collections.length > 0 && (
-          <span className="text-sm text-gray-400 dark:text-gray-500 tabular-nums">
-            {pluralize(collections.length, 'collection')}
-          </span>
-        )}
-      </div>
-      <CollectionGrid collections={collections} />
+    <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+      <header className="pt-16 pb-16 md:pt-24 md:pb-24 lg:pb-28">
+        <p className={eyebrow}>
+          The photographic archive
+          {span && (
+            <>
+              <span className="mx-3" aria-hidden="true">—</span>
+              {span}
+            </>
+          )}
+        </p>
+        <div className="mt-6 flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
+          <h1 className="font-display font-normal text-[3.5rem] sm:text-7xl lg:text-[5.5rem] leading-[0.95] tracking-[-0.01em] text-stone-900 dark:text-stone-100">
+            Collections.
+          </h1>
+          {collections.length > 0 && (
+            <span className={`${eyebrow} pb-2`}>
+              {String(collections.length).padStart(3, '0')}{' '}
+              {collections.length === 1 ? 'collection' : 'collections'}
+            </span>
+          )}
+        </div>
+        <p className="mt-5 font-display italic text-xl md:text-2xl text-stone-600 dark:text-stone-400">
+          People, places, and quiet moments collected along the way.
+        </p>
+      </header>
+
+      {collections.length > 0 ? (
+        <CollectionGrid collections={collections} />
+      ) : (
+        <p className="py-24 font-display italic text-2xl text-stone-500">Nothing here yet.</p>
+      )}
     </div>
   );
 }

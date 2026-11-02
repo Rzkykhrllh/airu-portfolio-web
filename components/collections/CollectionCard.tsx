@@ -4,11 +4,11 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Collection, Photo } from '@/types';
-import { pluralize } from '@/lib/format';
+import { photoYear } from '@/lib/format';
 
-// Blur-up cover tile — same thumbnail-probe + cross-fade pattern as PhotoCard,
-// just also animating the existing hover-scale transform.
-function CoverPhoto({ photo, alt, sizes }: { photo: Photo; alt: string; sizes: string }) {
+// Blur-up cover — same thumbnail-probe + cross-fade pattern as PhotoCard,
+// plus a slow hover zoom.
+function CoverPhoto({ photo, alt, priority }: { photo: Photo; alt: string; priority: boolean }) {
   const [loaded, setLoaded] = useState(false);
   return (
     <>
@@ -24,8 +24,9 @@ function CoverPhoto({ photo, alt, sizes }: { photo: Photo; alt: string; sizes: s
         src={photo.src.medium}
         alt={alt}
         fill
-        sizes={sizes}
-        className={`object-cover transition-[opacity,transform] duration-500 ease-out group-hover:scale-[1.03] motion-reduce:transition-none ${
+        priority={priority}
+        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        className={`object-cover transition-[opacity,transform] duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.025] motion-reduce:transition-none ${
           loaded ? 'opacity-100' : 'opacity-0'
         }`}
         onLoad={() => setLoaded(true)}
@@ -34,63 +35,62 @@ function CoverPhoto({ photo, alt, sizes }: { photo: Photo; alt: string; sizes: s
   );
 }
 
-interface CollectionCardProps {
-  collection: Collection;
-  photos: Photo[];
+function yearRange(photos: Photo[]): string | null {
+  const years = photos.map(photoYear).filter((y): y is number => y !== null);
+  if (years.length === 0) return null;
+  const min = Math.min(...years);
+  const max = Math.max(...years);
+  return min === max ? `${min}` : `${min}–${max}`;
 }
 
-export default function CollectionCard({ collection, photos }: CollectionCardProps) {
-  const mainPhoto = photos?.[0];
-  const sidePhotos = photos?.slice(1, 3) || [];
+interface CollectionCardProps {
+  collection: Collection;
+  index: number;
+  priority?: boolean;
+}
+
+export default function CollectionCard({ collection, index, priority = false }: CollectionCardProps) {
+  const photos = collection.photos || [];
+  const cover = photos[0];
+  // photos[] is visibility-filtered on public requests; photoCount (_count)
+  // isn't, so it can include private photos. Prefer the visible length.
+  const count = photos.length || collection.photoCount;
+  const years = yearRange(photos);
+  const number = String(index + 1).padStart(3, '0');
 
   return (
-    <Link href={`/collections/${collection.slug}`} className="block group">
-      {/* Photo grid — no border radius, no gap */}
-      <div className="relative w-full overflow-hidden rounded-lg" style={{ aspectRatio: '4/3' }}>
-        <div className="absolute inset-0 flex">
-          {/* Main photo — 2/3 width */}
-          <div className="relative flex-[2] h-full overflow-hidden">
-            {mainPhoto ? (
-              <CoverPhoto
-                photo={mainPhoto}
-                alt={mainPhoto.title || collection.title}
-                sizes="(max-width: 768px) 66vw, (max-width: 1024px) 33vw, 22vw"
-              />
-            ) : (
-              <div className="w-full h-full bg-gray-200 dark:bg-gray-800" />
-            )}
-          </div>
-
-          {/* Side photos — 1/3 width, stacked */}
-          {sidePhotos.length > 0 && (
-            <div className="flex flex-col flex-1 h-full">
-              {sidePhotos.map((photo) => (
-                <div key={photo.id} className="relative flex-1 overflow-hidden">
-                  <CoverPhoto
-                    photo={photo}
-                    alt={photo.title || collection.title}
-                    sizes="(max-width: 768px) 33vw, (max-width: 1024px) 16vw, 11vw"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+    <Link href={`/collections/${collection.slug}`} className="group block outline-none">
+      <div className="relative w-full aspect-[3/2] overflow-hidden bg-stone-200 dark:bg-stone-900 group-focus-visible:outline group-focus-visible:outline-1 group-focus-visible:outline-offset-4 group-focus-visible:outline-stone-900 dark:group-focus-visible:outline-stone-100">
+        {cover && <CoverPhoto photo={cover} alt={cover.title || collection.title} priority={priority} />}
       </div>
 
-      {/* Info */}
-      <div className="pt-3 pb-1">
-        <h3 className="text-base font-semibold text-gray-900 dark:text-white leading-snug">
-          {collection.title}
-        </h3>
-        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 tabular-nums">
-          {pluralize(collection.photoCount, 'photograph')}
-        </p>
-        {collection.description && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1.5 leading-relaxed line-clamp-2">
-            {collection.description}
+      <div className="mt-4 flex items-start justify-between gap-6">
+        <div className="min-w-0">
+          <h2 className="font-display text-2xl leading-[1.15] font-normal text-stone-900 dark:text-stone-100">
+            {collection.title}
+          </h2>
+          <p className="mt-2 text-[0.6875rem] uppercase tracking-[0.22em] text-stone-500 dark:text-stone-400 tabular-nums">
+            {number}
+            <span className="mx-2.5" aria-hidden="true">—</span>
+            {count} {count === 1 ? 'photograph' : 'photographs'}
+            {years && (
+              <>
+                <span className="mx-2.5" aria-hidden="true">·</span>
+                {years}
+              </>
+            )}
           </p>
-        )}
+        </div>
+        <svg
+          className="mt-2 w-4 h-4 shrink-0 text-stone-700 dark:text-stone-300 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-0.5 group-hover:translate-x-0.5 motion-reduce:transition-none"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.25}
+          aria-hidden="true"
+        >
+          <path d="M4 12L12 4M5.5 4H12v6.5" />
+        </svg>
       </div>
     </Link>
   );

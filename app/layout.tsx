@@ -11,7 +11,7 @@ import '@/styles/globals.css';
 // exposes it as a CSS variable everything else can reference.
 const cormorantGaramond = Cormorant_Garamond({
   subsets: ['latin'],
-  weight: ['300', '500', '600'],
+  weight: ['300', '400', '500', '600'],
   style: ['normal', 'italic'],
   variable: '--font-cormorant',
   display: 'swap',

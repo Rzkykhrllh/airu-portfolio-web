@@ -495,3 +495,17 @@ Owner asked for tags to be clickable and query other photos sharing the same tag
 `tsc --noEmit` clean; `eslint` clean on all touched files (one pre-existing unrelated warning in this same file, `'getAllPhotos' is defined but never used`, left alone — not touched this session, already present before). Not yet verified live — needs push + Dokploy deploy.
 
 **Scope notes / not done:** tags are only clickable from the photo detail page (the only place they're currently shown publicly) — not added to `PhotoCard`/gallery grid cards, since they don't render tags at all today. Tag pages aren't added to `sitemap.xml` — worth reconsidering once there's a sense of how many distinct tags exist and whether they're substantial enough to be worth indexing individually (possible follow-up, not blocking).
+
+---
+
+## 13. Collections list redesign — editorial layout (2026-11-03)
+
+Owner supplied a reference mockup (warm, editorial, "premium" look) and asked to rebuild `/collections` after it, with more refined typography and whitespace. Then asked for 3 columns on desktop instead of 2 ("jangan segede itu").
+
+**Built:**
+- `app/collections/page.tsx`: new page header — tracked uppercase eyebrow "The photographic archive — {year span}" (min/max year across every visible photo, `capturedAt` falling back to `createdAt`), large Cormorant "Collections." display title, italic serif tagline, zero-padded count ("019 collections") right-aligned. Old `border-b` heading pattern dropped on this page only.
+- `components/collections/CollectionGrid.tsx`: 1 / 2 / 3 columns (mobile / md / lg) with a staggered offset — right column drops at 2 cols, middle column at 3 cols. Offset lives on a plain wrapper div because framer-motion owns `transform` on the motion.div for its entrance `y`.
+- `components/collections/CollectionCard.tsx`: single 3:2 cover (was a 1+2 mosaic with `rounded-lg`), no radius, slow hover zoom; serif title, ↗ arrow, meta line "001 — N photographs · year(s)". Count now prefers `photos.length` (visibility-filtered) over `photoCount` (`_count`, which includes PRIVATE photos).
+- `tailwind.config.ts`: `font-display` → `var(--font-cormorant)`. `app/layout.tsx`: added Cormorant weight 400. `lib/format.ts`: `photoYear()` helper.
+
+**Deliberately not done (deviations from the reference):** reference shows per-collection categories ("Travel journal", "Event") — no such field exists in `Collections`, so the meta line uses real count + year instead; adding categories needs a schema column + admin input. Reference's warm off-white background and "frame by airu." wordmark header are site-wide changes, left for a follow-up.
