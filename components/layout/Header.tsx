@@ -2,115 +2,109 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 import Logo from '@/components/ui/Logo';
 
-export default function Header() {
-  const pathname = usePathname();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+const navLinks = [
+  { href: '/', label: 'Gallery' },
+  { href: '/collections', label: 'Collections' },
+  { href: '/about', label: 'About' },
+];
 
-  const navLinks = [
-    { href: '/', label: 'Gallery' },
-    { href: '/collections', label: 'Collections' },
-    { href: '/about', label: 'About' },
-  ];
+// Gallery owns "/" and the tag browse pages (same GalleryView); the others
+// stay active on their sub-routes.
+function isActive(pathname: string, href: string) {
+  if (href === '/') return pathname === '/' || pathname.startsWith('/tags/');
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+export default function Header() {
+  const pathname = usePathname() ?? '/';
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Close the mobile menu on any navigation.
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
 
   return (
-    <motion.header
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="sticky top-0 z-50 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-gray-200/10 dark:border-white/10"
-    >
+    <header className="sticky top-0 z-50 backdrop-blur-md bg-[color-mix(in_srgb,var(--background)_88%,transparent)]">
       <nav className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center">
+        <div className="flex items-center justify-between h-[4.5rem]">
+          <Link href="/" className="flex items-center" aria-label="frame by airu — home">
             <Logo size="sm" animated={false} />
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`relative text-sm font-medium transition-colors hover:text-gray-900 dark:hover:text-white ${
-                  pathname === link.href
-                    ? 'text-gray-900 dark:text-white'
-                    : 'text-gray-600 dark:text-gray-400'
-                }`}
-              >
-                {link.label}
-                {pathname === link.href && (
-                  <motion.div
-                    layoutId="underline"
-                    className="absolute -bottom-[21px] left-0 right-0 h-0.5 bg-gray-900 dark:bg-white"
-                  />
-                )}
-              </Link>
-            ))}
+          {/* Desktop */}
+          <div className="hidden md:flex items-center gap-10">
+            {navLinks.map((link) => {
+              const active = isActive(pathname, link.href);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  aria-current={active ? 'page' : undefined}
+                  className={`text-sm leading-none pb-1.5 border-b transition-colors ${
+                    active
+                      ? 'text-neutral-900 dark:text-neutral-100 border-current'
+                      : 'text-neutral-500 dark:text-neutral-400 border-transparent hover:text-neutral-900 dark:hover:text-neutral-100'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
             <ThemeToggle />
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="flex md:hidden items-center space-x-4">
+          {/* Mobile */}
+          <div className="flex md:hidden items-center gap-5">
             <ThemeToggle />
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-              aria-label="Toggle menu"
+              type="button"
+              onClick={() => setMenuOpen((open) => !open)}
+              className="text-[0.6875rem] uppercase tracking-[0.22em] text-neutral-700 dark:text-neutral-300"
+              aria-expanded={menuOpen}
+              aria-controls="mobile-menu"
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                {mobileMenuOpen ? (
-                  <path d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
+              {menuOpen ? 'Close' : 'Menu'}
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Mobile Menu */}
       <AnimatePresence>
-        {mobileMenuOpen && (
+        {menuOpen && (
           <motion.div
+            id="mobile-menu"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="md:hidden border-t border-gray-200/10 dark:border-white/10 bg-white/80 dark:bg-black/80 backdrop-blur-md"
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="md:hidden overflow-hidden"
           >
-            <div className="px-4 py-4 space-y-3">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
-                    pathname === link.href
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-white'
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
+            <div className="px-4 sm:px-6 pt-6 pb-8 border-b border-hairline space-y-4">
+              {navLinks.map((link) => {
+                const active = isActive(pathname, link.href);
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    aria-current={active ? 'page' : undefined}
+                    className={`block font-display text-3xl leading-tight ${
+                      active ? 'text-neutral-900 dark:text-neutral-100' : 'text-neutral-400 dark:text-neutral-500'
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.header>
+    </header>
   );
 }

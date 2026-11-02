@@ -53,10 +53,10 @@ export default async function CollectionsPage() {
         ? `${Math.min(...years)}`
         : `${Math.min(...years)} / ${Math.max(...years)}`;
 
-  const eyebrow = 'text-[0.6875rem] uppercase tracking-[0.24em] text-stone-500 dark:text-stone-400 tabular-nums';
+  const eyebrow = 'text-[0.6875rem] uppercase tracking-[0.24em] text-neutral-500 dark:text-neutral-400 tabular-nums';
 
   return (
-    <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
       <header className="pt-16 pb-16 md:pt-24 md:pb-24 lg:pb-28">
         <p className={eyebrow}>
           The photographic archive
@@ -68,7 +68,7 @@ export default async function CollectionsPage() {
           )}
         </p>
         <div className="mt-6 flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
-          <h1 className="font-display font-normal text-[3.5rem] sm:text-7xl lg:text-[5.5rem] leading-[0.95] tracking-[-0.01em] text-stone-900 dark:text-stone-100">
+          <h1 className="font-display font-normal text-[3.5rem] sm:text-7xl lg:text-[5.5rem] leading-[0.95] tracking-[-0.01em] text-neutral-900 dark:text-neutral-100">
             Collections.
           </h1>
           {collections.length > 0 && (
@@ -78,7 +78,7 @@ export default async function CollectionsPage() {
             </span>
           )}
         </div>
-        <p className="mt-5 font-display italic text-xl md:text-2xl text-stone-600 dark:text-stone-400">
+        <p className="mt-5 text-base md:text-lg text-neutral-500 dark:text-neutral-400">
           People, places, and quiet moments collected along the way.
         </p>
       </header>
@@ -86,7 +86,7 @@ export default async function CollectionsPage() {
       {collections.length > 0 ? (
         <CollectionGrid collections={collections} />
       ) : (
-        <p className="py-24 font-display italic text-2xl text-stone-500">Nothing here yet.</p>
+        <p className="py-24 font-display italic text-2xl text-neutral-500">Nothing here yet.</p>
       )}
     </div>
   );

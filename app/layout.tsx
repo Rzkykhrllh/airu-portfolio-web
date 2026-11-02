@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Cormorant_Garamond } from 'next/font/google';
+import { Cormorant_Garamond, Inter_Tight } from 'next/font/google';
 import ConditionalLayout from '@/components/layout/ConditionalLayout';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import AnalyticsConsent from '@/components/analytics/AnalyticsConsent';
@@ -17,6 +17,14 @@ const cormorantGaramond = Cormorant_Garamond({
   display: 'swap',
 });
 
+// UI / body sans — replaces the system font stack.
+const interTight = Inter_Tight({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-sans',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
   title: 'Airu Photography',
   description: 'Photography portfolio by Airu — Based in Tokyo, shooting with Fuji X-S20',
@@ -31,7 +39,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className={cormorantGaramond.variable}>
+    <html lang="en" suppressHydrationWarning className={`${cormorantGaramond.variable} ${interTight.variable}`}>
       <body>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <ConditionalLayout>{children}</ConditionalLayout>

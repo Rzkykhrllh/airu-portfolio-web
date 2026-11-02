@@ -65,7 +65,7 @@ export default function AnalyticsConsent() {
         <div
           role="dialog"
           aria-label="Cookie consent"
-          className="fixed bottom-0 inset-x-0 z-50 border-t border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900"
+          className="fixed bottom-0 inset-x-0 z-50 border-t border-hairline bg-background"
         >
           <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center gap-4">
             <p className="text-sm text-gray-600 dark:text-gray-400 flex-1">

@@ -509,3 +509,16 @@ Owner supplied a reference mockup (warm, editorial, "premium" look) and asked to
 - `tailwind.config.ts`: `font-display` → `var(--font-cormorant)`. `app/layout.tsx`: added Cormorant weight 400. `lib/format.ts`: `photoYear()` helper.
 
 **Deliberately not done (deviations from the reference):** reference shows per-collection categories ("Travel journal", "Event") — no such field exists in `Collections`, so the meta line uses real count + year instead; adding categories needs a schema column + admin input. Reference's warm off-white background and "frame by airu." wordmark header are site-wide changes, left for a follow-up.
+
+---
+
+## 14. Site-wide foundation + header/footer refresh (2026-11-03, branch `redesign/foundation-header-footer`)
+
+Follow-up to §13 — owner wanted the rest of the site to feel as premium as the new collections list. Steps "1 (foundation) + 2 (header/footer)" of a 4-step plan; 3 (gallery) and 4 (photo detail) not started.
+
+- **Palette:** soft neutral white `#F7F7F5` / near-black `#0E0E0E`, `--hairline` token for dividers. A warm cream/stone palette was tried first and rejected as reading "retro" — owner wants modern, "putih tapi bukan totally white".
+- **Tailwind `gray` → `colors.neutral`** in `tailwind.config.ts`, so every existing `gray-*` class site-wide (admin included) loses its blue cast without touching each page.
+- **Fonts:** Inter Tight (`--font-sans`) replaces the system stack as Tailwind's `sans`; Cormorant stays for display headings + logo only. Keep italics to a minimum (italic serif everywhere was the other "retro" cue).
+- **Header:** owner's bracket `Logo` kept (explicit: don't remove it), sans nav with thin active underline, no divider under the navbar (owner disliked it), bare-icon `ThemeToggle`, no slide-in animation, "Menu/Close" text toggle on mobile. Active state now covers sub-routes (`/collections/*`, `/tags/*` → Gallery).
+- **Footer:** "Get in touch." display link to /about, email, tracked-label socials, © line.
+- Cookie banner uses `bg-background` / `border-hairline`.
