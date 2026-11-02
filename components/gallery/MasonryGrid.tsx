@@ -35,6 +35,16 @@ const lgClasses: Record<ColumnPrefs['lg'], string> = {
   4: 'lg:columns-4',
 };
 
+// Gutter between photos (and between columns) — a small, even breathing
+// space reads as a curated wall rather than an edge-to-edge feed.
+const GAP = 'gap-2 sm:gap-3 lg:gap-4';
+// Same spacing as a bottom margin, for the CSS-columns fallback (column-gap
+// only covers horizontal spacing there).
+const ITEM_MB = 'mb-2 sm:mb-3 lg:mb-4';
+// Gutter height in units of column width (~12px / ~400px), so the
+// shortest-column packing accounts for it.
+const GAP_RATIO = 0.03;
+
 interface MasonryGridProps {
   photos: Photo[];
   collectionSlug?: string;
@@ -58,7 +68,7 @@ function packIntoColumns(photos: Photo[], numColumns: number): Photo[][] {
       if (heights[i] < heights[shortest]) shortest = i;
     }
     cols[shortest].push(photo);
-    heights[shortest] += photo.aspectRatio || 1;
+    heights[shortest] += (photo.aspectRatio || 1) + GAP_RATIO;
   }
 
   return cols;
@@ -118,7 +128,7 @@ export default function MasonryGrid({
   // mismatch) and until ratiosResolved (avoids packing with placeholder
   // ratios and re-flowing visibly once real ones arrive).
   if (tier === null || !ratiosResolved) {
-    const columnsClassName = `columns-1 ${smClasses[columns.sm]} ${mdClasses[columns.md]} ${lgClasses[columns.lg]} gap-0`;
+    const columnsClassName = `columns-1 ${smClasses[columns.sm]} ${mdClasses[columns.md]} ${lgClasses[columns.lg]} ${GAP}`;
     return (
       <motion.div
         initial={skipEntrance ? false : 'hidden'}
@@ -127,7 +137,7 @@ export default function MasonryGrid({
         className={columnsClassName}
       >
         {photos.map((photo) => (
-          <motion.div key={photo.id} variants={childVariants} className="break-inside-avoid">
+          <motion.div key={photo.id} variants={childVariants} className={`break-inside-avoid ${ITEM_MB}`}>
             <PhotoCard photo={photo} priority={priorityIds.has(photo.id)} collectionSlug={collectionSlug} />
           </motion.div>
         ))}
@@ -139,9 +149,9 @@ export default function MasonryGrid({
   const packedColumns = packIntoColumns(photos, numColumns);
 
   return (
-    <motion.div initial={skipEntrance ? false : 'hidden'} animate="visible" variants={variants} className="flex items-start">
+    <motion.div initial={skipEntrance ? false : 'hidden'} animate="visible" variants={variants} className={`flex items-start ${GAP}`}>
       {packedColumns.map((colPhotos, colIndex) => (
-        <div key={colIndex} className="flex flex-col" style={{ width: `${100 / numColumns}%` }}>
+        <div key={colIndex} className={`flex-1 min-w-0 flex flex-col ${GAP}`}>
           {colPhotos.map((photo) => (
             <motion.div key={photo.id} variants={childVariants}>
               <PhotoCard photo={photo} priority={priorityIds.has(photo.id)} collectionSlug={collectionSlug} />

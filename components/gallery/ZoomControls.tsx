@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { gridIcons } from './grid-icons';
 import { ColumnPrefs, DEFAULT_COLUMN_PREFS } from './MasonryGrid';
 import { useViewportTier } from '@/hooks/useViewportTier';
 
@@ -55,22 +54,27 @@ export default function ZoomControls({ onChange }: ZoomControlsProps) {
   };
 
   return (
-    <div className="flex items-center gap-1">
-      {OPTIONS_BY_TIER[tier].map((n) => (
-        <button
-          key={n}
-          type="button"
-          onClick={() => handleSelect(n)}
-          aria-label={`${n} columns`}
-          className={`p-1.5 rounded transition-colors ${
-            prefs[tier] === n
-              ? 'text-gray-900 dark:text-white'
-              : 'text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400'
-          }`}
-        >
-          {gridIcons[n as keyof typeof gridIcons]}
-        </button>
-      ))}
+    <div className="flex items-baseline gap-3 text-[0.6875rem] uppercase tracking-[0.22em] tabular-nums">
+      <span className="text-neutral-400 dark:text-neutral-500">View</span>
+      {OPTIONS_BY_TIER[tier].map((n) => {
+        const active = prefs[tier] === n;
+        return (
+          <button
+            key={n}
+            type="button"
+            onClick={() => handleSelect(n)}
+            aria-label={`${n} columns`}
+            aria-pressed={active}
+            className={`pb-0.5 border-b transition-colors ${
+              active
+                ? 'text-neutral-900 dark:text-neutral-100 border-current'
+                : 'text-neutral-400 dark:text-neutral-500 border-transparent hover:text-neutral-900 dark:hover:text-neutral-100'
+            }`}
+          >
+            {n}
+          </button>
+        );
+      })}
     </div>
   );
 }

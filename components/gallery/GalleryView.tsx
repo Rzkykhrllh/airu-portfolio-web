@@ -7,7 +7,6 @@ import MasonryGrid, { ColumnPrefs, DEFAULT_COLUMN_PREFS } from './MasonryGrid';
 import ZoomControls from './ZoomControls';
 import { getGalleryPage, getAllCollections } from '@/lib/data';
 import { resolveAspectRatios } from '@/lib/resolveAspectRatio';
-import { pluralize } from '@/lib/format';
 import { Photo, Collection } from '@/types';
 
 interface GalleryViewProps {
@@ -150,27 +149,55 @@ export default function GalleryView({ initialPhotos, totalCount: initialTotalCou
     clearFilters();
   };
 
+  const label = 'text-[0.6875rem] uppercase tracking-[0.22em] tabular-nums';
+  const labelMuted = `${label} text-neutral-500 dark:text-neutral-400`;
+  const fieldClass =
+    'bg-transparent border-0 border-b border-neutral-300 dark:border-neutral-700 focus:border-neutral-900 dark:focus:border-neutral-100 outline-none text-sm py-1.5 text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 transition-colors';
+
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 pt-10 pb-7 border-b border-gray-200 dark:border-white/10 mb-0">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 min-w-0 flex-1">
-          {lockedTag ? (
-            <div className="flex items-center gap-x-3 gap-y-1 flex-wrap shrink-0">
-              <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
-                Tagged: {lockedTag}
-              </h1>
-              <Link
-                href="/"
-                className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white underline"
-              >
-                All photographs
-              </Link>
-            </div>
-          ) : (
-            <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white shrink-0">
-              Gallery
-            </h1>
+      <header className="pt-16 pb-12 md:pt-24 md:pb-16">
+        <p className={labelMuted}>{lockedTag ? 'Photographs tagged' : 'The full archive'}</p>
+        <div className="mt-6 flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
+          <h1 className="font-display font-normal text-[3.5rem] sm:text-7xl lg:text-[5.5rem] leading-[0.95] tracking-[-0.01em] text-neutral-900 dark:text-neutral-100">
+            {lockedTag ? `${lockedTag}.` : 'Gallery.'}
+          </h1>
+          {totalCount > 0 && (
+            <span className={`${labelMuted} pb-2`}>
+              {String(totalCount).padStart(3, '0')} {totalCount === 1 ? 'photograph' : 'photographs'}
+            </span>
           )}
+        </div>
+        {lockedTag ? (
+          <Link
+            href="/"
+            className="mt-5 inline-block text-base md:text-lg text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
+          >
+            ← All photographs
+          </Link>
+        ) : (
+          <p className="mt-5 text-base md:text-lg text-neutral-500 dark:text-neutral-400">
+            Tokyo streets, Japanese festivals, and landscapes across Japan and Indonesia.
+          </p>
+        )}
+      </header>
+
+      {/* Toolbar — text controls, no chrome */}
+      <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4 pb-6 md:pb-8">
+        <div className="flex flex-wrap items-end gap-x-6 gap-y-3 min-w-0 flex-1">
+          <button
+            type="button"
+            onClick={() => (showFilters ? closeFilters() : setShowFilters(true))}
+            aria-expanded={showFilters}
+            className={`${label} pb-0.5 border-b transition-colors ${
+              showFilters
+                ? 'text-neutral-900 dark:text-neutral-100 border-current'
+                : 'text-neutral-500 dark:text-neutral-400 border-transparent hover:text-neutral-900 dark:hover:text-neutral-100'
+            }`}
+          >
+            {showFilters ? 'Close' : 'Search & filter'}
+          </button>
+
           {showFilters && (
             <>
               <input
@@ -179,13 +206,15 @@ export default function GalleryView({ initialPhotos, totalCount: initialTotalCou
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Escape' && closeFilters()}
-                placeholder="Search by title, location, tag..."
-                className="min-w-0 flex-1 max-w-xs bg-transparent border-b border-gray-300 dark:border-gray-600 focus:border-gray-900 dark:focus:border-white outline-none text-sm py-1 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                placeholder="Title, location, tag…"
+                aria-label="Search photographs"
+                className={`${fieldClass} min-w-0 w-full sm:w-64`}
               />
               <select
                 value={selectedCollection}
                 onChange={(e) => setSelectedCollection(e.target.value)}
-                className="bg-transparent border-b border-gray-300 dark:border-gray-600 focus:border-gray-900 dark:focus:border-white outline-none text-sm py-1 text-gray-700 dark:text-gray-300"
+                aria-label="Filter by collection"
+                className={`${fieldClass} cursor-pointer`}
               >
                 <option value="">All collections</option>
                 {availableCollections.map((c) => (
@@ -197,19 +226,20 @@ export default function GalleryView({ initialPhotos, totalCount: initialTotalCou
               <button
                 type="button"
                 onClick={() => setFeaturedOnly((prev) => !prev)}
-                className={`text-sm py-1 border-b transition-colors ${
+                aria-pressed={featuredOnly}
+                className={`${label} pb-0.5 border-b transition-colors ${
                   featuredOnly
-                    ? 'border-gray-900 dark:border-white text-gray-900 dark:text-white'
-                    : 'border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    ? 'text-neutral-900 dark:text-neutral-100 border-current'
+                    : 'text-neutral-500 dark:text-neutral-400 border-transparent hover:text-neutral-900 dark:hover:text-neutral-100'
                 }`}
               >
-                Featured only
+                Featured
               </button>
               {hasActiveFilter && (
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white underline"
+                  className={`${labelMuted} hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors`}
                 >
                   Clear
                 </button>
@@ -217,61 +247,36 @@ export default function GalleryView({ initialPhotos, totalCount: initialTotalCou
             </>
           )}
         </div>
-        <div className="flex items-center gap-4 shrink-0">
-          <button
-            type="button"
-            onClick={() => (showFilters ? closeFilters() : setShowFilters(true))}
-            aria-label={showFilters ? 'Close search and filters' : 'Search and filter photographs'}
-            className="p-1.5 rounded transition-colors text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white"
-          >
-            {showFilters ? (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            ) : (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
-              </svg>
-            )}
-          </button>
 
-          <ZoomControls onChange={setColumnPrefs} />
-          {totalCount > 0 && (
-            <span className="text-sm text-gray-400 dark:text-gray-500 tabular-nums">
-              {photos.length < totalCount
-                ? `${photos.length} of ${pluralize(totalCount, 'photograph')}`
-                : pluralize(totalCount, 'photograph')}
-            </span>
-          )}
-        </div>
+        <ZoomControls onChange={setColumnPrefs} />
       </div>
 
       {isSearching ? (
-        <div className="flex justify-center py-24">
-          <div
-            className="w-5 h-5 border-2 border-gray-300 dark:border-gray-700 border-t-gray-900 dark:border-t-white rounded-full animate-spin"
-            aria-label="Searching"
-          />
-        </div>
+        <p className={`${labelMuted} py-24 text-center`} aria-live="polite">
+          Searching —
+        </p>
       ) : (hasActiveFilter || lockedTag) && photos.length === 0 ? (
-        <div className="py-24 text-center text-gray-400 dark:text-gray-500">
+        <p className="py-24 text-center font-display text-2xl text-neutral-500 dark:text-neutral-400">
           {lockedTag && !hasActiveFilter
-            ? `No photographs tagged "${lockedTag}".`
-            : 'No photographs match your filters.'}
-        </div>
+            ? `No photographs tagged “${lockedTag}”.`
+            : 'Nothing matches those filters.'}
+        </p>
       ) : (
         <MasonryGrid photos={photos} columns={columnPrefs} ratiosResolved={ratiosResolved} />
       )}
 
       {hasMore && !isSearching && (
-        <div ref={sentinelRef} className="flex justify-center py-12">
+        <div ref={sentinelRef} className="flex justify-center py-16">
           {isLoadingMore && (
-            <div
-              className="w-5 h-5 border-2 border-gray-300 dark:border-gray-700 border-t-gray-900 dark:border-t-white rounded-full animate-spin"
-              aria-label="Loading more photographs"
-            />
+            <p className={labelMuted} aria-live="polite">
+              Loading —
+            </p>
           )}
         </div>
+      )}
+
+      {!hasMore && !isSearching && photos.length > 0 && (
+        <p className={`${labelMuted} pt-20 text-center`}>— End of archive —</p>
       )}
     </>
   );

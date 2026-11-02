@@ -522,3 +522,17 @@ Follow-up to §13 — owner wanted the rest of the site to feel as premium as th
 - **Header:** owner's bracket `Logo` kept (explicit: don't remove it), sans nav with thin active underline, no divider under the navbar (owner disliked it), bare-icon `ThemeToggle`, no slide-in animation, "Menu/Close" text toggle on mobile. Active state now covers sub-routes (`/collections/*`, `/tags/*` → Gallery).
 - **Footer:** "Get in touch." display link to /about, email, tracked-label socials, © line.
 - Cookie banner uses `bg-background` / `border-hairline`.
+
+---
+
+## 15. Gallery page redesign (2026-11-03, branch `redesign/foundation-header-footer`)
+
+Step 3 of the redesign plan. Owner's verdict: likes it because it feels "lebih lega" (more breathing room).
+
+- **`GalleryView` header** now matches `/collections`: eyebrow ("The full archive" / "Photographs tagged"), big Cormorant title ("Gallery." / "{tag}."), zero-padded total count right-aligned, sans tagline (or "← All photographs" on tag pages).
+- **Toolbar** is text-only: "Search & filter" toggle (opens underlined search input, collection select, "Featured", "Clear") and `ZoomControls` restyled as "View 2 3 4" labels. `grid-icons.tsx` deleted (no remaining users).
+- **`MasonryGrid` gutters:** `gap-2 sm:gap-3 lg:gap-4` between photos and columns (was zero-gap edge-to-edge — the old "no gap" rule from claude.md is superseded). Packing adds `GAP_RATIO` (0.03 of column width) per photo so shortest-column assignment stays balanced; still prefix-stable for infinite scroll (§7d). Applies everywhere MasonryGrid is used (collection detail, related photos).
+- **`PhotoCard` hover:** light bottom fade + small title / tracked location caption, slow 1.02 zoom. Mobile shows no overlay at all (permanent location fade removed).
+- Spinners replaced with "Loading —" / "Searching —" labels; "— End of archive —" once `hasMore` is false.
+
+Not yet done: `/collections/[slug]` header still uses the old small-heading style (it inherits the new gutters/toolbar via shared components). Step 4 (photo detail page) not started.
