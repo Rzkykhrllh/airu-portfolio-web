@@ -19,6 +19,7 @@ import Input from "@/components/ui/Input";
 import CollectionPhotoTile from "@/components/admin/CollectionPhotoTile";
 import GridZoomSlider, { useGridZoom, zoomGridClass, zoomGridStyle } from "@/components/admin/GridZoom";
 import PageHeader from "@/components/admin/PageHeader";
+import SaveStatus, { useSaveState } from "@/components/admin/SaveStatus";
 import * as ui from "@/components/admin/ui";
 import PhotoEditModal from "@/components/admin/PhotoEditModal";
 import {
@@ -57,7 +58,8 @@ export default function EditCollectionPage({
   const [modalSearch, setModalSearch] = useState("");
   const [modalVisibleCount, setModalVisibleCount] = useState(ADD_PHOTOS_PAGE_SIZE);
   const [addingPhotoId, setAddingPhotoId] = useState<string | null>(null);
-  const [isSavingOrder, setIsSavingOrder] = useState(false);
+  const orderSave = useSaveState();
+  const [saveLabel, setSaveLabel] = useState("Saving order…");
   const [editingPhotoId, setEditingPhotoId] = useState<string | null>(null);
 
   const [title, setTitle] = useState("");
@@ -135,17 +137,16 @@ export default function EditCollectionPage({
 
     const previousOrder = photos;
     const reordered = arrayMove(photos, oldIndex, newIndex);
+    const firstVisible = (list: Photo[]) => list.find((p) => p.visibility !== "PRIVATE")?.id;
+    const coverChanged = firstVisible(previousOrder) !== firstVisible(reordered);
+    setSaveLabel(coverChanged ? "Saving order & new cover…" : "Saving order…");
     setPhotos(reordered);
-    setIsSavingOrder(true);
 
     try {
-      await reorderCollectionPhotos(slug, reordered.map((p) => p.id));
+      await orderSave.run(() => reorderCollectionPhotos(slug, reordered.map((p) => p.id)));
     } catch (error) {
       console.error("Failed to save photo order:", error);
       setPhotos(previousOrder);
-      toast.error(error instanceof ApiError ? error.message : "Failed to save photo order.");
-    } finally {
-      setIsSavingOrder(false);
     }
   };
 
@@ -219,6 +220,9 @@ export default function EditCollectionPage({
       setIsTogglingHidden(false);
     }
   };
+
+  // Same rule as the public site: the cover is the first non-private photo.
+  const coverId = photos.find((p) => p.visibility !== "PRIVATE")?.id;
 
   const openPicker = () => {
     setModalSearch("");
@@ -334,8 +338,7 @@ export default function EditCollectionPage({
       {/* Photos toolbar */}
       <div className="flex items-center justify-between gap-4 mb-4">
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Drag to reorder · the first photo is the cover
-          {isSavingOrder && <span className="ml-2 text-gray-400">· Saving…</span>}
+          Drag to reorder · the first non-private photo is the cover
         </p>
         <GridZoomSlider {...tileZoom} onChange={tileZoom.setColumns} />
       </div>
@@ -350,15 +353,18 @@ export default function EditCollectionPage({
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={photos.map((p) => p.id)} strategy={rectSortingStrategy}>
             <div
-              className={`${zoomGridClass(2)} ${tileZoom.columns >= 9 ? "gap-2" : "gap-3"}`}
+              aria-busy={orderSave.isSaving}
+              className={`${zoomGridClass(2)} ${tileZoom.columns >= 9 ? "gap-2" : "gap-3"} transition-opacity ${
+                orderSave.isSaving ? "opacity-60 pointer-events-none" : ""
+              }`}
               style={zoomGridStyle(tileZoom.columns)}
             >
-              {photos.map((photo, index) => (
+              {photos.map((photo) => (
                 <CollectionPhotoTile
                   key={photo.id}
                   photo={photo}
                   collectionId={collection.id}
-                  isCover={index === 0}
+                  isCover={photo.id === coverId}
                   onRemoved={handleRemovePhoto}
                   onEdit={setEditingPhotoId}
                   compact={tileZoom.columns >= 9}
@@ -368,6 +374,12 @@ export default function EditCollectionPage({
           </SortableContext>
         </DndContext>
       )}
+
+      <SaveStatus
+        state={orderSave.state}
+        savingLabel={saveLabel}
+        savedLabel={saveLabel.includes("cover") ? "Order & cover saved" : "Order saved"}
+      />
 
       {/* Add Photos Modal */}
       {showPhotoModal && (

@@ -17,6 +17,7 @@ import { CSS } from "@dnd-kit/utilities";
 import AdminLayout from "@/components/admin/AdminLayout";
 import GridZoomSlider, { useGridZoom, zoomGridClass, zoomGridStyle } from "@/components/admin/GridZoom";
 import PageHeader from "@/components/admin/PageHeader";
+import SaveStatus, { useSaveState } from "@/components/admin/SaveStatus";
 import * as ui from "@/components/admin/ui";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
@@ -35,7 +36,7 @@ export default function AdminCollectionsPage() {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isSavingOrder, setIsSavingOrder] = useState(false);
+  const orderSave = useSaveState();
   const gridZoom = useGridZoom("collections", { min: 2, max: 8, initial: 4 });
 
   const sensors = useSensors(
@@ -55,16 +56,12 @@ export default function AdminCollectionsPage() {
     const previousOrder = collections;
     const reordered = arrayMove(collections, oldIndex, newIndex);
     setCollections(reordered);
-    setIsSavingOrder(true);
 
     try {
-      await reorderCollections(reordered.map((c) => c.id));
+      await orderSave.run(() => reorderCollections(reordered.map((c) => c.id)));
     } catch (error) {
       console.error("Failed to save collection order:", error);
       setCollections(previousOrder);
-      toast.error(error instanceof ApiError ? error.message : "Failed to save collection order.");
-    } finally {
-      setIsSavingOrder(false);
     }
   };
 
@@ -128,7 +125,6 @@ export default function AdminCollectionsPage() {
             <span className="tabular-nums">{collections.length}</span>{" "}
             {collections.length === 1 ? "collection" : "collections"}
             {collections.length > 1 && " · drag to set the order on the site"}
-            {isSavingOrder && <span className="ml-2 text-gray-400">· Saving…</span>}
           </>
         }
         actions={
@@ -169,7 +165,10 @@ export default function AdminCollectionsPage() {
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={collections.map((c) => c.id)} strategy={rectSortingStrategy}>
             <div
-              className={`${zoomGridClass(1)} ${gridZoom.columns >= 6 ? "gap-x-4 gap-y-6" : "gap-x-6 gap-y-8"}`}
+              aria-busy={orderSave.isSaving}
+              className={`${zoomGridClass(1)} ${gridZoom.columns >= 6 ? "gap-x-4 gap-y-6" : "gap-x-6 gap-y-8"} transition-opacity ${
+                orderSave.isSaving ? "opacity-60 pointer-events-none" : ""
+              }`}
               style={zoomGridStyle(gridZoom.columns)}
             >
               {collections.map((collection, index) => (
@@ -185,6 +184,7 @@ export default function AdminCollectionsPage() {
           </SortableContext>
         </DndContext>
       )}
+      <SaveStatus state={orderSave.state} savingLabel="Saving collection order…" savedLabel="Collection order saved" />
     </AdminLayout>
   );
 }
@@ -211,8 +211,9 @@ function CollectionCard({
     zIndex: isDragging ? 10 : undefined,
   };
 
-  // First photo of the collection is its cover (set by ordering photos).
-  const coverPhoto = collection.photos && collection.photos.length > 0 ? collection.photos[0] : undefined;
+  // Cover = first photo the public can see (private ones are skipped on the
+  // site), so the admin card matches /collections exactly.
+  const coverPhoto = collection.photos?.find((p) => p.visibility !== "PRIVATE");
   const editHref = `/admin/collections/${collection.slug}`;
 
   return (
