@@ -5,22 +5,22 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Collection, Photo } from '@/types';
 import { photoYear } from '@/lib/format';
-import { cropImageStyle } from '@/lib/coverCrop';
+import { cropWrapperStyle } from '@/lib/coverCrop';
 import type { CoverCrop } from '@/types';
 
 // Blur-up cover — same thumbnail-probe + cross-fade pattern as PhotoCard,
 // plus a slow hover zoom.
 function CoverPhoto({ photo, alt, priority, crop }: { photo: Photo; alt: string; priority: boolean; crop: CoverCrop | null }) {
   const [loaded, setLoaded] = useState(false);
-  const cropStyle = crop ? cropImageStyle(crop) : undefined;
+  const fit = crop ? 'object-fill' : 'object-cover';
   return (
-    <>
+    // Crop = wrapper sized to the crop rectangle; images fill it.
+    <div className="absolute inset-0" style={crop ? cropWrapperStyle(crop) : undefined}>
       <img
         src={photo.src.thumbnail}
         alt=""
         aria-hidden="true"
-        style={cropStyle}
-        className={`absolute inset-0 w-full h-full object-cover scale-110 blur-xl transition-opacity duration-500 ${
+        className={`absolute inset-0 w-full h-full ${fit} scale-110 blur-xl transition-opacity duration-500 ${
           loaded ? 'opacity-0' : 'opacity-100'
         }`}
       />
@@ -30,13 +30,12 @@ function CoverPhoto({ photo, alt, priority, crop }: { photo: Photo; alt: string;
         fill
         priority={priority}
         sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-        className={`object-cover transition-[opacity,transform] duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.025] motion-reduce:transition-none ${
+        className={`${fit} transition-[opacity,transform] duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.025] motion-reduce:transition-none ${
           loaded ? 'opacity-100' : 'opacity-0'
         }`}
-        style={cropStyle}
         onLoad={() => setLoaded(true)}
       />
-    </>
+    </div>
   );
 }
 

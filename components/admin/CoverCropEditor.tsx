@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Button from '@/components/ui/Button';
 import { CoverCrop, Photo } from '@/types';
-import { cropImageStyle, maxCropSize } from '@/lib/coverCrop';
+import { cropWrapperStyle, maxCropSize } from '@/lib/coverCrop';
 import { iconButton } from './ui';
 
 interface CoverCropEditorProps {
@@ -116,7 +116,7 @@ export default function CoverCropEditor({ photo, initial, onCancel, onSave }: Co
     if (max) setRect(centred(max));
   };
 
-  const previewStyle = rect ? cropImageStyle({ photoId: photo.id, ...rect }) : undefined;
+  const previewStyle = rect ? cropWrapperStyle({ photoId: photo.id, ...rect }) : undefined;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={onCancel}>
@@ -181,7 +181,11 @@ export default function CoverCropEditor({ photo, initial, onCancel, onSave }: Co
               <p className="text-[0.6875rem] uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400 mb-2">Preview</p>
               <div className="relative aspect-[3/2] overflow-hidden rounded-lg bg-gray-200 dark:bg-gray-800">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                {previewStyle && <img src={photo.src.medium} alt="" style={previewStyle} draggable={false} />}
+                {previewStyle && (
+                  <div style={previewStyle}>
+                    <img src={photo.src.medium} alt="" draggable={false} className="block w-full h-full max-w-none object-fill" />
+                  </div>
+                )}
               </div>
               <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">How the card looks on /collections.</p>
             </div>

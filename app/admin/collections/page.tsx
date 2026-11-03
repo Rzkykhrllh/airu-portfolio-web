@@ -20,7 +20,7 @@ import PageHeader from "@/components/admin/PageHeader";
 import SaveStatus, { useSaveState } from "@/components/admin/SaveStatus";
 import * as ui from "@/components/admin/ui";
 import Link from "next/link";
-import { coverCropFor, cropImageStyle } from "@/lib/coverCrop";
+import { coverCropFor, cropWrapperStyle } from "@/lib/coverCrop";
 import Button from "@/components/ui/Button";
 import { deleteCollection, reorderCollections, updateCollection } from "@/lib/api";
 import { ApiError } from "@/lib/fetch";
@@ -223,14 +223,17 @@ function CollectionCard({
       <div className="relative aspect-[3/2] overflow-hidden rounded-xl bg-gray-200 dark:bg-gray-800">
         <Link href={editHref} className="absolute inset-0" aria-label={`Edit ${collection.title}`}>
           {coverPhoto && (
-            <Image
-              src={coverPhoto.src.medium}
-              alt={collection.title}
-              fill
-              className={`object-cover transition-opacity ${collection.hidden ? "opacity-40 grayscale" : ""}`}
-              style={crop ? cropImageStyle(crop) : undefined}
-              sizes="(max-width: 768px) 100vw, 25vw"
-            />
+            <div className="absolute inset-0" style={crop ? cropWrapperStyle(crop) : undefined}>
+              <Image
+                src={coverPhoto.src.medium}
+                alt={collection.title}
+                fill
+                className={`${crop ? "object-fill" : "object-cover"} transition-opacity ${
+                  collection.hidden ? "opacity-40 grayscale" : ""
+                }`}
+                sizes="(max-width: 768px) 100vw, 25vw"
+              />
+            </div>
           )}
         </Link>
 

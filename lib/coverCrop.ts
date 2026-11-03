@@ -9,21 +9,19 @@ export function coverCropFor(collection: Pick<Collection, 'coverCrop'>, cover?: 
 }
 
 /**
- * Inline style for an <img> inside a 3:2 `relative overflow-hidden` frame so
- * that exactly the crop rectangle fills the frame. Works with next/image
- * `fill` (its own inset/size styles are overridden here).
+ * Style for a WRAPPER div inside a 3:2 `relative overflow-hidden` frame: the
+ * wrapper is sized/offset so that exactly the crop rectangle fills the frame.
+ * Put the image inside it at 100% (next/image `fill` + `object-fill`).
+ * Never put these on the <Image fill> itself — next/image forbids overriding
+ * width/height on `fill` images (throws in dev).
  */
-export function cropImageStyle(crop: CoverCrop): CSSProperties {
+export function cropWrapperStyle(crop: CoverCrop): CSSProperties {
   return {
     position: 'absolute',
     width: `${(100 / crop.w) * 100}%`,
     height: `${(100 / crop.h) * 100}%`,
     left: `${(-crop.x / crop.w) * 100}%`,
     top: `${(-crop.y / crop.h) * 100}%`,
-    right: 'auto',
-    bottom: 'auto',
-    maxWidth: 'none',
-    objectFit: 'fill',
   };
 }
 
