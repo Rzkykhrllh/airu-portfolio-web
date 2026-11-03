@@ -573,3 +573,13 @@ Steps "1" (collection detail header) and "4" (photo detail) of the redesign; don
 - **Admin revamp.** Shared tokens in `components/admin/ui.ts` (`card`, `field`, `textarea`, `select`, `label`, `iconButton`) and `PageHeader` (title / description / back link / actions). `Button` gains `ghost` + `size`; primary is near-black (dark: white) instead of blue. New sidebar (bracket logo, nav with unread badge, View site, theme toggle, user, logout); `AdminHeader` is now a mobile-only top bar. Pages restyled: Photos (search with icon, tidy filters + Clear, skeletons, empty states, floating dark `BulkActionBar`), Collections (cover cards, click to edit, delete on hover), collection edit ("Edit details" inline panel, "View on site ↗"), Inquiries (initial avatar, NEW tag, Reply mailto), New collection (URL preview), Login (logo card). Modals, ConfirmDialog, Toast, TagInput, EXIF section restyled to match.
 
 **Dev note:** for local admin work against real data, the BE can run locally on the prod DB through an SSH tunnel (`airu-db-relay` socat container on the server, `127.0.0.1:8083` → `dokploy-postgres:5432`, forwarded to local `:5434`). Edits made that way are live data.
+
+---
+
+## 19. Hidden (admin-only) collections (2026-11-03, `main`)
+
+- Backend `Collections.hidden` (BE `15531e1`): hidden collections are excluded from every public response — `/collections` list, `/collections/slug/:slug` (404), `?collectionSlug`/`?collectionId` photo filters, and `photo.collections` in public photo payloads. `scope=admin` sees everything.
+- Admin: eye toggle on each collection card (hidden = greyed cover + "HIDDEN" badge, toggle stays visible), "Hide from site / Show on site" + badge on the collection edit page ("View on site" replaced with "Admin only" while hidden), "Hidden (admin only)" checkbox on New collection, "Hidden" labels in the photo modals' collection checklist, the Photos filter and the bulk "Add to collection" menu.
+- Photo edit/upload modals now load collections with `scope=admin` (previously public), otherwise hidden collections wouldn't be selectable.
+- Note: a `COLLECTION_ONLY` photo whose only collection is hidden is not reachable anywhere on the public site — by design.
+- **Prod DB note:** the live portfolio DB is `portfolio_db` inside the **`dokploy-postgres`** container. The `airu-portfolio-db` service in the Dokploy project is empty (only `_prisma_migrations`) and unused.

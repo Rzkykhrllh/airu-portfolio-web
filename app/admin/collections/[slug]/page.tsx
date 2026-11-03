@@ -203,6 +203,23 @@ export default function EditCollectionPage({
     return () => window.removeEventListener("keydown", onKey);
   }, [showPhotoModal]);
 
+  const [isTogglingHidden, setIsTogglingHidden] = useState(false);
+  const handleToggleHidden = async () => {
+    if (!collection) return;
+    const hidden = !collection.hidden;
+    setIsTogglingHidden(true);
+    try {
+      await updateCollection(slug, { hidden });
+      setCollection((prev) => (prev ? { ...prev, hidden } : prev));
+      toast.success(hidden ? "Collection hidden from the site." : "Collection is visible on the site.");
+    } catch (error) {
+      console.error("Failed to update collection visibility:", error);
+      toast.error(error instanceof ApiError ? error.message : "Failed to update collection.");
+    } finally {
+      setIsTogglingHidden(false);
+    }
+  };
+
   const openPicker = () => {
     setModalSearch("");
     setModalVisibleCount(ADD_PHOTOS_PAGE_SIZE);
@@ -243,23 +260,39 @@ export default function EditCollectionPage({
     <AdminLayout>
       <PageHeader
         back={{ href: "/admin/collections", label: "Collections" }}
-        title={collection.title}
+        title={
+          <span className="inline-flex items-center gap-3">
+            {collection.title}
+            {collection.hidden && (
+              <span className="h-6 px-2 inline-flex items-center rounded-md text-[0.625rem] font-semibold uppercase tracking-[0.12em] bg-gray-900 text-white dark:bg-white dark:text-gray-900">
+                Hidden
+              </span>
+            )}
+          </span>
+        }
         description={
           <>
             <span className="tabular-nums">{photos.length}</span> {photos.length === 1 ? "photo" : "photos"}
             {" · "}
-            <a
-              href={`/collections/${collection.slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-gray-900 dark:hover:text-white underline-offset-4 hover:underline"
-            >
-              View on site ↗
-            </a>
+            {collection.hidden ? (
+              <span>Admin only — not shown anywhere on the site</span>
+            ) : (
+              <a
+                href={`/collections/${collection.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-gray-900 dark:hover:text-white underline-offset-4 hover:underline"
+              >
+                View on site ↗
+              </a>
+            )}
           </>
         }
         actions={
           <>
+            <Button variant="ghost" onClick={handleToggleHidden} disabled={isTogglingHidden}>
+              {collection.hidden ? "Show on site" : "Hide from site"}
+            </Button>
             <Button variant="secondary" onClick={() => setShowDetails((open) => !open)}>
               {showDetails ? "Close details" : "Edit details"}
             </Button>

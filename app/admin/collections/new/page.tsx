@@ -17,6 +17,7 @@ export default function NewCollectionPage() {
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
+  const [hidden, setHidden] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
   const generateSlug = (title: string) => {
@@ -48,6 +49,7 @@ export default function NewCollectionPage() {
         title,
         slug,
         description,
+        hidden,
       });
 
       toast.success('Collection created successfully!');
@@ -102,6 +104,21 @@ export default function NewCollectionPage() {
               className={ui.textarea}
             />
           </div>
+
+          <label className="flex items-start gap-3 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={hidden}
+              onChange={(e) => setHidden(e.target.checked)}
+              className="mt-0.5 w-4 h-4 rounded accent-gray-900 dark:accent-white"
+            />
+            <span>
+              <span className="block text-sm text-gray-900 dark:text-white">Hidden (admin only)</span>
+              <span className="block text-xs text-gray-500 dark:text-gray-400">
+                Not shown anywhere on the site until you make it visible.
+              </span>
+            </span>
+          </label>
 
           <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
             <Button

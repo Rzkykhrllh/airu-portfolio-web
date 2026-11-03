@@ -61,6 +61,7 @@ export default function BulkActionBar({
           {collections.map((col) => (
             <option key={col.id} value={col.id}>
               {col.title}
+              {col.hidden ? ' (hidden)' : ''}
             </option>
           ))}
         </select>

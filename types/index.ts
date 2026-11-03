@@ -37,6 +37,8 @@ export type Collection = {
   title: string;
   description?: string;
   photoCount: number;
+  /** Admin-only collection — never returned by public endpoints. */
+  hidden?: boolean;
   photos?: Photo[]; // Optional: included when fetching with photos relation. photos[0] is the cover.
 };
 
@@ -63,6 +65,7 @@ export type CollectionFormData = {
   title: string;
   slug: string;
   description: string;
+  hidden?: boolean;
 };
 
 export type User = {

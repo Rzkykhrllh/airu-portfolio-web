@@ -40,6 +40,9 @@ export default function CollectionsChecklist({
                 className="w-4 h-4 rounded accent-gray-900 dark:accent-white"
               />
               <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{col.title}</span>
+              {col.hidden && (
+                <span className="ml-2 text-[0.625rem] uppercase tracking-[0.14em] text-gray-400">Hidden</span>
+              )}
             </label>
           ))}
         </div>

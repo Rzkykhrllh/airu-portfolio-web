@@ -84,7 +84,7 @@ export default function PhotoEditModal({ photoId, onClose, onUpdated, onDeleted 
 
     (async () => {
       try {
-        const data = await getCollections();
+        const data = await getCollections('admin');
         if (!cancelled) setAvailableCollections(data);
       } catch (error) {
         console.error('Failed to load collections:', error);

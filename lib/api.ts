@@ -300,6 +300,7 @@ export async function createCollection(
     slug: data.slug,
     name: data.title,
     description: data.description,
+    hidden: data.hidden ?? false,
   };
 
   const response = await apiFetch<BackendCollection>(
@@ -322,6 +323,7 @@ export async function updateCollection(
   if (data.title !== undefined) payload.name = data.title;
   if (data.slug !== undefined) payload.slug = data.slug;
   if (data.description !== undefined) payload.description = data.description;
+  if (data.hidden !== undefined) payload.hidden = data.hidden;
 
   const response = await apiFetch<BackendCollection>(
     API_ENDPOINTS.collections.update(slug),

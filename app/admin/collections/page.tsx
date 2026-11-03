@@ -20,7 +20,7 @@ import PageHeader from "@/components/admin/PageHeader";
 import * as ui from "@/components/admin/ui";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
-import { deleteCollection, reorderCollections } from "@/lib/api";
+import { deleteCollection, reorderCollections, updateCollection } from "@/lib/api";
 import { ApiError } from "@/lib/fetch";
 import { Collection } from "@/types";
 import { getAllCollectionsAdmin } from "@/lib/data";
@@ -84,6 +84,20 @@ export default function AdminCollectionsPage() {
       setError(error instanceof Error ? error.message : "Failed to load collections");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Optimistic hide/show; rolls back on failure.
+  const handleToggleHidden = async (collection: Collection) => {
+    const hidden = !collection.hidden;
+    setCollections((prev) => prev.map((c) => (c.id === collection.id ? { ...c, hidden } : c)));
+    try {
+      await updateCollection(collection.slug, { hidden });
+      toast.success(hidden ? `"${collection.title}" is now hidden from the site.` : `"${collection.title}" is visible on the site.`);
+    } catch (error) {
+      console.error("Failed to update collection visibility:", error);
+      setCollections((prev) => prev.map((c) => (c.id === collection.id ? { ...c, hidden: !hidden } : c)));
+      toast.error(error instanceof ApiError ? error.message : "Failed to update collection.");
     }
   };
 
@@ -164,6 +178,7 @@ export default function AdminCollectionsPage() {
                   collection={collection}
                   position={index + 1}
                   onDelete={() => handleDelete(collection.slug)}
+                  onToggleHidden={() => handleToggleHidden(collection)}
                 />
               ))}
             </div>
@@ -178,10 +193,12 @@ function CollectionCard({
   collection,
   position,
   onDelete,
+  onToggleHidden,
 }: {
   collection: Collection;
   position: number;
   onDelete: () => void;
+  onToggleHidden: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: collection.id,
@@ -207,18 +224,43 @@ function CollectionCard({
               src={coverPhoto.src.medium}
               alt={collection.title}
               fill
-              className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+              className={`object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03] ${
+                collection.hidden ? "opacity-40 grayscale" : ""
+              }`}
               sizes="(max-width: 768px) 100vw, 25vw"
             />
           )}
         </Link>
 
         {/* Position on the public site */}
-        <span className="absolute top-2 left-2 min-w-[1.5rem] h-6 px-1.5 inline-flex items-center justify-center rounded-md text-[0.6875rem] font-semibold tabular-nums bg-white/90 dark:bg-gray-900/90 text-gray-900 dark:text-white shadow-sm pointer-events-none">
-          {position}
+        <span className="absolute top-2 left-2 flex items-center gap-1 pointer-events-none">
+          <span className="min-w-[1.5rem] h-6 px-1.5 inline-flex items-center justify-center rounded-md text-[0.6875rem] font-semibold tabular-nums bg-white/90 dark:bg-gray-900/90 text-gray-900 dark:text-white shadow-sm">
+            {position}
+          </span>
+          {collection.hidden && (
+            <span className="h-6 px-2 inline-flex items-center gap-1 rounded-md text-[0.625rem] font-semibold uppercase tracking-[0.12em] bg-gray-900/85 text-white shadow-sm">
+              Hidden
+            </span>
+          )}
         </span>
 
         <div className="absolute top-2 right-2 flex items-center gap-1">
+          {/* Hide / show on the public site */}
+          <button
+            type="button"
+            onClick={onToggleHidden}
+            className={`p-1.5 rounded-lg shadow-sm transition-opacity ${
+              collection.hidden
+                ? "bg-gray-900 text-white"
+                : "bg-white/90 dark:bg-gray-900/90 text-gray-500 hover:text-gray-900 dark:hover:text-white opacity-0 group-hover:opacity-100"
+            }`}
+            title={collection.hidden ? "Hidden from the site — click to show" : "Visible on the site — click to hide"}
+            aria-label={collection.hidden ? `Show ${collection.title} on the site` : `Hide ${collection.title} from the site`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d={collection.hidden ? "M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.9 5.1A9.7 9.7 0 0112 5c4.5 0 8.3 2.9 9.5 7a10 10 0 01-2.6 4.1M6.6 6.6A10 10 0 002.5 12c1.3 4.1 5 7 9.5 7a9.8 9.8 0 005.4-1.6" : "M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7zM15 12a3 3 0 11-6 0 3 3 0 016 0z"} />
+            </svg>
+          </button>
           {/* Delete — hover only */}
           <button
             type="button"

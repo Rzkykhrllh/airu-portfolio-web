@@ -57,7 +57,7 @@ export default function PhotoAddModal({ onClose, onUploaded }: PhotoAddModalProp
 
     (async () => {
       try {
-        const data = await getCollections();
+        const data = await getCollections('admin');
         if (!cancelled) setAvailableCollections(data);
       } catch (error) {
         console.error('Failed to load collections:', error);

@@ -342,6 +342,7 @@ export default function AdminPhotosPage() {
             {availableCollections.map((col) => (
               <option key={col.slug} value={col.slug}>
                 {col.title}
+                {col.hidden ? ' (hidden)' : ''}
               </option>
             ))}
           </select>
