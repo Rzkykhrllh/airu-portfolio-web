@@ -20,6 +20,7 @@ import PageHeader from "@/components/admin/PageHeader";
 import SaveStatus, { useSaveState } from "@/components/admin/SaveStatus";
 import * as ui from "@/components/admin/ui";
 import Link from "next/link";
+import { coverCropFor, cropImageStyle } from "@/lib/coverCrop";
 import Button from "@/components/ui/Button";
 import { deleteCollection, reorderCollections, updateCollection } from "@/lib/api";
 import { ApiError } from "@/lib/fetch";
@@ -214,6 +215,7 @@ function CollectionCard({
   // Cover = first photo the public can see (private ones are skipped on the
   // site), so the admin card matches /collections exactly.
   const coverPhoto = collection.photos?.find((p) => p.visibility !== "PRIVATE");
+  const crop = coverCropFor(collection, coverPhoto);
   const editHref = `/admin/collections/${collection.slug}`;
 
   return (
@@ -225,9 +227,8 @@ function CollectionCard({
               src={coverPhoto.src.medium}
               alt={collection.title}
               fill
-              className={`object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03] ${
-                collection.hidden ? "opacity-40 grayscale" : ""
-              }`}
+              className={`object-cover transition-opacity ${collection.hidden ? "opacity-40 grayscale" : ""}`}
+              style={crop ? cropImageStyle(crop) : undefined}
               sizes="(max-width: 768px) 100vw, 25vw"
             />
           )}

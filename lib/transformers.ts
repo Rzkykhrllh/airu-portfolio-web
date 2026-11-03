@@ -1,4 +1,4 @@
-import { Photo, Collection } from "@/types"
+import { Photo, Collection, CoverCrop } from "@/types"
 
 export interface BackendPhoto {
   id: string;
@@ -83,6 +83,7 @@ export interface BackendCollection {
   name: string;
   description?: string;
   hidden?: boolean;
+  coverCrop?: CoverCrop | null;
   createdAt: string;
   updatedAt: string;
 
@@ -102,6 +103,7 @@ export function transformCollection(backendCollection: BackendCollection): Colle
     title: backendCollection.name,
     description: backendCollection.description,
     hidden: !!backendCollection.hidden,
+    coverCrop: backendCollection.coverCrop ?? null,
     photoCount: backendCollection._count?.photos || backendCollection.photos?.length || 0,
     // Transform photos if they exist
     photos: backendCollection.photos

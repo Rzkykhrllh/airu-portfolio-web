@@ -31,6 +31,15 @@ export type Photo = {
   createdAt: string;
 };
 
+/** Manual cover crop: a 3:2 rectangle in % of the original image. */
+export type CoverCrop = {
+  photoId: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+};
+
 export type Collection = {
   id: string;
   slug: string;
@@ -39,6 +48,8 @@ export type Collection = {
   photoCount: number;
   /** Admin-only collection — never returned by public endpoints. */
   hidden?: boolean;
+  /** Applied only while `photoId` is still the cover. */
+  coverCrop?: CoverCrop | null;
   photos?: Photo[]; // Optional: included when fetching with photos relation. photos[0] is the cover.
 };
 
@@ -66,6 +77,7 @@ export type CollectionFormData = {
   slug: string;
   description: string;
   hidden?: boolean;
+  coverCrop?: CoverCrop | null;
 };
 
 export type User = {

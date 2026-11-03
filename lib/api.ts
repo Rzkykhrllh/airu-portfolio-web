@@ -324,6 +324,7 @@ export async function updateCollection(
   if (data.slug !== undefined) payload.slug = data.slug;
   if (data.description !== undefined) payload.description = data.description;
   if (data.hidden !== undefined) payload.hidden = data.hidden;
+  if (data.coverCrop !== undefined) payload.coverCrop = data.coverCrop;
 
   const response = await apiFetch<BackendCollection>(
     API_ENDPOINTS.collections.update(slug),

@@ -20,6 +20,9 @@ import CollectionPhotoTile from "@/components/admin/CollectionPhotoTile";
 import GridZoomSlider, { useGridZoom, zoomGridClass, zoomGridStyle } from "@/components/admin/GridZoom";
 import PageHeader from "@/components/admin/PageHeader";
 import SaveStatus, { useSaveState } from "@/components/admin/SaveStatus";
+import CoverCropEditor from "@/components/admin/CoverCropEditor";
+import { coverCropFor } from "@/lib/coverCrop";
+import type { CoverCrop } from "@/types";
 import * as ui from "@/components/admin/ui";
 import PhotoEditModal from "@/components/admin/PhotoEditModal";
 import {
@@ -65,6 +68,7 @@ export default function EditCollectionPage({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [showDetails, setShowDetails] = useState(false);
+  const [showCropper, setShowCropper] = useState(false);
 
   const tileZoom = useGridZoom("collection-photos", { min: 3, max: 14, initial: 8 });
   const pickerZoom = useGridZoom("add-photos", { min: 3, max: 16, initial: 10 });
@@ -222,7 +226,20 @@ export default function EditCollectionPage({
   };
 
   // Same rule as the public site: the cover is the first non-private photo.
-  const coverId = photos.find((p) => p.visibility !== "PRIVATE")?.id;
+  const coverPhoto = photos.find((p) => p.visibility !== "PRIVATE");
+  const coverId = coverPhoto?.id;
+
+  const handleSaveCrop = async (coverCrop: CoverCrop | null) => {
+    try {
+      await updateCollection(slug, { coverCrop });
+      setCollection((prev) => (prev ? { ...prev, coverCrop } : prev));
+      toast.success(coverCrop ? "Cover crop saved." : "Custom crop removed.");
+      setShowCropper(false);
+    } catch (error) {
+      console.error("Failed to save cover crop:", error);
+      toast.error(error instanceof ApiError ? error.message : "Failed to save cover crop.");
+    }
+  };
 
   const openPicker = () => {
     setModalSearch("");
@@ -297,6 +314,14 @@ export default function EditCollectionPage({
             <Button variant="ghost" onClick={handleToggleHidden} disabled={isTogglingHidden}>
               {collection.hidden ? "Show on site" : "Hide from site"}
             </Button>
+            {coverPhoto && (
+              <Button variant="secondary" onClick={() => setShowCropper(true)}>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 2v14a2 2 0 002 2h14M18 22V8a2 2 0 00-2-2H2" />
+                </svg>
+                Adjust cover
+              </Button>
+            )}
             <Button variant="secondary" onClick={() => setShowDetails((open) => !open)}>
               {showDetails ? "Close details" : "Edit details"}
             </Button>
@@ -380,6 +405,15 @@ export default function EditCollectionPage({
         savingLabel={saveLabel}
         savedLabel={saveLabel.includes("cover") ? "Order & cover saved" : "Order saved"}
       />
+
+      {showCropper && coverPhoto && (
+        <CoverCropEditor
+          photo={coverPhoto}
+          initial={coverCropFor(collection, coverPhoto)}
+          onCancel={() => setShowCropper(false)}
+          onSave={handleSaveCrop}
+        />
+      )}
 
       {/* Add Photos Modal */}
       {showPhotoModal && (

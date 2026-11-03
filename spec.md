@@ -583,3 +583,11 @@ Steps "1" (collection detail header) and "4" (photo detail) of the redesign; don
 - Photo edit/upload modals now load collections with `scope=admin` (previously public), otherwise hidden collections wouldn't be selectable.
 - Note: a `COLLECTION_ONLY` photo whose only collection is hidden is not reachable anywhere on the public site — by design.
 - **Prod DB note:** the live portfolio DB is `portfolio_db` inside the **`dokploy-postgres`** container. The `airu-portfolio-db` service in the Dokploy project is empty (only `_prisma_migrations`) and unused.
+
+---
+
+## 20. Collection cover: deterministic order, save indicator, manual crop (2026-11-03, `main`)
+
+- **Stable covers.** BE orders photos in a collection by `sortOrder`, then photo `createdAt`, then id (`PHOTO_ORDER_IN_COLLECTION`) — most memberships were all `sortOrder 0`, so ties came back in random order and covers "changed by themselves". Photos newly added to a collection get `max + 1` (appended). Admin cover = first non-private photo, same as the public site.
+- **Save indicator.** `components/admin/SaveStatus.tsx` (`useSaveState().run(fn)`): floating pill "Saving order…" → "✓ Saved" / red error with rollback; the grid dims and locks while saving. Used for collection and photo reordering ("order & new cover" when the move changes the cover).
+- **Manual cover crop.** `Collections.coverCrop` (BE `cover_crop` JSONB) = `{ photoId, x, y, w, h }`, a 3:2 rectangle in % of the original image. Admin "Adjust cover" opens `CoverCropEditor` (drag the frame, zoom slider / wheel 1–4×, live card preview, reset, remove). `lib/coverCrop.ts` → `coverCropFor()` (only while `photoId` is still the cover) and `cropImageStyle()` (absolute-positioned img inside the 3:2 frame; works with next/image `fill`). Applied on the admin collection cards and public `CollectionCard`.
