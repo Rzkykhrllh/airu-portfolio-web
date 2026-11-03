@@ -358,6 +358,17 @@ export async function reorderCollectionPhotos(
   return transformCollection(response);
 }
 
+// Save the display order of ALL collections (every id exactly once).
+export async function reorderCollections(collectionIds: string[]): Promise<void> {
+  await apiFetch(API_ENDPOINTS.collections.order, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ collectionIds }),
+  });
+}
+
 // Get photos by collection slug
 export async function getPhotosByCollection(slug: string): Promise<Photo[]> {
   return getPhotos({ collection: slug });

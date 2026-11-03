@@ -5,33 +5,40 @@ interface ViewToggleProps {
   onChange: (view: 'grid' | 'list') => void;
 }
 
+const OPTIONS: { value: 'grid' | 'list'; label: string; path: string }[] = [
+  {
+    value: 'grid',
+    label: 'Grid view',
+    path: 'M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z',
+  },
+  { value: 'list', label: 'List view', path: 'M4 6h16M4 12h16M4 18h16' },
+];
+
+// Segmented control, same language as the rest of the admin toolbar.
 export default function ViewToggle({ view, onChange }: ViewToggleProps) {
   return (
-    <div className="inline-flex rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
-      <button
-        onClick={() => onChange('grid')}
-        className={`px-4 py-2 text-sm font-medium transition-colors rounded-l-lg ${
-          view === 'grid'
-            ? 'bg-blue-600 text-white'
-            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-        }`}
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-        </svg>
-      </button>
-      <button
-        onClick={() => onChange('list')}
-        className={`px-4 py-2 text-sm font-medium transition-colors rounded-r-lg ${
-          view === 'list'
-            ? 'bg-blue-600 text-white'
-            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-        }`}
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </button>
+    <div className="inline-flex p-0.5 rounded-lg bg-gray-100 dark:bg-gray-800">
+      {OPTIONS.map((option) => {
+        const active = view === option.value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => onChange(option.value)}
+            aria-pressed={active}
+            title={option.label}
+            className={`inline-flex items-center justify-center w-9 h-9 rounded-md transition-colors ${
+              active
+                ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm'
+                : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d={option.path} />
+            </svg>
+          </button>
+        );
+      })}
     </div>
   );
 }

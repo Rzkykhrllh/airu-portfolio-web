@@ -243,21 +243,22 @@ export default function PhotoAddModal({ onClose, onUploaded }: PhotoAddModalProp
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-gray-800 rounded-lg max-w-5xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-5xl w-full max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Upload Photo</h2>
+        <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-gray-200/80 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur">
+          <h2 className="text-lg font-semibold tracking-tight text-gray-900 dark:text-white">Upload photo</h2>
           <button
             type="button"
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+            className="inline-flex items-center justify-center w-9 h-9 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            aria-label="Close"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -270,9 +271,9 @@ export default function PhotoAddModal({ onClose, onUploaded }: PhotoAddModalProp
               onDragEnter={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-lg p-12 transition-colors ${
+              className={`border-2 border-dashed rounded-xl p-12 transition-colors ${
                 isDraggingOver
-                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                  ? 'border-gray-900 bg-gray-50 dark:border-white dark:bg-gray-800'
                   : 'border-gray-300 dark:border-gray-600'
               }`}
             >
@@ -288,7 +289,7 @@ export default function PhotoAddModal({ onClose, onUploaded }: PhotoAddModalProp
                 <div className="mt-4">
                   <label
                     htmlFor="add-modal-file-upload"
-                    className="cursor-pointer text-blue-600 hover:text-blue-700 font-medium pointer-events-auto"
+                    className="cursor-pointer text-gray-900 dark:text-white underline underline-offset-4 font-medium pointer-events-auto"
                   >
                     Click to browse
                   </label>
@@ -345,7 +346,7 @@ export default function PhotoAddModal({ onClose, onUploaded }: PhotoAddModalProp
                 />
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
                     Description
                   </label>
                   <textarea
@@ -353,7 +354,7 @@ export default function PhotoAddModal({ onClose, onUploaded }: PhotoAddModalProp
                     onChange={(e) => handleInputChange('description', e.target.value)}
                     placeholder="Enter photo description"
                     rows={3}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full h-10 px-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-gray-900 dark:focus:border-gray-300 focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10 transition-colors"
                   />
                 </div>
 
@@ -374,7 +375,7 @@ export default function PhotoAddModal({ onClose, onUploaded }: PhotoAddModalProp
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
                     Tags
                   </label>
                   <TagInput
@@ -407,12 +408,12 @@ export default function PhotoAddModal({ onClose, onUploaded }: PhotoAddModalProp
           )}
         </form>
 
-        <div className="sticky bottom-0 flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <div className="sticky bottom-0 flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200/80 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur">
           <Button type="button" variant="secondary" onClick={onClose} disabled={isUploading}>
             Cancel
           </Button>
           <Button type="submit" form="photo-add-form" variant="primary" disabled={!selectedFile || isUploading}>
-            {isUploading ? 'Uploading...' : 'Upload Photo'}
+            {isUploading ? 'Uploading…' : 'Upload photo'}
           </Button>
         </div>
       </div>

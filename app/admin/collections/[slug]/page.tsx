@@ -17,6 +17,9 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import CollectionPhotoTile from "@/components/admin/CollectionPhotoTile";
+import GridZoomSlider, { useGridZoom, zoomGridClass, zoomGridStyle } from "@/components/admin/GridZoom";
+import PageHeader from "@/components/admin/PageHeader";
+import * as ui from "@/components/admin/ui";
 import PhotoEditModal from "@/components/admin/PhotoEditModal";
 import {
   updateCollection,
@@ -33,7 +36,7 @@ import { useToast } from "@/components/providers/ToastProvider";
 // list (already fetched for the page), but rendering every match at once
 // got slow once the library passed a few hundred photos — cap what's
 // rendered and let the admin ask for more instead.
-const ADD_PHOTOS_PAGE_SIZE = 60;
+const ADD_PHOTOS_PAGE_SIZE = 120;
 
 interface EditCollectionPageProps {
   params: Promise<{ slug: string }>;
@@ -59,6 +62,10 @@ export default function EditCollectionPage({
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [showDetails, setShowDetails] = useState(false);
+
+  const tileZoom = useGridZoom("collection-photos", { min: 3, max: 14, initial: 8 });
+  const pickerZoom = useGridZoom("add-photos", { min: 3, max: 16, initial: 10 });
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -188,13 +195,31 @@ export default function EditCollectionPage({
   const visibleAvailablePhotos = availablePhotos.slice(0, modalVisibleCount);
   const hasMoreAvailablePhotos = availablePhotos.length > modalVisibleCount;
 
+  // Esc closes the photo picker.
+  useEffect(() => {
+    if (!showPhotoModal) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setShowPhotoModal(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [showPhotoModal]);
+
+  const openPicker = () => {
+    setModalSearch("");
+    setModalVisibleCount(ADD_PHOTOS_PAGE_SIZE);
+    setShowPhotoModal(true);
+  };
+
   if (isLoading) {
     return (
       <AdminLayout>
-        <div className="text-center py-12">
-          <p className="text-gray-500 dark:text-gray-400">
-            Loading collection...
-          </p>
+        <div className="animate-pulse">
+          <div className="h-3 w-24 rounded bg-gray-200 dark:bg-gray-800 mb-4" />
+          <div className="h-7 w-64 rounded bg-gray-200 dark:bg-gray-800 mb-8" />
+          <div className="grid grid-cols-4 lg:grid-cols-8 gap-3">
+            {Array.from({ length: 16 }).map((_, i) => (
+              <div key={i} className="aspect-square rounded-lg bg-gray-200/70 dark:bg-gray-800/70" />
+            ))}
+          </div>
         </div>
       </AdminLayout>
     );
@@ -203,15 +228,11 @@ export default function EditCollectionPage({
   if (!collection) {
     return (
       <AdminLayout>
-        <div className="text-center py-12">
-          <p className="text-gray-500 dark:text-gray-400">
-            Collection not found
-          </p>
-          <Link
-            href="/admin/collections"
-            className="text-blue-600 hover:text-blue-700 mt-4 inline-block"
-          >
-            ← Back to Collections
+        <div className={`${ui.card} p-16 text-center`}>
+          <p className="font-medium text-gray-900 dark:text-white mb-1">Collection not found</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">It may have been renamed or deleted.</p>
+          <Link href="/admin/collections" className="text-sm underline underline-offset-4">
+            Back to collections
           </Link>
         </div>
       </AdminLayout>
@@ -220,155 +241,129 @@ export default function EditCollectionPage({
 
   return (
     <AdminLayout>
-      <div className="max-w-5xl">
-        {/* Header */}
-        <div className="mb-8">
-          <Link
-            href="/admin/collections"
-            className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-2 inline-block"
-          >
-            ← Back to Collections
-          </Link>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            {collection.title}
-          </h1>
-        </div>
-
-        {/* Photos — primary content */}
-        <div className="mb-10">
-          <div className="flex items-center justify-between gap-4 mb-1">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Photos ({photos.length})
-              </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Drag to reorder — the first photo is used as the collection cover.
-              </p>
-            </div>
-            <div className="flex items-center gap-3 shrink-0">
-              {isSavingOrder && (
-                <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                  Saving order...
-                </span>
-              )}
-              <Button
-                type="button"
-                variant="primary"
-                onClick={() => {
-                  setModalSearch("");
-                  setModalVisibleCount(ADD_PHOTOS_PAGE_SIZE);
-                  setShowPhotoModal(true);
-                }}
-              >
-                + Add Photos
-              </Button>
-            </div>
-          </div>
-
-          {photos.length === 0 ? (
-            <div className="text-center py-12 mt-4 rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
-              <p className="text-gray-500 dark:text-gray-400">
-                No photos in this collection yet
-              </p>
-            </div>
-          ) : (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
+      <PageHeader
+        back={{ href: "/admin/collections", label: "Collections" }}
+        title={collection.title}
+        description={
+          <>
+            <span className="tabular-nums">{photos.length}</span> {photos.length === 1 ? "photo" : "photos"}
+            {" · "}
+            <a
+              href={`/collections/${collection.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-gray-900 dark:hover:text-white underline-offset-4 hover:underline"
             >
-              <SortableContext
-                items={photos.map((p) => p.id)}
-                strategy={rectSortingStrategy}
-              >
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mt-4">
-                  {photos.map((photo, index) => (
-                    <CollectionPhotoTile
-                      key={photo.id}
-                      photo={photo}
-                      collectionId={collection.id}
-                      isCover={index === 0}
-                      onRemoved={handleRemovePhoto}
-                      onEdit={setEditingPhotoId}
-                    />
-                  ))}
-                </div>
-              </SortableContext>
-            </DndContext>
-          )}
-        </div>
-
-        {/* Collection settings — secondary, collapsed by default */}
-        <details className="group rounded-lg border border-gray-200 dark:border-gray-700">
-          <summary className="cursor-pointer select-none list-none px-6 py-4 flex items-center justify-between text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-            <span>Collection Settings</span>
-            <svg
-              className="w-4 h-4 transition-transform group-open:rotate-90"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </summary>
-
-          <form
-            onSubmit={handleSubmit}
-            className="px-6 pb-6 pt-2 space-y-6 border-t border-gray-200 dark:border-gray-700"
-          >
-            <Input
-              label="Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-
-            <Input
-              label="Slug (URL)"
-              value={slug}
-              disabled
-              className="opacity-50"
-            />
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Description
-              </label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <Button type="submit" variant="primary" disabled={isSaving}>
-              {isSaving ? "Saving..." : "Save Details"}
+              View on site ↗
+            </a>
+          </>
+        }
+        actions={
+          <>
+            <Button variant="secondary" onClick={() => setShowDetails((open) => !open)}>
+              {showDetails ? "Close details" : "Edit details"}
             </Button>
-          </form>
-        </details>
+            <Button onClick={openPicker}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" d="M12 5v14M5 12h14" />
+              </svg>
+              Add photos
+            </Button>
+          </>
+        }
+      />
+
+      {/* Collection details — inline panel, hidden until needed */}
+      {showDetails && (
+        <form onSubmit={handleSubmit} className={`${ui.card} p-5 mb-8 grid gap-4 md:grid-cols-2`}>
+          <Input label="Title" value={title} onChange={(e) => setTitle(e.target.value)} required />
+          <Input label="Slug (URL)" value={slug} disabled className="opacity-60" />
+          <div className="md:col-span-2">
+            <label className={ui.label}>Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              className={ui.textarea}
+            />
+          </div>
+          <div className="md:col-span-2 flex justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={() => setShowDetails(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? "Saving…" : "Save details"}
+            </Button>
+          </div>
+        </form>
+      )}
+
+      {/* Photos toolbar */}
+      <div className="flex items-center justify-between gap-4 mb-4">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Drag to reorder · the first photo is the cover
+          {isSavingOrder && <span className="ml-2 text-gray-400">· Saving…</span>}
+        </p>
+        <GridZoomSlider {...tileZoom} onChange={tileZoom.setColumns} />
       </div>
+
+      {photos.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-gray-300 dark:border-gray-700 p-16 text-center">
+          <p className="font-medium text-gray-900 dark:text-white mb-1">No photos yet</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">Pick photos from your library to fill this collection.</p>
+          <Button onClick={openPicker}>Add photos</Button>
+        </div>
+      ) : (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={photos.map((p) => p.id)} strategy={rectSortingStrategy}>
+            <div
+              className={`${zoomGridClass(2)} ${tileZoom.columns >= 9 ? "gap-2" : "gap-3"}`}
+              style={zoomGridStyle(tileZoom.columns)}
+            >
+              {photos.map((photo, index) => (
+                <CollectionPhotoTile
+                  key={photo.id}
+                  photo={photo}
+                  collectionId={collection.id}
+                  isCover={index === 0}
+                  onRemoved={handleRemovePhoto}
+                  onEdit={setEditingPhotoId}
+                  compact={tileZoom.columns >= 9}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+      )}
 
       {/* Add Photos Modal */}
       {showPhotoModal && (
         <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 sm:p-4"
           onClick={() => setShowPhotoModal(false)}
         >
           <div
-            className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[80vh] overflow-y-auto p-6"
+            className="bg-[var(--background)] sm:rounded-2xl w-full h-full overflow-y-auto shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                Add Photos
+            {/* Sticky toolbar: title, search, zoom stay put while scrolling */}
+            <div className="sticky top-0 z-10 bg-[color-mix(in_srgb,var(--background)_92%,transparent)] backdrop-blur-md border-b border-gray-200/80 dark:border-gray-800 px-4 sm:px-6 py-4 mb-4">
+            <div className="flex items-center justify-between gap-4 mb-3">
+              <h2 className="text-lg font-semibold tracking-tight text-gray-900 dark:text-white">
+                Add photos{" "}
+                <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
+                  to {collection?.title}
+                </span>
               </h2>
+              <div className="flex items-center gap-4">
+              <GridZoomSlider {...pickerZoom} onChange={pickerZoom.setColumns} />
               <button
                 onClick={() => setShowPhotoModal(false)}
-                className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                className={ui.iconButton}
+                aria-label="Close"
               >
                 <svg
-                  className="w-6 h-6"
+                  className="w-5 h-5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -381,19 +376,23 @@ export default function EditCollectionPage({
                   />
                 </svg>
               </button>
+              </div>
             </div>
 
             <input
               type="text"
+              autoFocus
               placeholder="Search photos..."
               value={modalSearch}
               onChange={(e) => {
                 setModalSearch(e.target.value);
                 setModalVisibleCount(ADD_PHOTOS_PAGE_SIZE);
               }}
-              className="w-full mb-4 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={ui.field}
             />
+            </div>
 
+            <div className="px-4 sm:px-6 pb-6">
             {availablePhotos.length === 0 ? (
               <p className="text-center text-gray-500 dark:text-gray-400 py-8">
                 No photos to add
@@ -403,22 +402,33 @@ export default function EditCollectionPage({
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
                 Showing {visibleAvailablePhotos.length} of {availablePhotos.length}
               </p>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+              <div
+                className={`${zoomGridClass(3)} gap-2`}
+                style={zoomGridStyle(pickerZoom.columns)}
+              >
                 {visibleAvailablePhotos.map((photo) => (
                   <button
                     key={photo.id}
                     type="button"
                     onClick={() => handleAddPhoto(photo)}
                     disabled={addingPhotoId === photo.id}
-                    className="relative aspect-square bg-gray-200 dark:bg-gray-900 rounded overflow-hidden hover:ring-2 hover:ring-blue-500 disabled:opacity-50"
+                    className="group relative aspect-square bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden hover:ring-2 hover:ring-gray-900 dark:hover:ring-white hover:ring-offset-2 ring-offset-[var(--background)] disabled:opacity-50 transition-shadow"
+                    title={photo.title ? `Add "${photo.title}"` : "Add photo"}
                   >
                     <Image
                       src={photo.src.thumbnail}
                       alt={photo.title || "Photo"}
                       fill
                       className="object-cover"
-                      sizes="150px"
+                      sizes={`${Math.ceil(1600 / pickerZoom.columns)}px`}
                     />
+                    <span className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/25 transition-colors">
+                      <span className="w-8 h-8 rounded-full bg-white text-gray-900 inline-flex items-center justify-center opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all shadow">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" d="M12 5v14M5 12h14" />
+                        </svg>
+                      </span>
+                    </span>
                     {addingPhotoId === photo.id && (
                       <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                         <svg
@@ -458,6 +468,7 @@ export default function EditCollectionPage({
               )}
               </>
             )}
+            </div>
           </div>
         </div>
       )}

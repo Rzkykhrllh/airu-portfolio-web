@@ -18,8 +18,8 @@ interface ExifFieldsProps {
 /** Camera/lens/aperture/shutter/ISO fields shared by the Add/Edit photo forms. */
 export default function ExifFields({ value, onChange }: ExifFieldsProps) {
   return (
-    <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">EXIF Data</h3>
+    <div className="pt-5 border-t border-gray-100 dark:border-gray-800">
+      <h3 className="text-[0.6875rem] uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400 mb-3">Camera data (EXIF)</h3>
       <div className="space-y-4">
         <Input
           label="Camera"

@@ -8,6 +8,8 @@ import Input from '@/components/ui/Input';
 import { createCollection } from '@/lib/api';
 import { ApiError } from '@/lib/fetch';
 import { useToast } from '@/components/providers/ToastProvider';
+import PageHeader from '@/components/admin/PageHeader';
+import * as ui from '@/components/admin/ui';
 
 export default function NewCollectionPage() {
   const router = useRouter();
@@ -61,23 +63,23 @@ export default function NewCollectionPage() {
   return (
     <AdminLayout>
       <div className="max-w-2xl">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">New Collection</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Create a new photo collection
-          </p>
-        </div>
+        <PageHeader
+          back={{ href: '/admin/collections', label: 'Collections' }}
+          title="New collection"
+          description="Name it now — you'll add photos right after."
+        />
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 space-y-6">
-            <Input
-              label="Title"
-              value={title}
-              onChange={(e) => handleTitleChange(e.target.value)}
-              placeholder="e.g. Tokyo Streets"
-              required
-            />
+        <form onSubmit={handleSubmit} className={`${ui.card} p-5 sm:p-6 space-y-5`}>
+          <Input
+            label="Title"
+            value={title}
+            onChange={(e) => handleTitleChange(e.target.value)}
+            placeholder="e.g. Tokyo Streets"
+            required
+            autoFocus
+          />
 
+          <div>
             <Input
               label="Slug (URL)"
               value={slug}
@@ -85,36 +87,33 @@ export default function NewCollectionPage() {
               placeholder="e.g. tokyo-streets"
               required
             />
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Description
-              </label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Enter collection description"
-                rows={3}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              You can add photos after creating the collection. The first photo becomes the cover.
-            </p>
+            {slug && (
+              <p className="mt-1.5 text-xs text-gray-400 truncate">byairu.com/collections/{slug}</p>
+            )}
           </div>
 
-          <div className="flex items-center justify-end gap-4">
+          <div>
+            <label className={ui.label}>Description <span className="text-gray-400 font-normal">(optional)</span></label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="A line or two about the series"
+              rows={3}
+              className={ui.textarea}
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
             <Button
               type="button"
-              variant="secondary"
+              variant="ghost"
               onClick={() => router.push('/admin/collections')}
               disabled={isCreating}
             >
               Cancel
             </Button>
-            <Button type="submit" variant="primary" disabled={isCreating}>
-              {isCreating ? 'Creating...' : 'Create Collection'}
+            <Button type="submit" disabled={isCreating}>
+              {isCreating ? 'Creating…' : 'Create collection'}
             </Button>
           </div>
         </form>

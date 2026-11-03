@@ -560,3 +560,16 @@ Steps "1" (collection detail header) and "4" (photo detail) of the redesign; don
 **Bug found: tag pages 404 in production.** `GET /photos?tag=X` fails backend validation (`getPhotoSchema.tag` was `z.array(z.string())`; Express parses `?tag=X` as a string → "expected array, received string"), so `/tags/[tag]` always `notFound()`. Verified live: `byairu.com/tags/Festival` and `/tags/Japan` → 404. Fix lives in `airu-portfolio-be` (`tag: z.string().min(1).optional()`); until it ships, "What I shoot" hides itself (counts all 0).
 
 **Dev note:** `localhost:8201` in `.env.local` is an SSH tunnel (likely to prod), not a local backend — browsing photo/About pages in dev increments real `viewCount`s.
+
+---
+
+## 18. Admin: collection order, visibility switch, zoom, full revamp (2026-11-03, `main`)
+
+- **Collection order (admin-controlled).** Backend `Collections.sortOrder` + `PUT /collections/order` (BE commits `6bc1f1b`, `9b5ef22`). Admin Collections page is a dnd-kit sortable grid (position badge + always-visible drag handle; optimistic save, rollback on error). `getAllCollections()` no longer re-sorts by photo count — the public /collections page shows the backend (admin) order. Prod column was added by hand and backfilled with the previous most-photos-first order, so the deploy didn't reshuffle anything.
+- **Tag pages fixed** — the backend `?tag=` validator fix from §17 shipped with the same BE push.
+- **Visibility control** (`VisibilityMenu`) is now a single icon switch that cycles Public (green globe) → Collection only (blue stack) → Private (grey lock); `size="sm"` for dense grids. Used by the photo grid, list and collection tiles.
+- **Grid zoom** (`components/admin/GridZoom.tsx`): `useGridZoom(key, {min,max,initial})` stores column count per screen in localStorage; `GridZoomSlider` (hidden below `sm`, phones keep fixed columns); grids use `zoomGridClass()` + `zoomGridStyle()` (CSS var `--grid-cols`). On Photos, collection photos, Add Photos picker, Collections list. Dense zoom switches tiles to compact mode (smaller controls, secondary ones on hover).
+- **Add Photos picker** is full-screen with a sticky title/search/zoom bar, 120 per page, hover "+" overlay, Esc closes. Collection edit page is full width.
+- **Admin revamp.** Shared tokens in `components/admin/ui.ts` (`card`, `field`, `textarea`, `select`, `label`, `iconButton`) and `PageHeader` (title / description / back link / actions). `Button` gains `ghost` + `size`; primary is near-black (dark: white) instead of blue. New sidebar (bracket logo, nav with unread badge, View site, theme toggle, user, logout); `AdminHeader` is now a mobile-only top bar. Pages restyled: Photos (search with icon, tidy filters + Clear, skeletons, empty states, floating dark `BulkActionBar`), Collections (cover cards, click to edit, delete on hover), collection edit ("Edit details" inline panel, "View on site ↗"), Inquiries (initial avatar, NEW tag, Reply mailto), New collection (URL preview), Login (logo card). Modals, ConfirmDialog, Toast, TagInput, EXIF section restyled to match.
+
+**Dev note:** for local admin work against real data, the BE can run locally on the prod DB through an SSH tunnel (`airu-db-relay` socat container on the server, `127.0.0.1:8083` → `dokploy-postgres:5432`, forwarded to local `:5434`). Edits made that way are live data.

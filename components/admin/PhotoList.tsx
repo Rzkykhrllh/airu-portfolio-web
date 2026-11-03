@@ -21,7 +21,7 @@ export default function PhotoList({
   onToggleSelect,
 }: PhotoListProps) {
   return (
-    <div className="space-y-3">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200/80 dark:border-gray-800 rounded-xl overflow-hidden divide-y divide-gray-100 dark:divide-gray-800">
       {photos.map((photo) => (
         <PhotoListItem
           key={photo.id}

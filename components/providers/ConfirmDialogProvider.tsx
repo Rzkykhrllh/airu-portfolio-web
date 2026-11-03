@@ -63,7 +63,7 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
 
       {pending && (
         <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[60] p-4"
           onClick={() => settle(false)}
         >
           <div
@@ -71,16 +71,16 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
             aria-modal="true"
             aria-labelledby="confirm-dialog-title"
             aria-describedby="confirm-dialog-message"
-            className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6 shadow-xl"
+            className="bg-white dark:bg-gray-900 rounded-2xl max-w-md w-full p-6 shadow-2xl ring-1 ring-black/5"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 id="confirm-dialog-title" className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+            <h2 id="confirm-dialog-title" className="text-base font-semibold text-gray-900 dark:text-white mb-1.5">
               {pending.title}
             </h2>
             <p id="confirm-dialog-message" className="text-sm text-gray-600 dark:text-gray-400 mb-6">
               {pending.message}
             </p>
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-2">
               <Button type="button" variant="secondary" onClick={() => settle(false)}>
                 {pending.cancelLabel || 'Cancel'}
               </Button>

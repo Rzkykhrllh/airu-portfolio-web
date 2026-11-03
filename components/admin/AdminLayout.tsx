@@ -16,63 +16,41 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
-    // Set mounted state (only runs on client)
+    // Client-only: auth lives in localStorage.
     setIsMounted(true);
-
-    // Check authentication (only on client)
     if (!isAuthenticated()) {
       router.push('/admin/login');
     }
   }, [router]);
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
-
-  const closeSidebar = () => {
-    setIsSidebarOpen(false);
-  };
-
-  // Before mount: render same HTML on server and client
-  // This prevents hydration mismatch
+  // Before mount: identical server/client markup (avoids hydration mismatch).
   if (!isMounted) {
     return (
-      <div className="min-h-screen bg-gray-100 dark:bg-black">
-        {/* Header Skeleton */}
-        <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-          <div className="h-16 px-4 flex items-center justify-between animate-pulse">
-            <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-          </div>
-        </div>
-        {/* Content Skeleton */}
-        <div className="p-8">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-              ))}
-            </div>
+      <div className="min-h-screen bg-background flex">
+        <div className="hidden lg:block w-60 shrink-0 border-r border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-950" />
+        <div className="flex-1 p-6 lg:p-10 animate-pulse space-y-6">
+          <div className="h-7 w-40 bg-gray-200 dark:bg-gray-800 rounded-md" />
+          <div className="h-12 bg-gray-200/70 dark:bg-gray-800/70 rounded-xl" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="aspect-square bg-gray-200/70 dark:bg-gray-800/70 rounded-xl" />
+            ))}
           </div>
         </div>
       </div>
     );
   }
 
-  // After mount: safe to check localStorage
   if (!isAuthenticated()) {
     return null;
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-black">
-      <AdminHeader onMenuClick={toggleSidebar} />
-      <div className="flex">
-        <AdminSidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
-        <main className="flex-1 p-4 md:p-8">
-          {children}
-        </main>
+    <div className="min-h-screen bg-background lg:flex">
+      <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <div className="flex-1 min-w-0">
+        <AdminHeader onMenuClick={() => setIsSidebarOpen((open) => !open)} />
+        <main className="px-4 py-6 sm:px-6 lg:px-10 lg:py-10">{children}</main>
       </div>
     </div>
   );

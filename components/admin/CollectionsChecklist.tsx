@@ -18,7 +18,7 @@ export default function CollectionsChecklist({
 }: CollectionsChecklistProps) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Collections</label>
+      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Collections</label>
       {isLoading ? (
         <div className="text-sm text-gray-500 dark:text-gray-400">Loading collections...</div>
       ) : collections.length === 0 ? (
@@ -37,7 +37,7 @@ export default function CollectionsChecklist({
                       : selectedIds.filter((id) => id !== col.id)
                   );
                 }}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                className="w-4 h-4 rounded accent-gray-900 dark:accent-white"
               />
               <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{col.title}</span>
             </label>

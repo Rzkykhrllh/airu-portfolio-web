@@ -11,6 +11,7 @@ import { useUndoDelete } from '@/components/providers/UndoDeleteProvider';
 import { usePhotoQuickEdit } from '@/hooks/usePhotoQuickEdit';
 import VisibilityMenu from './VisibilityMenu';
 import FeaturedToggle from './FeaturedToggle';
+import { zoomGridClass, zoomGridStyle } from './GridZoom';
 
 interface PhotoGridProps {
   photos: Photo[];
@@ -19,6 +20,8 @@ interface PhotoGridProps {
   selectMode?: boolean;
   selectedIds?: Set<string>;
   onToggleSelect?: (photoId: string) => void;
+  /** Columns from the page's zoom slider (sm and up). */
+  columns?: number;
 }
 
 export default function PhotoGrid({
@@ -28,9 +31,13 @@ export default function PhotoGrid({
   selectMode = false,
   selectedIds,
   onToggleSelect,
+  columns = 4,
 }: PhotoGridProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div
+      className={`${zoomGridClass(2)} ${columns >= 7 ? 'gap-2' : 'gap-4'}`}
+      style={zoomGridStyle(columns)}
+    >
       {photos.map((photo) => (
         <PhotoGridItem
           key={photo.id}
@@ -40,6 +47,7 @@ export default function PhotoGrid({
           selectMode={selectMode}
           selected={selectedIds?.has(photo.id) ?? false}
           onToggleSelect={onToggleSelect}
+          compact={columns >= 7}
         />
       ))}
     </div>
@@ -53,6 +61,7 @@ interface PhotoGridItemProps {
   selectMode?: boolean;
   selected?: boolean;
   onToggleSelect?: (photoId: string) => void;
+  compact?: boolean;
 }
 
 function PhotoGridItem({
@@ -62,6 +71,7 @@ function PhotoGridItem({
   selectMode = false,
   selected = false,
   onToggleSelect,
+  compact = false,
 }: PhotoGridItemProps) {
   const toast = useToast();
   const confirmDialog = useConfirmDialog();
@@ -111,98 +121,100 @@ function PhotoGridItem({
   if (isPendingDelete) return null;
 
   return (
-    <div className="relative group">
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={handleCardClick}
+      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleCardClick()}
+      className="group cursor-pointer focus:outline-none"
+    >
       <div
-        role="button"
-        tabIndex={0}
-        onClick={handleCardClick}
-        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleCardClick()}
-        className={`block w-full text-left cursor-pointer bg-white dark:bg-gray-800 rounded-lg border overflow-hidden hover:shadow-lg transition-shadow ${
+        className={`relative aspect-square overflow-hidden rounded-xl bg-gray-200 dark:bg-gray-800 transition-shadow ${
           selectMode && selected
-            ? 'border-blue-500 ring-2 ring-blue-500'
-            : 'border-gray-200 dark:border-gray-700'
+            ? 'ring-2 ring-offset-2 ring-gray-900 dark:ring-white ring-offset-[var(--background)]'
+            : 'group-focus-visible:ring-2 group-focus-visible:ring-gray-900/30'
         }`}
       >
-        <div className="relative aspect-square bg-gray-200 dark:bg-gray-900">
-          <Image
-            src={photo.src.medium}
-            alt={photo.title || 'Photo'}
-            fill
-            className="object-cover"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+        <Image
+          src={photo.src.medium}
+          alt={photo.title || 'Photo'}
+          fill
+          className={`object-cover transition-transform duration-500 ease-out ${selectMode ? '' : 'group-hover:scale-[1.03]'}`}
+          sizes="(max-width: 640px) 50vw, 25vw"
+        />
+
+        {/* Hover scrim keeps the controls legible on bright photos */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+        {selectMode && (
+          <span
+            className={`absolute top-2 left-2 w-5 h-5 rounded-full border-2 inline-flex items-center justify-center transition-colors ${
+              selected ? 'bg-gray-900 border-gray-900 dark:bg-white dark:border-white' : 'bg-white/70 border-white'
+            }`}
+            aria-hidden
+          >
+            {selected && (
+              <svg className="w-3 h-3 text-white dark:text-gray-900" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            )}
+          </span>
+        )}
+
+        {/* Delete (hover) */}
+        {!selectMode && (
+          <button
+            onClick={handleDelete}
+            className={`absolute ${compact ? 'top-1 right-1 p-1' : 'top-2 right-2 p-1.5'} rounded-lg bg-white/90 dark:bg-gray-900/90 text-gray-500 hover:text-red-600 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity`}
+            title="Delete photo"
+            aria-label="Delete photo"
+          >
+            <svg className={compact ? 'w-3 h-3' : 'w-4 h-4'} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        )}
+
+        {/* Visibility + featured */}
+        <div className={`absolute ${compact ? 'bottom-1 right-1 gap-0.5' : 'bottom-2 right-2 gap-1'} flex items-center`}>
+          <VisibilityMenu
+            visibility={visibility}
+            onChange={changeVisibility}
+            disabled={isUpdating}
+            size={compact ? 'sm' : 'md'}
           />
-
-          {selectMode && (
-            <div className="absolute top-2 left-2 z-10">
-              <input
-                type="checkbox"
-                checked={selected}
-                onChange={() => onToggleSelect?.(photo.id)}
-                onClick={(e) => e.stopPropagation()}
-                className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-              />
-            </div>
-          )}
-
-          {/* Visibility + Featured controls */}
-          <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
-            <VisibilityMenu visibility={visibility} onChange={changeVisibility} disabled={isUpdating} />
-            <FeaturedToggle
-              featured={featured}
-              onToggle={toggleFeatured}
-              disabled={isUpdating}
-              className="bg-white/90 dark:bg-gray-900/90 shadow-sm"
-            />
-          </div>
-
-          {/* Delete button - shows on hover */}
-          {!selectMode && (
-            <button
-              onClick={handleDelete}
-              className="absolute top-2 left-2 p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-              title="Delete photo"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </button>
-          )}
-        </div>
-        <div className="p-3">
-          <div className="flex items-center justify-between gap-2">
-            <h3 className="font-medium text-gray-900 dark:text-white truncate">
-              {photo.title || 'Untitled'}
-            </h3>
-            <span
-              className="flex items-center gap-1 flex-shrink-0 text-xs text-gray-500 dark:text-gray-400"
-              title="Views (real visitor reads only)"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              {photo.viewCount}
-            </span>
-          </div>
-          {photo.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2">
-              {photo.tags.slice(0, 3).map((tag) => (
-                <span
-                  key={tag}
-                  className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs rounded"
-                >
-                  {tag}
-                </span>
-              ))}
-              {photo.tags.length > 3 && (
-                <span className="px-2 py-0.5 text-gray-500 dark:text-gray-400 text-xs">
-                  +{photo.tags.length - 3}
-                </span>
-              )}
-            </div>
-          )}
+          <FeaturedToggle
+            featured={featured}
+            onToggle={toggleFeatured}
+            disabled={isUpdating}
+            iconClassName={compact ? 'w-3.5 h-3.5' : 'w-5 h-5'}
+            className={`bg-white/90 dark:bg-gray-900/90 shadow-sm ${compact ? '!p-0.5' : ''} ${
+              !featured ? 'opacity-0 group-hover:opacity-100' : ''
+            }`}
+          />
         </div>
       </div>
+
+      {!compact && (
+        <div className="pt-2 px-0.5 flex items-baseline justify-between gap-2">
+          <p className="text-sm text-gray-900 dark:text-gray-100 truncate">{photo.title || 'Untitled'}</p>
+          <span
+            className="flex items-center gap-1 shrink-0 text-xs tabular-nums text-gray-400"
+            title="Views (real visitor reads only)"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            {photo.viewCount}
+          </span>
+        </div>
+      )}
+      {!compact && (photo.location || photo.tags.length > 0) && (
+        <p className="px-0.5 text-xs text-gray-500 dark:text-gray-400 truncate">
+          {[photo.location, photo.tags.slice(0, 3).join(', ')].filter(Boolean).join(' · ')}
+        </p>
+      )}
     </div>
   );
 }

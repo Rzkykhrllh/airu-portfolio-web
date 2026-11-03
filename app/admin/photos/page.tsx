@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
 import ViewToggle from '@/components/admin/ViewToggle';
 import PhotoGrid from '@/components/admin/PhotoGrid';
+import GridZoomSlider, { useGridZoom } from '@/components/admin/GridZoom';
+import PageHeader from '@/components/admin/PageHeader';
+import * as ui from '@/components/admin/ui';
 import PhotoList from '@/components/admin/PhotoList';
 import PhotoEditModal from '@/components/admin/PhotoEditModal';
 import PhotoAddModal from '@/components/admin/PhotoAddModal';
@@ -28,6 +30,7 @@ export default function AdminPhotosPage() {
   const undoDelete = useUndoDelete();
 
   const [view, setView] = useState<'grid' | 'list'>('grid');
+  const gridZoom = useGridZoom('photos', { min: 2, max: 10, initial: 5 });
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -253,28 +256,45 @@ export default function AdminPhotosPage() {
     });
   };
 
+  const hasActiveFilters =
+    !!searchInput ||
+    !!filters.collection ||
+    !!filters.visibility ||
+    filters.featured !== undefined ||
+    (filters.sort ?? 'newest') !== 'newest';
+
+  const clearFilters = () => {
+    setSearchInput('');
+    updateFilters(() => ({ sort: 'newest' } as PhotoFilters));
+  };
+
+  const visiblePhotos = photos.filter((p) => !pendingDeleteIds.has(p.id));
+
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Photos</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              {total} {total === 1 ? 'photo' : 'photos'}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Button variant="secondary" onClick={toggleSelectMode}>
-              {selectMode ? 'Cancel Select' : 'Select'}
+      <PageHeader
+        title="Photos"
+        description={
+          <>
+            <span className="tabular-nums">{total}</span> {total === 1 ? 'photo' : 'photos'} in the library
+          </>
+        }
+        actions={
+          <>
+            <Button variant={selectMode ? 'primary' : 'secondary'} onClick={toggleSelectMode}>
+              {selectMode ? 'Done' : 'Select'}
             </Button>
             <Button variant="primary" onClick={() => setShowAddModal(true)}>
-              + Upload
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 16V4m0 0l-4 4m4-4l4 4M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3" />
+              </svg>
+              Upload
             </Button>
-          </div>
-        </div>
+          </>
+        }
+      />
 
+      <div className="space-y-5">
         {selectMode && (
           <BulkActionBar
             selectedCount={selectedIds.size}
@@ -287,113 +307,149 @@ export default function AdminPhotosPage() {
           />
         )}
 
-        {/* Filters */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-          <div className="flex flex-wrap items-center gap-4">
+        {/* Toolbar: search + filters + view controls */}
+        <div className={`${ui.card} p-3 flex flex-wrap items-center gap-2`}>
+          <div className="relative flex-1 min-w-[220px] max-w-sm">
+            <svg
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path strokeLinecap="round" d="M20 20l-3.5-3.5" />
+            </svg>
+            <input
+              type="search"
+              placeholder="Search title, location, tag…"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className={`${ui.field} pl-9`}
+            />
+          </div>
+
+          <select
+            className={ui.select}
+            value={filters.collection ?? ''}
+            onChange={(e) => {
+              const value = e.target.value;
+              updateFilters((prev) => ({ ...prev, collection: value || undefined }));
+            }}
+            aria-label="Collection"
+          >
+            <option value="">All collections</option>
+            {availableCollections.map((col) => (
+              <option key={col.slug} value={col.slug}>
+                {col.title}
+              </option>
+            ))}
+          </select>
+
+          <select
+            className={ui.select}
+            value={filters.visibility ?? ''}
+            onChange={(e) => {
+              const value = e.target.value;
+              updateFilters((prev) => ({
+                ...prev,
+                visibility: value === '' ? undefined : (value as PhotoFilters['visibility']),
+              }));
+            }}
+            aria-label="Visibility"
+          >
+            <option value="">Any visibility</option>
+            <option value="PUBLIC">Public</option>
+            <option value="COLLECTION_ONLY">Collection only</option>
+            <option value="PRIVATE">Private</option>
+          </select>
+
+          <select
+            className={ui.select}
+            value={filters.featured === undefined ? '' : String(filters.featured)}
+            onChange={(e) => {
+              const value = e.target.value;
+              updateFilters((prev) => ({
+                ...prev,
+                featured: value === '' ? undefined : value === 'true',
+              }));
+            }}
+            aria-label="Featured"
+          >
+            <option value="">Featured or not</option>
+            <option value="true">Featured only</option>
+            <option value="false">Not featured</option>
+          </select>
+
+          <select
+            className={ui.select}
+            value={filters.sort ?? 'newest'}
+            onChange={(e) => {
+              const value = e.target.value as PhotoFilters['sort'];
+              updateFilters((prev) => ({ ...prev, sort: value }));
+            }}
+            aria-label="Sort"
+          >
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="title">Title A–Z</option>
+            <option value="views">Most viewed</option>
+          </select>
+
+          {hasActiveFilters && (
+            <Button variant="ghost" size="sm" onClick={clearFilters}>
+              Clear
+            </Button>
+          )}
+
+          <div className="ml-auto flex items-center gap-3">
+            {view === 'grid' && <GridZoomSlider {...gridZoom} onChange={gridZoom.setColumns} />}
             <ViewToggle view={view} onChange={setView} />
-
-            <div className="flex-1 min-w-[200px] max-w-md">
-              <Input
-                placeholder="Search by title, location, tag..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-              />
-            </div>
-
-            <select
-              className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={filters.collection ?? ''}
-              onChange={(e) => {
-                const value = e.target.value;
-                updateFilters((prev) => ({ ...prev, collection: value || undefined }));
-              }}
-            >
-              <option value="">All Collections</option>
-              {availableCollections.map((col) => (
-                <option key={col.slug} value={col.slug}>
-                  {col.title}
-                </option>
-              ))}
-            </select>
-
-            <select
-              className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={filters.visibility ?? ''}
-              onChange={(e) => {
-                const value = e.target.value;
-                updateFilters((prev) => ({
-                  ...prev,
-                  visibility: value === '' ? undefined : (value as PhotoFilters['visibility']),
-                }));
-              }}
-            >
-              <option value="">All Visibility</option>
-              <option value="PUBLIC">Public</option>
-              <option value="COLLECTION_ONLY">Collection Only</option>
-              <option value="PRIVATE">Private</option>
-            </select>
-
-            <select
-              className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={filters.sort ?? 'newest'}
-              onChange={(e) => {
-                const value = e.target.value as PhotoFilters['sort'];
-                updateFilters((prev) => ({ ...prev, sort: value }));
-              }}
-            >
-              <option value="newest">Newest First</option>
-              <option value="oldest">Oldest First</option>
-              <option value="title">Title A–Z</option>
-              <option value="views">Most Viewed</option>
-            </select>
-
-            <select
-              className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={filters.featured === undefined ? '' : String(filters.featured)}
-              onChange={(e) => {
-                const value = e.target.value;
-                updateFilters((prev) => ({
-                  ...prev,
-                  featured: value === '' ? undefined : value === 'true',
-                }));
-              }}
-            >
-              <option value="">All Photos</option>
-              <option value="true">Featured Only</option>
-              <option value="false">Not Featured</option>
-            </select>
           </div>
         </div>
 
         {/* Photos */}
         {isLoading ? (
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-12 text-center">
-            <p className="text-gray-500 dark:text-gray-400">Loading photos...</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4 animate-pulse">
+            {Array.from({ length: 10 }).map((_, i) => (
+              <div key={i} className="aspect-[4/5] rounded-xl bg-gray-200/70 dark:bg-gray-800/70" />
+            ))}
           </div>
         ) : error ? (
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-red-200 dark:border-red-900/50 p-12 text-center">
-            <p className="text-red-600 dark:text-red-400 mb-2">Failed to load photos</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{error}</p>
-            <Button variant="secondary" onClick={loadPhotos}>Try Again</Button>
+          <div className={`${ui.card} p-12 text-center`}>
+            <p className="font-medium text-gray-900 dark:text-white mb-1">Couldn&apos;t load photos</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">{error}</p>
+            <Button variant="secondary" onClick={loadPhotos}>Try again</Button>
           </div>
-        ) : photos.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-12 text-center">
-            <p className="text-gray-500 dark:text-gray-400">No photos found</p>
+        ) : visiblePhotos.length === 0 ? (
+          <div className={`${ui.card} p-16 text-center`}>
+            <p className="font-medium text-gray-900 dark:text-white mb-1">
+              {hasActiveFilters ? 'No photos match these filters' : 'No photos yet'}
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
+              {hasActiveFilters ? 'Try a different search or clear the filters.' : 'Upload your first photos to get started.'}
+            </p>
+            {hasActiveFilters ? (
+              <Button variant="secondary" onClick={clearFilters}>Clear filters</Button>
+            ) : (
+              <Button onClick={() => setShowAddModal(true)}>Upload photos</Button>
+            )}
           </div>
         ) : (
           <>
             {view === 'grid' ? (
               <PhotoGrid
-                photos={photos.filter((p) => !pendingDeleteIds.has(p.id))}
+                photos={visiblePhotos}
                 onPhotoClick={setEditingPhotoId}
                 onPhotoDeleted={loadPhotos}
                 selectMode={selectMode}
                 selectedIds={selectedIds}
                 onToggleSelect={toggleSelect}
+                columns={gridZoom.columns}
               />
             ) : (
               <PhotoList
-                photos={photos.filter((p) => !pendingDeleteIds.has(p.id))}
+                photos={visiblePhotos}
                 onPhotoClick={setEditingPhotoId}
                 onPhotoDeleted={loadPhotos}
                 selectMode={selectMode}
@@ -404,23 +460,15 @@ export default function AdminPhotosPage() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-4 pt-2">
-                <Button
-                  variant="secondary"
-                  onClick={() => goToPage(page - 1)}
-                  disabled={page <= 1}
-                >
-                  Previous
+              <div className="flex items-center justify-center gap-3 pt-4">
+                <Button variant="secondary" size="sm" onClick={() => goToPage(page - 1)} disabled={page <= 1}>
+                  ← Previous
                 </Button>
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  Page {page} of {totalPages}
+                <span className="text-sm text-gray-500 dark:text-gray-400 tabular-nums px-2">
+                  {page} / {totalPages}
                 </span>
-                <Button
-                  variant="secondary"
-                  onClick={() => goToPage(page + 1)}
-                  disabled={page >= totalPages}
-                >
-                  Next
+                <Button variant="secondary" size="sm" onClick={() => goToPage(page + 1)} disabled={page >= totalPages}>
+                  Next →
                 </Button>
               </div>
             )}

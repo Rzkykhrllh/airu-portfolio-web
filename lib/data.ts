@@ -93,10 +93,9 @@ export async function getRelatedPhotos(photo: Photo, limit = 8): Promise<Photo[]
 }
 
 export async function getAllCollections(): Promise<Collection[]> {
-  // Biggest collections first — raw backend order is roughly creation
-  // order, which buries substantial collections behind thin ones.
-  const collections = await getCollections();
-  return [...collections].sort((a, b) => b.photoCount - a.photoCount);
+  // Backend returns collections in the admin-defined order (sortOrder) —
+  // keep it as-is; the admin Collections page is where it's set.
+  return getCollections();
 }
 
 export async function getCollectionBySlug(
