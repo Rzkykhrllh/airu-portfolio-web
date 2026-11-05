@@ -10,8 +10,19 @@ interface TagPageProps {
   params: Promise<{ tag: string }>;
 }
 
-export async function generateMetadata({ params }: TagPageProps): Promise<Metadata> {
+// Dynamic segments arrive still URL-encoded ("Street%20Photography"), so a
+// tag with a space or non-ASCII character never matched and 404'd.
+async function readTag(params: TagPageProps['params']): Promise<string> {
   const { tag } = await params;
+  try {
+    return decodeURIComponent(tag);
+  } catch {
+    return tag; // malformed escape, use as-is
+  }
+}
+
+export async function generateMetadata({ params }: TagPageProps): Promise<Metadata> {
+  const tag = await readTag(params);
   const { photos } = await getGalleryPage(1, { tag });
 
   if (photos.length === 0) {
@@ -44,7 +55,7 @@ export async function generateMetadata({ params }: TagPageProps): Promise<Metada
 }
 
 export default async function TagPage({ params }: TagPageProps) {
-  const { tag } = await params;
+  const tag = await readTag(params);
   const { photos, total, hasMore } = await getGalleryPage(1, { tag });
 
   // No natural way to tell "unknown tag" from "tag exists, no PUBLIC photos
