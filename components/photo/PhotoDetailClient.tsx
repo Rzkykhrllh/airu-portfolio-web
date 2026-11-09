@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, useLayoutEffect, useRef } from 'react';
-import Image from 'next/image';
+import { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Photo } from '@/types';
 import Lightbox from '@/components/ui/Lightbox';
-import { getNextPhoto, getPreviousPhoto, getPhotoById } from '@/lib/data';
+import { getNeighbors, getPhotoById } from '@/lib/data';
+import { photoSrcSet } from '@/lib/photoSrc';
 import { HERO_ATTR, getActiveId, getActiveRatio, getActiveSrc, handOff, markLanded } from '@/lib/photoTransition';
 
 interface PhotoDetailClientProps {
@@ -62,17 +62,23 @@ function HeroImage({ photo, onOpen }: { photo: Photo; onOpen: () => void }) {
         // there's no mid-crossfade dip where both are half transparent.
         className={`absolute inset-0 w-full h-full object-cover ${handoffSrc ? '' : 'scale-105 blur-xl'}`}
       />
-      <Image
-        src={photo.src.full}
+      {/* Straight from the CDN (lib/photoSrc.ts) — the image optimizer took seconds per cold photo. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        ref={(el) => {
+          if (el?.complete && el.naturalWidth > 0) setLoaded(true);
+        }}
+        srcSet={photoSrcSet(photo)}
+        sizes="(min-width: 1536px) 1472px, 100vw"
+        src={photo.src.medium}
         alt={photo.title || (photo.location ? `Photograph from ${photo.location}` : 'Photograph by Airu')}
         width={1600}
         height={Math.round(1600 * ratio)}
-        sizes="(min-width: 1536px) 1472px, 100vw"
+        fetchPriority="high"
         className={`relative block transition-opacity duration-500 motion-reduce:transition-none ${
           boxStyle ? 'w-full h-full object-cover' : 'w-auto h-auto max-w-full max-h-[calc(100svh-12rem)]'
         } ${loaded ? 'opacity-100' : 'opacity-0'}`}
         onLoad={() => setLoaded(true)}
-        priority
       />
     </button>
   );
@@ -83,8 +89,10 @@ export default function PhotoDetailClient({ photo, nextPhotoId, prevPhotoId }: P
   const searchParams = useSearchParams();
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [currentPhoto, setCurrentPhoto] = useState(photo);
-  const [currentNextId, setCurrentNextId] = useState(nextPhotoId);
-  const [currentPrevId, setCurrentPrevId] = useState(prevPhotoId);
+  // Neighbours of the photo currently shown (it changes in place while
+  // paging in fullscreen). Resolved from one cached list, so arrows switch
+  // instantly instead of re-fetching the whole collection per click.
+  const [neighbors, setNeighbors] = useState<{ id: string; prev: Photo | null; next: Photo | null } | null>(null);
 
   // Get collection slug from URL for scoped navigation
   const collectionSlug = searchParams.get('collection') || undefined;
@@ -109,9 +117,26 @@ export default function PhotoDetailClient({ photo, nextPhotoId, prevPhotoId }: P
   // Update currentPhoto when photo prop changes (after navigation)
   useEffect(() => {
     setCurrentPhoto(photo);
-    setCurrentNextId(nextPhotoId);
-    setCurrentPrevId(prevPhotoId);
-  }, [photo, nextPhotoId, prevPhotoId]);
+  }, [photo]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getNeighbors(currentPhoto.id, collectionSlug)
+      .then((n) => {
+        if (!cancelled) setNeighbors({ id: currentPhoto.id, ...n });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [currentPhoto.id, collectionSlug]);
+
+  const known = neighbors?.id === currentPhoto.id ? neighbors : null;
+  // Before the list arrives, fall back to what the server rendered (only
+  // valid for the page's own photo).
+  const lightboxNeighbors = useMemo(() => (known ? [known.next, known.prev] : undefined), [known]);
+  const hasNext = known ? !!known.next : currentPhoto.id === photo.id && !!nextPhotoId;
+  const hasPrev = known ? !!known.prev : currentPhoto.id === photo.id && !!prevPhotoId;
 
   // Handle browser back/forward buttons
   useEffect(() => {
@@ -131,12 +156,6 @@ export default function PhotoDetailClient({ photo, nextPhotoId, prevPhotoId }: P
 
           if (fetchedPhoto) {
             setCurrentPhoto(fetchedPhoto);
-
-            // Update next/prev IDs (use collection context from URL)
-            const newNextPhoto = await getNextPhoto(fetchedPhoto.id, urlCollectionSlug);
-            const newPrevPhoto = await getPreviousPhoto(fetchedPhoto.id, urlCollectionSlug);
-            setCurrentNextId(newNextPhoto?.id);
-            setCurrentPrevId(newPrevPhoto?.id);
           }
         } catch (error) {
           console.error('Failed to load photo on popstate:', error);
@@ -148,39 +167,16 @@ export default function PhotoDetailClient({ photo, nextPhotoId, prevPhotoId }: P
     return () => window.removeEventListener('popstate', handlePopState);
   }, [currentPhoto.id]);
 
-  const handleNext = currentNextId ? async () => {
-    // Fetch next photo without page navigation for smooth transition (use collection context)
-    const nextPhoto = await getNextPhoto(currentPhoto.id, collectionSlug);
-    if (nextPhoto) {
-      setCurrentPhoto(nextPhoto);
-
-      // Update next/prev IDs (use collection context)
-      const newNextPhoto = await getNextPhoto(nextPhoto.id, collectionSlug);
-      const newPrevPhoto = await getPreviousPhoto(nextPhoto.id, collectionSlug);
-      setCurrentNextId(newNextPhoto?.id);
-      setCurrentPrevId(newPrevPhoto?.id);
-
-      // Update URL silently without page reload (preserve collection context)
-      window.history.pushState(null, '', buildPhotoUrl(nextPhoto.id, true));
-    }
-  } : undefined;
-
-  const handlePrev = currentPrevId ? async () => {
-    // Fetch prev photo without page navigation for smooth transition (use collection context)
-    const prevPhoto = await getPreviousPhoto(currentPhoto.id, collectionSlug);
-    if (prevPhoto) {
-      setCurrentPhoto(prevPhoto);
-
-      // Update next/prev IDs (use collection context)
-      const newNextPhoto = await getNextPhoto(prevPhoto.id, collectionSlug);
-      const newPrevPhoto = await getPreviousPhoto(prevPhoto.id, collectionSlug);
-      setCurrentNextId(newNextPhoto?.id);
-      setCurrentPrevId(newPrevPhoto?.id);
-
-      // Update URL silently without page reload (preserve collection context)
-      window.history.pushState(null, '', buildPhotoUrl(prevPhoto.id, true));
-    }
-  } : undefined;
+  // Switch right away; the sharp image streams in behind a placeholder.
+  const goTo = async (dir: 'prev' | 'next') => {
+    const target = known ? known[dir] : (await getNeighbors(currentPhoto.id, collectionSlug))[dir];
+    if (!target) return;
+    setCurrentPhoto(target);
+    // Update URL silently without page reload (preserve collection context)
+    window.history.pushState(null, '', buildPhotoUrl(target.id, true));
+  };
+  const handleNext = hasNext ? () => goTo('next') : undefined;
+  const handlePrev = hasPrev ? () => goTo('prev') : undefined;
 
   const handleOpenLightbox = () => {
     setIsLightboxOpen(true);
@@ -234,9 +230,8 @@ export default function PhotoDetailClient({ photo, nextPhotoId, prevPhotoId }: P
       <Lightbox
         isOpen={isLightboxOpen}
         onClose={handleCloseLightbox}
-        imageSrc={currentPhoto.src.full}
-        imageAlt={currentPhoto.title || 'Photo'}
-        aspectRatio={currentPhoto.aspectRatio}
+        photo={currentPhoto}
+        neighbors={lightboxNeighbors}
         onNext={handleNext}
         onPrev={handlePrev}
       />

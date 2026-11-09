@@ -9,6 +9,10 @@ const GALLERY_PAGE_SIZE = 30;
 const NAV_CACHE_TTL_MS = 60_000;
 let allPhotosCache: { data: Photo[]; expiresAt: number } | null = null;
 const collectionPhotosCache = new Map<string, { data: Photo[]; expiresAt: number }>();
+// In-flight requests, so concurrent callers share one fetch instead of each
+// pulling the whole list.
+let allPhotosInflight: Promise<Photo[]> | null = null;
+const collectionInflight = new Map<string, Promise<Photo[]>>();
 
 export async function getAllPhotos(): Promise<Photo[]> {
   // Used for prev/next photo navigation, which needs the full ordered list.
@@ -18,9 +22,17 @@ export async function getAllPhotos(): Promise<Photo[]> {
   if (allPhotosCache && allPhotosCache.expiresAt > now) {
     return allPhotosCache.data;
   }
-  const photos = await getPhotos({ scope: 'public', limit: 1000 });
-  allPhotosCache = { data: photos, expiresAt: now + NAV_CACHE_TTL_MS };
-  return photos;
+  if (!allPhotosInflight) {
+    allPhotosInflight = getPhotos({ scope: 'public', limit: 1000 })
+      .then((photos) => {
+        allPhotosCache = { data: photos, expiresAt: Date.now() + NAV_CACHE_TTL_MS };
+        return photos;
+      })
+      .finally(() => {
+        allPhotosInflight = null;
+      });
+  }
+  return allPhotosInflight;
 }
 
 export type GalleryFilters = {
@@ -59,10 +71,20 @@ export async function getPhotosForCollection(collectionSlug?: string): Promise<P
   if (cached && cached.expiresAt > now) return cached.data;
 
   // Use collection API to get photos - same source as collection page display
-  const collection = await getCollection(collectionSlug);
-  const photos = collection?.photos || [];
-  collectionPhotosCache.set(collectionSlug, { data: photos, expiresAt: now + NAV_CACHE_TTL_MS });
-  return photos;
+  let inflight = collectionInflight.get(collectionSlug);
+  if (!inflight) {
+    inflight = getCollection(collectionSlug)
+      .then((collection) => {
+        const photos = collection?.photos || [];
+        collectionPhotosCache.set(collectionSlug, { data: photos, expiresAt: Date.now() + NAV_CACHE_TTL_MS });
+        return photos;
+      })
+      .finally(() => {
+        collectionInflight.delete(collectionSlug);
+      });
+    collectionInflight.set(collectionSlug, inflight);
+  }
+  return inflight;
 }
 
 export async function getPhotoById(id: string): Promise<Photo | undefined> {
@@ -113,6 +135,17 @@ export async function getNextPhoto(currentId: string, collectionSlug?: string): 
   const currentIndex = photos.findIndex((photo) => photo.id === currentId);
   if (currentIndex === -1 || currentIndex === photos.length - 1) return null;
   return photos[currentIndex + 1];
+}
+
+/** Both neighbours from one (cached) list lookup. */
+export async function getNeighbors(
+  currentId: string,
+  collectionSlug?: string
+): Promise<{ prev: Photo | null; next: Photo | null }> {
+  const photos = collectionSlug ? await getPhotosForCollection(collectionSlug) : await getAllPhotos();
+  const i = photos.findIndex((photo) => photo.id === currentId);
+  if (i === -1) return { prev: null, next: null };
+  return { prev: photos[i - 1] ?? null, next: photos[i + 1] ?? null };
 }
 
 export async function getPreviousPhoto(

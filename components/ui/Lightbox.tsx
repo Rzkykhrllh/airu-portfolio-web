@@ -1,29 +1,44 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { Photo } from '@/types';
+import { photoSrcSet, preloadPhoto } from '@/lib/photoSrc';
 
 interface LightboxProps {
   isOpen: boolean;
   onClose: () => void;
-  imageSrc: string;
-  imageAlt: string;
-  aspectRatio: number;
+  photo: Photo;
+  /** Prev/next photos — preloaded while open so arrow clicks show instantly. */
+  neighbors?: Array<Photo | null | undefined>;
   onNext?: () => void;
   onPrev?: () => void;
 }
 
-export default function Lightbox({
-  isOpen,
-  onClose,
-  imageSrc,
-  imageAlt,
-  aspectRatio,
-  onNext,
-  onPrev,
-}: LightboxProps) {
+export default function Lightbox({ isOpen, onClose, photo, neighbors = [], onNext, onPrev }: LightboxProps) {
   const [isZoomed, setIsZoomed] = useState(false);
+  // Which photo's sharp image has finished loading; anything else shows the
+  // blurred thumbnail + a spinner (after a short delay, so cached photos don't flash it).
+  const [loadedId, setLoadedId] = useState<string | null>(null);
+  const [showSpinner, setShowSpinner] = useState(false);
+  const loading = loadedId !== photo.id;
+
+  useEffect(() => {
+    setShowSpinner(false);
+    if (!loading) return;
+    const t = setTimeout(() => setShowSpinner(true), 200);
+    return () => clearTimeout(t);
+  }, [photo.id, loading]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    neighbors.forEach((n) => n && preloadPhoto(n));
+  }, [isOpen, neighbors]);
+
+  const markLoaded = (el: HTMLImageElement | null) => {
+    // Cached images can be complete before React attaches onLoad.
+    if (el?.complete && el.naturalWidth > 0) setLoadedId(photo.id);
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -146,21 +161,46 @@ export default function Lightbox({
             }`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className={`relative ${isZoomed ? 'w-auto h-auto' : 'w-full h-full'}`}>
-              <Image
-                src={imageSrc}
-                alt={imageAlt}
-                width={isZoomed ? 3000 : 1600}
-                height={isZoomed ? 3000 * aspectRatio : 1600 * aspectRatio}
-                // Unzoomed view is capped to the viewport, so cap the fetched size to
-                // match. Zoomed mode intentionally wants full resolution for pixel-peeking.
-                sizes={isZoomed ? undefined : '100vw'}
-                className={`${
-                  isZoomed ? 'w-auto h-auto max-w-none' : 'w-full h-full object-contain'
-                }`}
-                priority
+            {isZoomed ? (
+              // Zoom: the 2400px original at natural size, for pixel-peeking.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={photo.src.full}
+                alt={photo.title || 'Photo'}
+                className="w-auto h-auto max-w-none"
               />
-            </div>
+            ) : (
+              <div className="relative w-full h-full">
+                {/* Instant stand-in while the sharp file loads (thumbnail is usually cached from the grid). */}
+                {loading && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={photo.src.thumbnail}
+                    alt=""
+                    aria-hidden="true"
+                    className="absolute inset-0 w-full h-full object-contain blur-md opacity-80"
+                  />
+                )}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  key={photo.id}
+                  ref={markLoaded}
+                  srcSet={photoSrcSet(photo)}
+                  sizes="100vw"
+                  src={photo.src.medium}
+                  alt={photo.title || 'Photo'}
+                  onLoad={() => setLoadedId(photo.id)}
+                  className={`relative w-full h-full object-contain transition-opacity duration-300 motion-reduce:transition-none ${
+                    loading ? 'opacity-0' : 'opacity-100'
+                  }`}
+                />
+                {loading && showSpinner && (
+                  <div className="absolute inset-0 grid place-items-center pointer-events-none" role="status" aria-label="Loading photo">
+                    <span className="w-9 h-9 rounded-full border-2 border-white/25 border-t-white animate-spin" />
+                  </div>
+                )}
+              </div>
+            )}
           </motion.div>
 
           {/* Keyboard Hints */}
