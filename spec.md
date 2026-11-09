@@ -591,3 +591,25 @@ Steps "1" (collection detail header) and "4" (photo detail) of the redesign; don
 - **Stable covers.** BE orders photos in a collection by `sortOrder`, then photo `createdAt`, then id (`PHOTO_ORDER_IN_COLLECTION`) — most memberships were all `sortOrder 0`, so ties came back in random order and covers "changed by themselves". Photos newly added to a collection get `max + 1` (appended). Admin cover = first non-private photo, same as the public site.
 - **Save indicator.** `components/admin/SaveStatus.tsx` (`useSaveState().run(fn)`): floating pill "Saving order…" → "✓ Saved" / red error with rollback; the grid dims and locks while saving. Used for collection and photo reordering ("order & new cover" when the move changes the cover).
 - **Manual cover crop.** `Collections.coverCrop` (BE `cover_crop` JSONB) = `{ photoId, x, y, w, h }`, a 3:2 rectangle in % of the original image. Admin "Adjust cover" opens `CoverCropEditor` (drag the frame, zoom slider / wheel 1–4×, live card preview, reset, remove). `lib/coverCrop.ts` → `coverCropFor()` (only while `photoId` is still the cover) and `cropImageStyle()` (absolute-positioned img inside the 3:2 frame; works with next/image `fill`). Applied on the admin collection cards and public `CollectionCard`.
+
+## 21. Photo morph transition, grid ⇄ photo page (2026-11-09)
+
+Tapping a photo in any grid (gallery, collection, tag, related) grows the
+thumbnail into the hero on the photo page; the page's "← Back" link shrinks
+it back into its card. Built on the browser View Transitions API, no library
+(`next-view-transitions`' popstate handler would freeze the photo page for
+~4s when the lightbox closes via the back button, since the path doesn't change).
+
+- `lib/photoTransition.ts`: `morph(navigate)` wraps a navigation in
+  `document.startViewTransition` and waits for the destination to call
+  `arrived()` (2.5s / 1.5s timeout → plain crossfade).
+- Only one element ever carries `view-transition-name: photo-hero`, set
+  imperatively right before the transition (a grid can hold hundreds of cards).
+- The hero starts from the card's already-decoded image (`currentSrc` handoff),
+  so the first frame is sharp, not the blur placeholder.
+- Back link uses `router.back()` only when nothing was pushed since landing
+  (lightbox / prev-next) so the grid keeps its scroll; otherwise a normal link.
+  The card becomes the destination only once the masonry layout is final and
+  it's on screen. Waits use `setTimeout`, not rAF — rendering is paused while a
+  view transition waits for its update.
+- Browser back/forward and other links: unchanged. No API or reduced motion: plain navigation.

@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
 import { Photo } from '@/types';
 import PhotoCard from './PhotoCard';
 import { useViewportTier } from '@/hooks/useViewportTier';
+import { arrived, isClaimed, isPending } from '@/lib/photoTransition';
 
 // §7c: module-level so it survives client-side navigation (resets only on
 // hard reload) — skips the entrance animation replaying on every back/forward.
@@ -120,6 +121,14 @@ export default function MasonryGrid({
     hasAnimatedOnce = true;
   }, []);
 
+  // Returning from a photo page mid-morph: once the layout is final, finish
+  // the transition — unless the matching card claimed it (it finishes itself
+  // after its image decodes). Child layout effects run before this one.
+  const settled = tier !== null && ratiosResolved;
+  useLayoutEffect(() => {
+    if (settled && isPending() && !isClaimed()) arrived();
+  }, [settled]);
+
   const priorityIds = useMemo(() => new Set(photos.slice(0, 8).map((p) => p.id)), [photos]);
   const variants = shouldReduce ? reducedContainerVariants : containerVariants;
   const childVariants = itemVariants(Boolean(shouldReduce));
@@ -138,7 +147,7 @@ export default function MasonryGrid({
       >
         {photos.map((photo) => (
           <motion.div key={photo.id} variants={childVariants} className={`break-inside-avoid ${ITEM_MB}`}>
-            <PhotoCard photo={photo} priority={priorityIds.has(photo.id)} collectionSlug={collectionSlug} />
+            <PhotoCard photo={photo} priority={priorityIds.has(photo.id)} collectionSlug={collectionSlug} settled={false} />
           </motion.div>
         ))}
       </motion.div>

@@ -11,6 +11,7 @@ import { SITE_URL } from '@/lib/config';
 import { buildPhotoImageObject, toJsonLdScript } from '@/lib/structuredData';
 import PhotoDetailClient from '@/components/photo/PhotoDetailClient';
 import RelatedPhotos from '@/components/photo/RelatedPhotos';
+import BackLink from '@/components/photo/BackLink';
 import { normalizeExif } from '@/lib/format';
 
 // Force dynamic rendering (don't pre-generate at build time)
@@ -161,9 +162,9 @@ export default async function PhotoPage({ params, searchParams }: PhotoPageProps
 
       {/* Top bar — text only */}
       <nav className="flex items-center justify-between pt-8 md:pt-10" aria-label="Photo navigation">
-        <Link href={backUrl} className={labelLink}>
+        <BackLink href={backUrl} className={labelLink}>
           ← {backName}
-        </Link>
+        </BackLink>
         <div className="flex items-center gap-6">
           {prevPhoto && (
             <Link href={buildPhotoUrl(prevPhoto.id)} className={labelLink} aria-label="Previous photograph">

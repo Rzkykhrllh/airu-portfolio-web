@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Photo } from '@/types';
 import Lightbox from '@/components/ui/Lightbox';
 import { getNextPhoto, getPreviousPhoto, getPhotoById } from '@/lib/data';
+import { HERO_ATTR, arrived, claim, getActiveId, getActiveSrc, isPending, markLanded, name } from '@/lib/photoTransition';
 
 interface PhotoDetailClientProps {
   photo: Photo;
@@ -18,22 +19,41 @@ interface PhotoDetailClientProps {
 // Next/Prev navigation instead of showing a blank box while the new photo loads.
 function HeroImage({ photo, onOpen }: { photo: Photo; onOpen: () => void }) {
   const [loaded, setLoaded] = useState(false);
+  const boxRef = useRef<HTMLButtonElement>(null);
+  const placeholderRef = useRef<HTMLImageElement>(null);
+  // Opened by tapping a grid card: start from that card's already-loaded image
+  // (sharp, from cache) instead of the blurred thumbnail.
+  const [handoffSrc] = useState(() => getActiveSrc(photo.id));
+
+  // Destination of the grid -> photo morph (lib/photoTransition.ts).
+  useLayoutEffect(() => {
+    if (getActiveId() === photo.id) markLanded();
+    if (!isPending() || getActiveId() !== photo.id) return;
+    claim();
+    name(boxRef.current);
+    const img = placeholderRef.current;
+    const ready = img?.complete ? Promise.resolve() : img?.decode?.() ?? Promise.resolve();
+    ready.catch(() => {}).finally(arrived);
+  }, [photo.id]);
 
   return (
     // Box shrink-wraps the photo (w-fit), so the blur placeholder covers exactly
     // the image area — no blurred side bands around portrait shots.
     <button
+      ref={boxRef}
+      {...{ [HERO_ATTR]: '', 'data-photo-hero-main': '' }}
       onClick={onOpen}
       className="relative block mx-auto w-fit max-w-full overflow-hidden cursor-zoom-in"
       aria-label="View fullscreen"
     >
       <img
-        src={photo.src.thumbnail}
+        ref={placeholderRef}
+        src={handoffSrc || photo.src.thumbnail}
         alt=""
         aria-hidden="true"
-        className={`absolute inset-0 w-full h-full object-cover scale-105 blur-xl transition-opacity duration-500 ${
-          loaded ? 'opacity-0' : 'opacity-100'
-        }`}
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
+          handoffSrc ? '' : 'scale-105 blur-xl'
+        } ${loaded ? 'opacity-0' : 'opacity-100'}`}
       />
       <Image
         src={photo.src.full}
