@@ -5,6 +5,14 @@
  * photo page (and shrinks back on the page's back link), using the browser's
  * View Transitions API.
  *
+ * Forward (grid -> photo) never waits for the server. The photo page is
+ * force-dynamic, so it can take a moment to arrive; waiting froze the screen
+ * and, past the timeout, the photo flew to nowhere and vanished. Instead the
+ * photo lands on a temporary overlay (a page-coloured backdrop + the image at
+ * the hero's computed position) that lives outside the route tree. When the
+ * real page mounts, its hero takes over under the overlay, the overlay snaps
+ * to the hero's exact box and fades away.
+ *
  * Only ONE element per page ever carries the shared name, set imperatively
  * right before a transition, so a gallery with hundreds of cards doesn't make
  * every navigation snapshot all of them.
@@ -19,10 +27,12 @@ type Pending = () => void;
 
 let activeId: string | null = null;
 let activeSrc: string | null = null;
+let activeRatio: number | null = null;
 let fromGridUrl: string | null = null;
 let pending: Pending | null = null;
 let claimed = false;
 let landed: { len: number; path: string } | null = null;
+let running: Promise<void> | null = null;
 
 export function canMorph(): boolean {
   return (
@@ -34,12 +44,15 @@ export function canMorph(): boolean {
 
 export const getActiveId = () => activeId;
 export const getActiveSrc = (id: string) => (id === activeId ? activeSrc : null);
+/** Real height/width ratio from the grid (the photo page only has a 1.5 placeholder). */
+export const getActiveRatio = (id: string) => (id === activeId ? activeRatio : null);
 /** The grid URL the active photo was opened from (for a history back). */
 export const getFromGridUrl = () => fromGridUrl;
 
-export function setActive(id: string, src: string | null, gridUrl: string | null) {
+export function setActive(id: string, src: string | null, gridUrl: string | null, ratio: number | null) {
   activeId = id;
   activeSrc = src;
+  activeRatio = ratio;
   fromGridUrl = gridUrl;
 }
 
@@ -103,15 +116,125 @@ export function morph(navigate: () => void, timeoutMs = 2500) {
           if (pending === finish) pending = null;
           resolve();
         };
-        // Slow network / destination never matched: finish as a plain crossfade.
+        // Destination never matched: finish as a plain crossfade.
         const timer = setTimeout(finish, timeoutMs);
         pending = finish;
         claimed = false;
         navigate();
       })
   );
-  vt.finished.finally(() => {
+  const done = vt.finished.catch(() => {}).finally(() => {
+    if (running === done) running = null;
     // The destination keeps no name afterwards, so the next transition starts clean.
     clearNames();
   });
+  running = done;
+}
+
+/* ------------------------------------------------------------------ overlay */
+
+let overlay: { id: string; backdrop: HTMLDivElement; img: HTMLImageElement; safety: number } | null = null;
+
+const mq = (q: string) => window.matchMedia(q).matches;
+
+/**
+ * Where the hero will sit on the photo page (app/photo/[id]/page.tsx +
+ * PhotoDetailClient), from the same layout rules: header, max-w-screen-2xl
+ * container with px-4/6/8, the text nav row, then the hero centred and capped
+ * at calc(100svh - 12rem). Any small mismatch is corrected on hand-off.
+ */
+function heroRect(ratio: number) {
+  const header = document.querySelector('header');
+  const top0 = header ? Math.max(0, header.getBoundingClientRect().bottom) : 72;
+  const md = mq('(min-width: 768px)');
+  const pad = mq('(min-width: 1024px)') ? 32 : mq('(min-width: 640px)') ? 24 : 16;
+  const docW = document.documentElement.clientWidth;
+  const contW = Math.min(docW, 1536);
+  const contL = (docW - contW) / 2;
+  const innerW = contW - pad * 2;
+  const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+  const navRow = (md ? 40 : 32) + 0.6875 * rem * 1.5; // pt-8/10 + one label line
+  const heroPad = md ? 40 : 32;
+
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:fixed;visibility:hidden;height:calc(100svh - 12rem);width:0;top:0';
+  document.body.appendChild(probe);
+  const maxH = probe.getBoundingClientRect().height;
+  probe.remove();
+
+  const w = Math.min(1600, innerW, maxH / ratio);
+  const h = w * ratio;
+  return { left: contL + pad + (innerW - w) / 2, top: top0 + navRow + heroPad, width: w, height: h, top0 };
+}
+
+/**
+ * Inside the transition's update: drop the photo onto the overlay at the
+ * hero's position. Resolves once the image is decoded (it's cached), which is
+ * when the "after" snapshot may be taken.
+ */
+export function showOverlay(id: string, src: string, ratio: number): Promise<void> {
+  removeOverlay(true);
+  const r = heroRect(ratio);
+  const bg = getComputedStyle(document.body).backgroundColor || '#fff';
+
+  const backdrop = document.createElement('div');
+  // Below the sticky header (z-50), so the header stays put.
+  backdrop.style.cssText = `position:fixed;left:0;right:0;bottom:0;top:${r.top0}px;background:${bg};z-index:45;transition:opacity .25s ease`;
+  const img = document.createElement('img');
+  img.src = src;
+  img.alt = '';
+  img.setAttribute('aria-hidden', 'true');
+  img.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;object-fit:cover;z-index:46;transition:opacity .25s ease;view-transition-name:${HERO_NAME}`;
+  document.body.append(backdrop, img);
+
+  // Never leave it stuck: page failed to load, or the user went elsewhere.
+  const safety = window.setTimeout(() => removeOverlay(), 10000);
+  overlay = { id, backdrop, img, safety };
+  window.addEventListener('popstate', onPop, { once: true });
+
+  return img.decode().catch(() => {});
+}
+
+function onPop() {
+  removeOverlay(true);
+}
+
+export const hasOverlay = (id: string) => overlay?.id === id;
+
+export function removeOverlay(instant = false) {
+  const o = overlay;
+  if (!o) return;
+  overlay = null;
+  clearTimeout(o.safety);
+  window.removeEventListener('popstate', onPop);
+  if (instant) {
+    o.backdrop.remove();
+    o.img.remove();
+    return;
+  }
+  o.backdrop.style.opacity = '0';
+  o.img.style.opacity = '0';
+  window.setTimeout(() => {
+    o.backdrop.remove();
+    o.img.remove();
+  }, 280);
+}
+
+/**
+ * The real hero has mounted (showing the same image underneath): once the
+ * flight has landed and the hero's image is decoded, line the overlay up with
+ * the hero's exact box and fade it out.
+ */
+export async function handOff(id: string, hero: HTMLElement | null, heroImg: HTMLImageElement | null) {
+  if (!hero || overlay?.id !== id) return;
+  const o = overlay;
+  // Removing the destination mid-flight would cancel the animation.
+  if (running) await running;
+  if (heroImg && !heroImg.complete) await heroImg.decode().catch(() => {});
+  if (overlay !== o) return;
+  const r = hero.getBoundingClientRect();
+  o.img.style.transition = 'left .2s ease, top .2s ease, width .2s ease, height .2s ease, opacity .25s ease';
+  o.img.style.viewTransitionName = '';
+  Object.assign(o.img.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` });
+  window.setTimeout(() => removeOverlay(), 200);
 }

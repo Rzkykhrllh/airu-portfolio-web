@@ -603,6 +603,15 @@ it back into its card. Built on the browser View Transitions API, no library
 - `lib/photoTransition.ts`: `morph(navigate)` wraps a navigation in
   `document.startViewTransition` and waits for the destination to call
   `arrived()` (2.5s / 1.5s timeout → plain crossfade).
+- Forward never waits for the server (the photo page is force-dynamic; waiting
+  froze the screen and, past the timeout, the photo vanished mid-flight). The
+  photo lands on a temporary overlay outside the route tree (page-coloured
+  backdrop under the header + the image at the hero's computed box); when the
+  real hero mounts it takes over underneath and the overlay snaps to its exact
+  box and fades. Removing a destination mid-flight cancels a view transition,
+  so the hand-off waits for the animation to finish.
+- Hero box uses the card's real ratio (the page only has a 1.5 placeholder), and
+  its placeholder no longer fades out under the full image (no crossfade dip).
 - Only one element ever carries `view-transition-name: photo-hero`, set
   imperatively right before the transition (a grid can hold hundreds of cards).
 - The hero starts from the card's already-decoded image (`currentSrc` handoff),

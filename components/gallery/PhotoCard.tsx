@@ -16,6 +16,7 @@ import {
   morph,
   name,
   setActive,
+  showOverlay,
 } from '@/lib/photoTransition';
 
 interface PhotoCardProps {
@@ -67,8 +68,16 @@ export default function PhotoCard({ photo, priority = false, collectionSlug, set
     name(boxRef.current);
     // Hand the already-decoded thumbnail to the photo page so the hero has a
     // sharp image in its first frame instead of a blur.
-    setActive(photo.id, imgRef.current?.currentSrc || null, window.location.pathname + window.location.search);
-    morph(() => router.push(photoUrl));
+    const src = imgRef.current?.currentSrc || photo.src.medium;
+    setActive(photo.id, src, window.location.pathname + window.location.search, photo.aspectRatio);
+    // Land on the overlay right away; the real page takes over when it arrives.
+    morph(() => {
+      // "Before" snapshot is taken; the card (still in the DOM until the new
+      // page commits) must give up the name so the overlay is the only holder.
+      clearNames();
+      router.push(photoUrl);
+      showOverlay(photo.id, src, photo.aspectRatio).finally(arrived);
+    });
   };
 
   return (

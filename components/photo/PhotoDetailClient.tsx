@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Photo } from '@/types';
 import Lightbox from '@/components/ui/Lightbox';
 import { getNextPhoto, getPreviousPhoto, getPhotoById } from '@/lib/data';
-import { HERO_ATTR, arrived, claim, getActiveId, getActiveSrc, isPending, markLanded, name } from '@/lib/photoTransition';
+import { HERO_ATTR, getActiveId, getActiveRatio, getActiveSrc, handOff, markLanded } from '@/lib/photoTransition';
 
 interface PhotoDetailClientProps {
   photo: Photo;
@@ -22,18 +22,17 @@ function HeroImage({ photo, onOpen }: { photo: Photo; onOpen: () => void }) {
   const boxRef = useRef<HTMLButtonElement>(null);
   const placeholderRef = useRef<HTMLImageElement>(null);
   // Opened by tapping a grid card: start from that card's already-loaded image
-  // (sharp, from cache) instead of the blurred thumbnail.
+  // (sharp, from cache) instead of the blurred thumbnail, and size the box with
+  // the card's real ratio (photo.aspectRatio here is only a 1.5 placeholder).
   const [handoffSrc] = useState(() => getActiveSrc(photo.id));
+  const [ratio] = useState(() => getActiveRatio(photo.id) ?? photo.aspectRatio);
 
-  // Destination of the grid -> photo morph (lib/photoTransition.ts).
+  // Grid -> photo morph landed on a temporary overlay (lib/photoTransition.ts);
+  // take over from it now that the real hero is here.
   useLayoutEffect(() => {
-    if (getActiveId() === photo.id) markLanded();
-    if (!isPending() || getActiveId() !== photo.id) return;
-    claim();
-    name(boxRef.current);
-    const img = placeholderRef.current;
-    const ready = img?.complete ? Promise.resolve() : img?.decode?.() ?? Promise.resolve();
-    ready.catch(() => {}).finally(arrived);
+    if (getActiveId() !== photo.id) return;
+    markLanded();
+    handOff(photo.id, boxRef.current, placeholderRef.current);
   }, [photo.id]);
 
   return (
@@ -51,15 +50,15 @@ function HeroImage({ photo, onOpen }: { photo: Photo; onOpen: () => void }) {
         src={handoffSrc || photo.src.thumbnail}
         alt=""
         aria-hidden="true"
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
-          handoffSrc ? '' : 'scale-105 blur-xl'
-        } ${loaded ? 'opacity-0' : 'opacity-100'}`}
+        // Stays underneath (no fade-out): the full image fades in on top, so
+        // there's no mid-crossfade dip where both are half transparent.
+        className={`absolute inset-0 w-full h-full object-cover ${handoffSrc ? '' : 'scale-105 blur-xl'}`}
       />
       <Image
         src={photo.src.full}
         alt={photo.title || (photo.location ? `Photograph from ${photo.location}` : 'Photograph by Airu')}
         width={1600}
-        height={Math.round(1600 * photo.aspectRatio)}
+        height={Math.round(1600 * ratio)}
         sizes="(min-width: 1536px) 1472px, 100vw"
         className={`relative block w-auto h-auto max-w-full max-h-[calc(100svh-12rem)] transition-opacity duration-500 motion-reduce:transition-none ${
           loaded ? 'opacity-100' : 'opacity-0'
