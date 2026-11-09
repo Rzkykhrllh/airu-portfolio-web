@@ -178,8 +178,10 @@ export function showOverlay(id: string, src: string, ratio: number): Promise<voi
   const bg = getComputedStyle(document.body).backgroundColor || '#fff';
 
   const backdrop = document.createElement('div');
-  // Below the sticky header (z-50), so the header stays put.
-  backdrop.style.cssText = `position:fixed;left:0;right:0;bottom:0;top:${r.top0}px;background:${bg};z-index:45;transition:opacity .25s ease`;
+  // Full screen but below the sticky header (z-50): the header is translucent
+  // (bg 88% + blur), so the backdrop must sit behind it too — otherwise the
+  // header keeps showing the old grid through it and reads as a different colour.
+  backdrop.style.cssText = `position:fixed;inset:0;background:${bg};z-index:45;transition:opacity .25s ease`;
   const img = document.createElement('img');
   img.src = src;
   img.alt = '';
