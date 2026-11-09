@@ -61,6 +61,16 @@ export default function PhotoCard({ photo, priority = false, collectionSlug, set
     return () => window.clearTimeout(tick);
   }, [settled, photo.id]);
 
+  // Fetch the (force-dynamic) photo page as soon as the pointer is on the card
+  // — hover on desktop, touchstart on phones — so it's usually ready by the
+  // time the morph lands. Link's own viewport prefetch skips dynamic data.
+  const prefetched = useRef(false);
+  const prefetch = () => {
+    if (prefetched.current) return;
+    prefetched.current = true;
+    router.prefetch(photoUrl, { kind: 'full' } as Parameters<typeof router.prefetch>[1]);
+  };
+
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0 || !canMorph()) return;
     e.preventDefault();
@@ -81,7 +91,13 @@ export default function PhotoCard({ photo, priority = false, collectionSlug, set
   };
 
   return (
-    <Link href={photoUrl} onClick={handleClick} className="block relative group w-full">
+    <Link
+      href={photoUrl}
+      onClick={handleClick}
+      onPointerEnter={prefetch}
+      onTouchStart={prefetch}
+      className="block relative group w-full"
+    >
       <div
         ref={boxRef}
         {...{ [HERO_ATTR]: '' }}

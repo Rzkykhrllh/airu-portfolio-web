@@ -25,7 +25,14 @@ function HeroImage({ photo, onOpen }: { photo: Photo; onOpen: () => void }) {
   // (sharp, from cache) instead of the blurred thumbnail, and size the box with
   // the card's real ratio (photo.aspectRatio here is only a 1.5 placeholder).
   const [handoffSrc] = useState(() => getActiveSrc(photo.id));
-  const [ratio] = useState(() => getActiveRatio(photo.id) ?? photo.aspectRatio);
+  const [knownRatio] = useState(() => getActiveRatio(photo.id));
+  const ratio = knownRatio ?? photo.aspectRatio;
+  // With a known ratio, give the box its final size up front: an <img> with
+  // w-auto/h-auto is 0×0 until the full file arrives, which made the morph
+  // overlay shrink to nothing. Same caps as below (container, 100svh-12rem, 1600px).
+  const boxStyle = knownRatio
+    ? { width: `min(100%, calc((100svh - 12rem) / ${knownRatio}), 1600px)`, aspectRatio: `1 / ${knownRatio}` }
+    : undefined;
 
   // Grid -> photo morph landed on a temporary overlay (lib/photoTransition.ts);
   // take over from it now that the real hero is here.
@@ -42,7 +49,8 @@ function HeroImage({ photo, onOpen }: { photo: Photo; onOpen: () => void }) {
       ref={boxRef}
       {...{ [HERO_ATTR]: '', 'data-photo-hero-main': '' }}
       onClick={onOpen}
-      className="relative block mx-auto w-fit max-w-full overflow-hidden cursor-zoom-in"
+      style={boxStyle}
+      className={`relative block mx-auto max-w-full overflow-hidden cursor-zoom-in ${boxStyle ? '' : 'w-fit'}`}
       aria-label="View fullscreen"
     >
       <img
@@ -60,9 +68,9 @@ function HeroImage({ photo, onOpen }: { photo: Photo; onOpen: () => void }) {
         width={1600}
         height={Math.round(1600 * ratio)}
         sizes="(min-width: 1536px) 1472px, 100vw"
-        className={`relative block w-auto h-auto max-w-full max-h-[calc(100svh-12rem)] transition-opacity duration-500 motion-reduce:transition-none ${
-          loaded ? 'opacity-100' : 'opacity-0'
-        }`}
+        className={`relative block transition-opacity duration-500 motion-reduce:transition-none ${
+          boxStyle ? 'w-full h-full object-cover' : 'w-auto h-auto max-w-full max-h-[calc(100svh-12rem)]'
+        } ${loaded ? 'opacity-100' : 'opacity-0'}`}
         onLoad={() => setLoaded(true)}
         priority
       />
