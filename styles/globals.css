@@ -133,15 +133,7 @@ img {
   cursor: none;
 }
 
-/* Collection card -> collection page (lib/pageLeave.ts): fade out at once,
-   fade back in when the new page commits. */
-main {
-  transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-}
-html[data-leaving] main {
-  opacity: 0;
-  transition: opacity 0.16s cubic-bezier(0.4, 0, 1, 1);
-}
+/* Collection heading entrance (CollectionView, opened from a card). */
 @keyframes rise {
   from { opacity: 0; transform: translateY(14px); }
 }
@@ -155,4 +147,36 @@ html[data-leaving] main {
 /* Grid -> photo morph waiting on the overlay (lib/photoTransition.ts). */
 html.morph-lock {
   overflow: hidden;
+}
+
+/* Loading placeholders: the photo morph overlay (lib/photoTransition.ts) and
+   app/collections/[slug]/loading.tsx. Fade in only after a beat, so fast
+   loads never flash them; then a slow breathing pulse. */
+.vt-skeleton,
+.skeleton {
+  opacity: 0;
+  animation: skeleton-in 0.3s ease 0.2s forwards;
+}
+.vt-skeleton-bar {
+  position: absolute;
+}
+.vt-skeleton-bar,
+.skeleton-bar {
+  border-radius: 2px;
+  background: rgb(115 115 115 / 0.16);
+  animation: skeleton-pulse 1.6s ease-in-out 0.5s infinite;
+}
+.dark .vt-skeleton-bar,
+.dark .skeleton-bar {
+  background: rgb(163 163 163 / 0.12);
+}
+@keyframes skeleton-in {
+  to { opacity: 1; }
+}
+@keyframes skeleton-pulse {
+  50% { opacity: 0.45; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vt-skeleton-bar,
+  .skeleton-bar { animation: none; }
 }

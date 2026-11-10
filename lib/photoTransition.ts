@@ -164,7 +164,46 @@ function heroRect(ratio: number) {
 
   const w = Math.min(1600, innerW, maxH / ratio);
   const h = w * ratio;
-  return { left: contL + pad + (innerW - w) / 2, top: top0 + navRow + heroPad, width: w, height: h, top0 };
+  return {
+    left: contL + pad + (innerW - w) / 2,
+    top: top0 + navRow + heroPad,
+    width: w,
+    height: h,
+    top0,
+    // For the skeleton (see skeleton()).
+    contLeft: contL + pad,
+    innerW,
+    navTop: top0 + navRow - 0.6875 * rem * 1.5,
+    labelH: 0.6875 * rem * 1.5,
+    md,
+  };
+}
+
+/**
+ * Grey placeholder bars where the photo page's text will appear (the nav row
+ * above the photo, "View fullscreen" and the title below it), so a landed
+ * photo doesn't read as a finished page. They only fade in after a short
+ * delay (CSS .vt-skeleton), so a fast page never flashes them.
+ */
+function skeleton(r: ReturnType<typeof heroRect>): HTMLDivElement {
+  const wrap = document.createElement('div');
+  wrap.className = 'vt-skeleton';
+  const bar = (left: number, top: number, width: number, height: number) => {
+    const b = document.createElement('div');
+    b.className = 'vt-skeleton-bar';
+    b.style.cssText = `left:${left}px;top:${top}px;width:${width}px;height:${height}px`;
+    wrap.appendChild(b);
+  };
+  const line = 8;
+  const navMid = r.navTop + (r.labelH - line) / 2;
+  bar(r.contLeft, navMid, 84, line); // ← Gallery
+  bar(r.contLeft + r.innerW - 128, navMid, 128, line); // ← Prev  Next →
+  const below = r.top + r.height + 16;
+  bar(r.left + r.width / 2 - 56, below + (r.labelH - line) / 2, 112, line); // View fullscreen
+  const text = below + r.labelH + (r.md ? 80 : 56);
+  bar(r.contLeft, text, 150, line); // eyebrow
+  bar(r.contLeft, text + line + 20, Math.min(r.innerW * 0.55, 520), r.md ? 52 : 40); // title
+  return wrap;
 }
 
 /**
@@ -187,6 +226,7 @@ export function showOverlay(id: string, src: string, ratio: number): Promise<voi
   img.alt = '';
   img.setAttribute('aria-hidden', 'true');
   img.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;object-fit:cover;z-index:46;transition:opacity .25s ease;view-transition-name:${HERO_NAME}`;
+  backdrop.appendChild(skeleton(r));
   document.body.append(backdrop, img);
   lock();
 

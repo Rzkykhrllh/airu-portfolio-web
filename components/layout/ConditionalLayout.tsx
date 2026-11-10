@@ -2,7 +2,7 @@
 
 import { useLayoutEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { arrive } from '@/lib/pageLeave';
+import { doneProgress } from '@/lib/navProgress';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
@@ -14,9 +14,9 @@ export default function ConditionalLayout({
   const pathname = usePathname();
   const isAdminRoute = pathname?.startsWith('/admin');
 
-  // New page committed: fade it in (see lib/pageLeave.ts).
+  // New page committed: finish the header loading line.
   useLayoutEffect(() => {
-    arrive();
+    doneProgress();
   }, [pathname]);
 
   if (isAdminRoute) {

@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 import Logo from '@/components/ui/Logo';
+import NavProgress from '@/components/ui/NavProgress';
 
 const navLinks = [
   { href: '/', label: 'Gallery' },
@@ -105,6 +106,7 @@ export default function Header() {
           </motion.div>
         )}
       </AnimatePresence>
+      <NavProgress />
     </header>
   );
 }

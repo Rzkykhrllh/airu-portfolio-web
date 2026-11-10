@@ -6,6 +6,7 @@ import { Photo } from '@/types';
 import Lightbox from '@/components/ui/Lightbox';
 import { getNeighbors, getPhotoById } from '@/lib/data';
 import { photoSrcSet } from '@/lib/photoSrc';
+import { startProgress } from '@/lib/navProgress';
 import { HERO_ATTR, getActiveId, getActiveRatio, getActiveSrc, handOff, markLanded } from '@/lib/photoTransition';
 
 interface PhotoDetailClientProps {
@@ -188,6 +189,7 @@ export default function PhotoDetailClient({ photo, nextPhotoId, prevPhotoId }: P
     setIsLightboxOpen(false);
     // Rerender (push) If navigated different photo, else just remove fullscreen param
     if (currentPhoto.id !== photo.id) {
+      startProgress();
       router.push(buildPhotoUrl(currentPhoto.id, false));
     } else {
       window.history.pushState(null, '', buildPhotoUrl(currentPhoto.id, false));
@@ -201,8 +203,10 @@ export default function PhotoDetailClient({ photo, nextPhotoId, prevPhotoId }: P
       if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
       const t = e.target as HTMLElement | null;
       if (t && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName))) return;
-      if (e.key === 'ArrowRight' && nextPhotoId) router.push(buildPhotoUrl(nextPhotoId));
-      if (e.key === 'ArrowLeft' && prevPhotoId) router.push(buildPhotoUrl(prevPhotoId));
+      const target = e.key === 'ArrowRight' ? nextPhotoId : e.key === 'ArrowLeft' ? prevPhotoId : undefined;
+      if (!target) return;
+      startProgress();
+      router.push(buildPhotoUrl(target));
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
