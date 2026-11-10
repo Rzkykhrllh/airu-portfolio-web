@@ -153,7 +153,7 @@ function heroRect(ratio: number) {
   const contL = (docW - contW) / 2;
   const innerW = contW - pad * 2;
   const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-  const navRow = (md ? 40 : 32) + 0.6875 * rem * 1.5; // pt-8/10 + one label line
+  const navRow = (md ? 20 : 16) + 0.6875 * rem * 1.5; // pt-4/5 + one label line
   const heroPad = md ? 40 : 32;
 
   const probe = document.createElement('div');

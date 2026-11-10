@@ -161,7 +161,7 @@ export default async function PhotoPage({ params, searchParams }: PhotoPageProps
       />
 
       {/* Top bar — text only */}
-      <nav className="flex items-center justify-between pt-8 md:pt-10" aria-label="Photo navigation">
+      <nav className="flex items-center justify-between pt-4 md:pt-5" aria-label="Photo navigation">
         <BackLink href={backUrl} className={labelLink}>
           ← {backName}
         </BackLink>
