@@ -22,8 +22,6 @@
 
 export const HERO_NAME = 'photo-hero';
 export const HERO_ATTR = 'data-photo-hero';
-/** Collection card title -> collection page heading (paired with the cover morph). */
-export const TITLE_NAME = 'collection-title';
 
 type Pending = () => void;
 
@@ -35,18 +33,6 @@ let pending: Pending | null = null;
 let claimed = false;
 let landed: { len: number; path: string } | null = null;
 let running: Promise<void> | null = null;
-let titlePending = false;
-
-/** A collection card was opened: its title should grow into the page heading. */
-export function setTitleMorph() {
-  titlePending = true;
-}
-/** One-shot: does the incoming collection page's heading take part? */
-export function takeTitleMorph(): boolean {
-  const t = titlePending;
-  titlePending = false;
-  return t;
-}
 
 export function canMorph(): boolean {
   return (
@@ -139,7 +125,6 @@ export function morph(navigate: () => void, timeoutMs = 2500) {
   );
   const done = vt.finished.catch(() => {}).finally(() => {
     if (running === done) running = null;
-    titlePending = false;
     // The destination keeps no name afterwards, so the next transition starts clean.
     clearNames();
   });

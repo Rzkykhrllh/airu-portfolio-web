@@ -19,7 +19,7 @@ export default function ViewCursor() {
 
     const root = document.documentElement;
     root.classList.add('has-view-cursor');
-    const ease = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : 0.22;
+    const ease = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : 0.4;
 
     let x = 0;
     let y = 0;
@@ -90,7 +90,7 @@ export default function ViewCursor() {
       className="group/cursor pointer-events-none fixed left-0 top-0 z-[60] hidden [@media(hover:hover)_and_(pointer:fine)]:block"
     >
       <div className="-translate-x-1/2 -translate-y-1/2">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/85 text-neutral-900 shadow-[0_4px_24px_rgba(0,0,0,0.12)] backdrop-blur-md scale-50 opacity-0 transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-data-[on=true]/cursor:scale-100 group-data-[on=true]/cursor:opacity-100 motion-reduce:transition-none">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-neutral-900 shadow-[0_4px_24px_rgba(0,0,0,0.12)] scale-50 opacity-0 transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-data-[on=true]/cursor:scale-100 group-data-[on=true]/cursor:opacity-100 motion-reduce:transition-none">
           <span ref={labelRef} className="text-[0.5625rem] uppercase tracking-[0.2em] pl-[0.2em]">
             View
           </span>

@@ -103,15 +103,6 @@ img {
   animation-duration: 0.6s;
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
-::view-transition-group(collection-title) {
-  animation-duration: 0.6s;
-  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-}
-::view-transition-old(collection-title),
-::view-transition-new(collection-title) {
-  animation-duration: 0.6s;
-}
-
 /* Fade-through, not a crossfade: the old page is gone before the new one
    comes in, so the two layouts never sit on top of each other while the
    photo / title fly above them. */
@@ -140,4 +131,23 @@ img {
 .has-view-cursor [data-cursor],
 .has-view-cursor [data-cursor] * {
   cursor: none;
+}
+
+/* Collection card -> collection page (lib/pageLeave.ts): fade out at once,
+   fade back in when the new page commits. */
+main {
+  transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+html[data-leaving] main {
+  opacity: 0;
+  transition: opacity 0.16s cubic-bezier(0.4, 0, 1, 1);
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+}
+.animate-rise {
+  animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise { animation: none; }
 }
