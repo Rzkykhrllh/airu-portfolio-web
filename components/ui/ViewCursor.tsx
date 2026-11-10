@@ -59,7 +59,8 @@ export default function ViewCursor() {
       if (e.pointerType !== 'mouse') return;
       x = e.clientX;
       y = e.clientY;
-      setOn(labelAt(e.target));
+      // Not over the grid that's being left behind a photo morph.
+      setOn(root.classList.contains('morph-lock') ? null : labelAt(e.target));
       if (!raf) raf = requestAnimationFrame(loop);
     };
     // Scrolling moves things under a still pointer: just hide (no hit-testing

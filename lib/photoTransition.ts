@@ -291,18 +291,28 @@ export function removeOverlay(instant = false) {
  * flight has landed and the hero's image is decoded, line the overlay up with
  * the hero's exact box and fade it out.
  */
+const nextPaint = () =>
+  new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+
 export async function handOff(id: string, hero: HTMLElement | null, heroImg: HTMLImageElement | null) {
   if (!hero || overlay?.id !== id) return;
   const o = overlay;
-  // The real page is here: its own scrollbar may show again.
-  unlock();
   // Removing the destination mid-flight would cancel the animation.
   if (running) await running;
-  if (heroImg && !heroImg.complete) await heroImg.decode().catch(() => {});
+  // Always decode, even when `complete`: a cached image can still be
+  // undecoded at its new size, and the browser then paints nothing for it.
+  // Then let the real page actually paint before the overlay starts to go —
+  // dropping it a frame early showed a blank page for ~170ms.
+  if (heroImg) await heroImg.decode().catch(() => {});
+  await nextPaint();
   if (overlay !== o) return;
-  const r = hero.getBoundingClientRect();
-  o.img.style.transition = 'left .2s ease, top .2s ease, width .2s ease, height .2s ease, opacity .25s ease';
-  o.img.style.viewTransitionName = '';
-  Object.assign(o.img.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` });
-  window.setTimeout(() => removeOverlay(), 200);
+  // The real page is on screen under the overlay: give it its scrollbar back
+  // (the overlay still covers that one-frame relayout).
+  unlock();
+  await nextPaint();
+  if (overlay !== o) return;
+  // The overlay sits exactly on the hero (same layout maths), so just fade
+  // it: moving/resizing it first read as the photo being cut off.
+  if (o.img) o.img.style.viewTransitionName = '';
+  removeOverlay();
 }
