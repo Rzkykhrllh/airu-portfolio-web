@@ -26,7 +26,6 @@ export default function ViewCursor() {
     let cx = 0;
     let cy = 0;
     let raf = 0;
-    let on = false;
 
     const place = () => {
       el.style.transform = `translate3d(${cx}px, ${cy}px, 0)`;
@@ -37,9 +36,12 @@ export default function ViewCursor() {
       place();
       raf = Math.abs(x - cx) + Math.abs(y - cy) > 0.2 ? requestAnimationFrame(loop) : 0;
     };
+    let current: string | null = null;
+    // Touch the DOM only when something actually changes.
     const setOn = (label: string | null) => {
+      if (label === current) return;
       if (label) {
-        if (!on) {
+        if (!current) {
           // Appear right under the pointer, not flying in from the last spot.
           cx = x;
           cy = y;
@@ -47,8 +49,8 @@ export default function ViewCursor() {
         }
         labelEl.textContent = label;
       }
-      on = !!label;
-      el.dataset.on = on ? 'true' : 'false';
+      current = label;
+      el.dataset.on = label ? 'true' : 'false';
     };
     const labelAt = (target: EventTarget | null) =>
       target instanceof Element ? target.closest('[data-cursor]')?.getAttribute('data-cursor') ?? null : null;
@@ -60,9 +62,11 @@ export default function ViewCursor() {
       setOn(labelAt(e.target));
       if (!raf) raf = requestAnimationFrame(loop);
     };
-    // Scrolling moves things under a still pointer.
+    // Scrolling moves things under a still pointer: just hide (no hit-testing
+    // per scroll event — that forced a layout on every one); the next
+    // pointermove brings it back.
     const onScroll = () => {
-      if (on || x || y) setOn(labelAt(document.elementFromPoint(x, y)));
+      if (current) setOn(null);
     };
     const hide = () => setOn(null);
 

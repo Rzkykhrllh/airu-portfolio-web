@@ -5,7 +5,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { leave } from '@/lib/pageLeave';
-import { resolveAspectRatios } from '@/lib/resolveAspectRatio';
 import { Collection, Photo } from '@/types';
 import { photoYear } from '@/lib/format';
 import { cropWrapperStyle } from '@/lib/coverCrop';
@@ -79,14 +78,12 @@ export default function CollectionCard({ collection, index, priority = false }: 
   const href = `/collections/${collection.slug}`;
   const router = useRouter();
 
-  // Warm up on hover/touch: the page data, and every photo's aspect ratio
-  // (the grid can't lay out until it knows them).
+  // Fetch the (force-dynamic) collection page on hover/touch.
   const warmed = useRef(false);
   const warm = () => {
     if (warmed.current) return;
     warmed.current = true;
     router.prefetch(href, { kind: 'full' } as Parameters<typeof router.prefetch>[1]);
-    resolveAspectRatios(photos).catch(() => {});
   };
 
   // Fade this page out right away; the collection fades in as soon as it's here.
