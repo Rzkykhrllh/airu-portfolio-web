@@ -151,3 +151,8 @@ html[data-leaving] main {
 @media (prefers-reduced-motion: reduce) {
   .animate-rise { animation: none; }
 }
+
+/* Grid -> photo morph waiting on the overlay (lib/photoTransition.ts). */
+html.morph-lock {
+  overflow: hidden;
+}

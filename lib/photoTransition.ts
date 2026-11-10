@@ -188,6 +188,7 @@ export function showOverlay(id: string, src: string, ratio: number): Promise<voi
   img.setAttribute('aria-hidden', 'true');
   img.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;object-fit:cover;z-index:46;transition:opacity .25s ease;view-transition-name:${HERO_NAME}`;
   document.body.append(backdrop, img);
+  lock();
 
   // Never leave it stuck: page failed to load, or the user went elsewhere.
   const safety = window.setTimeout(() => removeOverlay(), 10000);
@@ -201,12 +202,35 @@ function onPop() {
   removeOverlay(true);
 }
 
+/**
+ * While waiting, the page behind is still the (long) gallery: hide its
+ * scrollbar and stop it scrolling under the overlay. Padding takes the
+ * scrollbar's place so nothing shifts sideways (scrollbar-gutter doesn't
+ * apply to the site's custom-styled scrollbar).
+ */
+function lock() {
+  const root = document.documentElement;
+  // Measure first: Chrome doesn't update clientWidth for a scrollbar change
+  // synchronously, so a before/after diff reads 0.
+  const bar = window.innerWidth - root.clientWidth;
+  root.classList.add('morph-lock');
+  if (bar > 0) root.style.paddingRight = `${bar}px`;
+}
+
+function unlock() {
+  const root = document.documentElement;
+  if (!root.classList.contains('morph-lock')) return;
+  root.classList.remove('morph-lock');
+  root.style.paddingRight = '';
+}
+
 export const hasOverlay = (id: string) => overlay?.id === id;
 
 export function removeOverlay(instant = false) {
   const o = overlay;
   if (!o) return;
   overlay = null;
+  unlock();
   clearTimeout(o.safety);
   window.removeEventListener('popstate', onPop);
   if (instant) {
@@ -230,6 +254,8 @@ export function removeOverlay(instant = false) {
 export async function handOff(id: string, hero: HTMLElement | null, heroImg: HTMLImageElement | null) {
   if (!hero || overlay?.id !== id) return;
   const o = overlay;
+  // The real page is here: its own scrollbar may show again.
+  unlock();
   // Removing the destination mid-flight would cancel the animation.
   if (running) await running;
   if (heroImg && !heroImg.complete) await heroImg.decode().catch(() => {});
