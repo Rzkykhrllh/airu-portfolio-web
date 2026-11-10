@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Photo } from '@/types';
 import Lightbox from '@/components/ui/Lightbox';
@@ -135,9 +135,11 @@ export default function PhotoDetailClient({ photo, nextPhotoId, prevPhotoId }: P
   const known = neighbors?.id === currentPhoto.id ? neighbors : null;
   // Before the list arrives, fall back to what the server rendered (only
   // valid for the page's own photo).
-  const lightboxNeighbors = useMemo(() => (known ? [known.next, known.prev] : undefined), [known]);
-  const hasNext = known ? !!known.next : currentPhoto.id === photo.id && !!nextPhotoId;
-  const hasPrev = known ? !!known.prev : currentPhoto.id === photo.id && !!prevPhotoId;
+  // While another photo's neighbours load (a few ms, from the cached list),
+  // assume there are some: the lightbox queues fast clicks on these, and
+  // goTo() simply does nothing if there turns out to be none.
+  const hasNext = known ? !!known.next : currentPhoto.id === photo.id ? !!nextPhotoId : true;
+  const hasPrev = known ? !!known.prev : currentPhoto.id === photo.id ? !!prevPhotoId : true;
 
   // Handle browser back/forward buttons
   useEffect(() => {
@@ -235,7 +237,8 @@ export default function PhotoDetailClient({ photo, nextPhotoId, prevPhotoId }: P
         isOpen={isLightboxOpen}
         onClose={handleCloseLightbox}
         photo={currentPhoto}
-        neighbors={lightboxNeighbors}
+        prevPhoto={known?.prev}
+        nextPhoto={known?.next}
         onNext={handleNext}
         onPrev={handlePrev}
       />
