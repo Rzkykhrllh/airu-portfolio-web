@@ -9,6 +9,9 @@ import { photoSrcSet } from '@/lib/photoSrc';
 import { startProgress } from '@/lib/navProgress';
 import { HERO_ATTR, getActiveId, getActiveRatio, getActiveSrc, handOff, markLanded } from '@/lib/photoTransition';
 
+// The fullscreen view grows out of (and shrinks back into) the hero.
+const heroBox = () => document.querySelector<HTMLElement>('[data-photo-hero-main]');
+
 interface PhotoDetailClientProps {
   photo: Photo;
   nextPhotoId?: string;
@@ -241,6 +244,7 @@ export default function PhotoDetailClient({ photo, nextPhotoId, prevPhotoId }: P
         nextPhoto={known?.next}
         onNext={handleNext}
         onPrev={handlePrev}
+        getOrigin={heroBox}
       />
     </>
   );
