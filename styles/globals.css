@@ -103,9 +103,29 @@ img {
   animation-duration: 0.6s;
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
-::view-transition-old(root),
+::view-transition-group(collection-title) {
+  animation-duration: 0.6s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+::view-transition-old(collection-title),
+::view-transition-new(collection-title) {
+  animation-duration: 0.6s;
+}
+
+/* Fade-through, not a crossfade: the old page is gone before the new one
+   comes in, so the two layouts never sit on top of each other while the
+   photo / title fly above them. */
+::view-transition-old(root) {
+  animation: 0.18s cubic-bezier(0.4, 0, 1, 1) both vt-fade-out;
+}
 ::view-transition-new(root) {
-  animation-duration: 0.35s;
+  animation: 0.3s cubic-bezier(0, 0, 0.2, 1) 0.14s both vt-fade-in;
+}
+@keyframes vt-fade-out {
+  to { opacity: 0; }
+}
+@keyframes vt-fade-in {
+  from { opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
@@ -113,4 +133,11 @@ img {
   ::view-transition-new(*) {
     animation: none !important;
   }
+}
+
+/* Custom "View" cursor (components/ui/ViewCursor.tsx) replaces the arrow on
+   photos — only once the component is live on a hover/mouse device. */
+.has-view-cursor [data-cursor],
+.has-view-cursor [data-cursor] * {
+  cursor: none;
 }

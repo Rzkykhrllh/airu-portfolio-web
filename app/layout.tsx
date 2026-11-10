@@ -4,6 +4,7 @@ import ConditionalLayout from '@/components/layout/ConditionalLayout';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import AnalyticsConsent from '@/components/analytics/AnalyticsConsent';
 import '@/styles/globals.css';
+import ViewCursor from '@/components/ui/ViewCursor';
 
 // Was referenced by name ("'Cormorant Garamond', serif") in the logo and
 // nowhere ever loaded — silently falling back to the browser's default
@@ -44,6 +45,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <ConditionalLayout>{children}</ConditionalLayout>
         </ThemeProvider>
+        <ViewCursor />
         <AnalyticsConsent />
       </body>
     </html>

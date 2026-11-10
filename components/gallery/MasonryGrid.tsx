@@ -114,7 +114,9 @@ export default function MasonryGrid({
 
   // Captured once per mount, not read live — avoids catching the flag mid-flip
   // from the effect below on the re-render right after mount.
-  const skipEntranceRef = useRef(hasAnimatedOnce);
+  // Also skip it when arriving mid-morph: the destination card must be fully
+  // visible for the "after" snapshot.
+  const skipEntranceRef = useRef(hasAnimatedOnce || isPending());
   const skipEntrance = skipEntranceRef.current;
 
   useEffect(() => {

@@ -29,6 +29,11 @@ interface PhotoCardProps {
 
 export default function PhotoCard({ photo, priority = false, collectionSlug, settled = true }: PhotoCardProps) {
   const [loaded, setLoaded] = useState(false);
+  // Landing spot of a morph (back from the photo page, or a collection cover
+  // opening its collection): the image is already cached, so show it at once —
+  // a 900ms fade-in from the blur would play inside the flight.
+  const [instant] = useState(() => isPending() && getActiveId() === photo.id);
+  const shown = loaded || instant;
   const router = useRouter();
   const boxRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -96,6 +101,7 @@ export default function PhotoCard({ photo, priority = false, collectionSlug, set
       onClick={handleClick}
       onPointerEnter={prefetch}
       onTouchStart={prefetch}
+      data-cursor="View"
       className="block relative group w-full"
     >
       <div
@@ -110,7 +116,7 @@ export default function PhotoCard({ photo, priority = false, collectionSlug, set
           alt=""
           aria-hidden="true"
           className={`absolute inset-0 w-full h-full object-cover scale-110 blur-xl transition-opacity duration-500 ${
-            loaded ? 'opacity-0' : 'opacity-100'
+            shown ? 'opacity-0' : 'opacity-100'
           }`}
         />
         <Image
@@ -119,7 +125,7 @@ export default function PhotoCard({ photo, priority = false, collectionSlug, set
           alt={photo.title || 'Photograph by Airu'}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          className={`object-cover transition-[opacity,transform] duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.02] motion-reduce:transition-none ${loaded ? 'opacity-100' : 'opacity-0'}`}
+          className={`object-cover transition-[opacity,transform] duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.02] motion-reduce:transition-none ${shown ? 'opacity-100' : 'opacity-0'}`}
           priority={priority}
           onLoad={() => setLoaded(true)}
         />

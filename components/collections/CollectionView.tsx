@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import MasonryGrid, { ColumnPrefs, DEFAULT_COLUMN_PREFS } from '@/components/gallery/MasonryGrid';
 import ZoomControls from '@/components/gallery/ZoomControls';
 import { resolveAspectRatios } from '@/lib/resolveAspectRatio';
 import { photoYear } from '@/lib/format';
 import { Photo, Collection } from '@/types';
+import { HERO_ATTR, TITLE_NAME, isPending, takeTitleMorph } from '@/lib/photoTransition';
 
 interface CollectionViewProps {
   collection: Collection;
@@ -15,6 +16,14 @@ interface CollectionViewProps {
 }
 
 export default function CollectionView({ collection, photos, slug }: CollectionViewProps) {
+  // Opened from a collection card mid-morph: the card's title grows into this heading.
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  useLayoutEffect(() => {
+    if (isPending() && takeTitleMorph() && titleRef.current) {
+      titleRef.current.style.viewTransitionName = TITLE_NAME;
+    }
+  }, []);
+
   const [columnPrefs, setColumnPrefs] = useState<ColumnPrefs>(DEFAULT_COLUMN_PREFS);
 
   // Same fix as GalleryView — see lib/resolveAspectRatio.ts.
@@ -54,7 +63,10 @@ export default function CollectionView({ collection, photos, slug }: CollectionV
           ← Collections
         </Link>
         <div className="mt-6 flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
-          <h1 className="font-display font-normal text-5xl sm:text-6xl lg:text-[5rem] leading-[0.95] tracking-[-0.01em] text-neutral-900 dark:text-neutral-100">
+          <h1
+            ref={titleRef}
+            {...{ [HERO_ATTR]: '' }}
+            className="font-display font-normal text-5xl sm:text-6xl lg:text-[5rem] leading-[0.95] tracking-[-0.01em] text-neutral-900 dark:text-neutral-100">
             {collection.title}.
           </h1>
           {photos.length > 0 && (
