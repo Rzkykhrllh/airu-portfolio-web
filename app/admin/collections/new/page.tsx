@@ -6,6 +6,7 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { createCollection } from '@/lib/api';
+import { SITE_URL } from '@/lib/config';
 import { ApiError } from '@/lib/fetch';
 import { useToast } from '@/components/providers/ToastProvider';
 import PageHeader from '@/components/admin/PageHeader';
@@ -90,7 +91,7 @@ export default function NewCollectionPage() {
               required
             />
             {slug && (
-              <p className="mt-1.5 text-xs text-gray-400 truncate">byairu.com/collections/{slug}</p>
+              <p className="mt-1.5 text-xs text-gray-400 truncate">{SITE_URL.replace(/^https?:\/\//, '')}/collections/{slug}</p>
             )}
           </div>
 

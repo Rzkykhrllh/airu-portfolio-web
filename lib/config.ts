@@ -15,7 +15,7 @@ export const API_BASE_URL = getApiBaseUrl();
 
 // Canonical public site URL — used for absolute URLs in metadata (Open
 // Graph, sitemap, robots), which need a full URL regardless of request host.
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://byairu.com";
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://frame.byairu.com";
 
 // GA4 Measurement ID (format G-XXXXXXXXXX). Analytics stays fully off — no
 // banner, no script, no cookies — until this is set. See .env.example for
